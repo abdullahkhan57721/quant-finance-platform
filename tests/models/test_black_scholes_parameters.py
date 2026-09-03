@@ -9,8 +9,9 @@ def test_black_scholes_parameters_normalize_volatility_and_are_immutable() -> No
     parameters = BlackScholesParameters(annualized_volatility=0.20)
 
     assert parameters.annualized_volatility == 0.20
+    attribute = "annualized_volatility"
     with pytest.raises(FrozenInstanceError):
-        setattr(parameters, "annualized_volatility", 0.25)
+        setattr(parameters, attribute, 0.25)
 
 
 @pytest.mark.parametrize(
