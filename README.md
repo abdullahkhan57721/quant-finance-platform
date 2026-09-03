@@ -10,7 +10,7 @@ The first specialization is **Equity Derivatives & Volatility Modeling**.
 
 ## Status
 
-The project is currently in **M0 — Engineering Bootstrap**. No finance-domain implementation has been added yet.
+**M0 — Engineering Bootstrap is complete.** The next milestone is **M1 — European options and Black-Scholes reference vertical**. No finance-domain implementation has been added yet.
 
 See:
 
@@ -126,7 +126,7 @@ GitHub Actions runs the same core checks for pull requests and `main`.
 
 ## Current non-goals
 
-The M0 bootstrap intentionally contains no:
+The bootstrap intentionally contains no:
 
 - Black-Scholes implementation;
 - `EuropeanOption` domain type;
