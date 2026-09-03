@@ -62,9 +62,7 @@ def test_market_environment_rejects_inconsistent_risk_free_valuation_date() -> N
         MarketEnvironment(
             valuation_date=VALUATION_DATE,
             spot=100.0,
-            risk_free_discounting=make_curve(
-                valuation_date=date(2026, 1, 2)
-            ),
+            risk_free_discounting=make_curve(valuation_date=date(2026, 1, 2)),
             dividend_discounting=make_curve(),
         )
 
@@ -75,9 +73,7 @@ def test_market_environment_rejects_inconsistent_dividend_valuation_date() -> No
             valuation_date=VALUATION_DATE,
             spot=100.0,
             risk_free_discounting=make_curve(),
-            dividend_discounting=make_curve(
-                valuation_date=date(2026, 1, 2)
-            ),
+            dividend_discounting=make_curve(valuation_date=date(2026, 1, 2)),
         )
 
 
