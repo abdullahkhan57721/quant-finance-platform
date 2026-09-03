@@ -16,8 +16,9 @@ def test_european_option_normalizes_numeric_strike_and_is_immutable() -> None:
 
     assert option.strike == 100.0
     assert isinstance(option.strike, float)
+    attribute = "strike"
     with pytest.raises(FrozenInstanceError):
-        setattr(option, "strike", 101.0)
+        setattr(option, attribute, 101.0)
 
 
 @pytest.mark.parametrize("strike", [-1.0, float("inf"), float("nan")])
