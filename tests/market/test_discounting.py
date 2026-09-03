@@ -1,5 +1,5 @@
+import math
 from datetime import date, datetime
-from math import exp
 from typing import cast
 
 import pytest
@@ -19,7 +19,7 @@ def test_flat_continuous_discount_curve_uses_continuous_compounding() -> None:
 
     factor = curve.discount_factor(ONE_YEAR)
 
-    assert factor == pytest.approx(exp(-0.05), rel=0.0, abs=1e-15)
+    assert factor == pytest.approx(math.exp(-0.05), rel=0.0, abs=1e-15)
     assert factor != pytest.approx(1.0 / 1.05, rel=0.0, abs=1e-6)
 
 
@@ -30,7 +30,7 @@ def test_flat_continuous_discount_curve_supports_negative_rates() -> None:
     )
 
     assert curve.discount_factor(ONE_YEAR) == pytest.approx(
-        exp(0.01),
+        math.exp(0.01),
         rel=0.0,
         abs=1e-15,
     )
