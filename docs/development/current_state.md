@@ -2,31 +2,32 @@
 
 ## Status
 
-The repository is in **M0 — Engineering Bootstrap**.
+**M0 — Engineering Bootstrap is complete.**
 
-Active durable work unit:
+Completed durable work unit:
 
 - Issue #1 — Bootstrap repository, quality gates, and architecture guardrails
-- Branch: `issue-1-bootstrap`
+- PR #2 — Bootstrap repository, quality gates, and architecture guardrails
 
 No finance-domain implementation has been added yet.
 
 ## What exists
 
-The bootstrap branch currently establishes:
+The repository establishes:
 
 - a `src/`-layout Python package;
 - package metadata in `pyproject.toml`;
-- pytest, Ruff, and Pyright configuration;
+- pytest, Ruff, and strict Pyright configuration;
 - a package import smoke test;
-- GitHub Actions CI;
+- GitHub Actions CI running the core quality gate;
 - repository ignore rules;
 - root agent/navigation guidance;
-- development and architecture documentation.
+- the accepted M0–M9 validation-first roadmap;
+- architecture, provenance, reproducibility/RNG, validation, and future Python/C++ guardrails.
 
 ## Deliberately absent
 
-The following do not exist yet and should not be invented during M0:
+The following do not exist yet and should not be invented without real consumers:
 
 - `EuropeanOption`;
 - Black-Scholes pricing;
@@ -38,23 +39,21 @@ The following do not exist yet and should not be invented during M0:
 - experiment frameworks;
 - native/C++ backends.
 
-## Immediate objective
+## Next objective
 
-Complete Issue #1, verify the exact PR head through CI, squash-merge it, and verify `main`.
+Begin **M1 — European options and Black-Scholes reference vertical** using the normal Issue → branch → PR → CI → squash-merge workflow.
 
-Only after M0 is merged should the project begin M1, whose job is to introduce the first concrete finance vertical and let real consumers pressure-test the bootstrap architecture.
+M1 should introduce the first concrete finance vertical and let actual Black-Scholes consumers pressure-test the bootstrap architecture rather than pre-creating a general finance framework.
 
-## Next milestone
+## M1 design questions
 
-**M1 — European options and Black-Scholes reference vertical**
-
-Expected questions for M1 include:
+Expected questions include:
 
 - what is the smallest correct representation of a European option contract;
 - how valuation dates, expiries, day-count conventions, discounting, dividends/financing, and spot should be represented;
 - whether a narrow maturity-dependent discount-factor capability is justified immediately;
 - how Black-Scholes model structure and its parameters should be separated;
 - what immutable result type is warranted by the first real valuation consumer;
-- which no-arbitrage and limiting-case checks should become executable validation evidence.
+- which no-arbitrage, limiting-case, and numerical checks should become executable validation evidence.
 
 Do not settle those details in advance when implementation evidence can decide them.
