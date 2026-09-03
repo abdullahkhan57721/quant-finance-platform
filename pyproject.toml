@@ -12,6 +12,7 @@ dependencies = []
 
 [project.optional-dependencies]
 dev = [
+    "complexipy>=5.2,<8",
     "pyright>=1.1.390",
     "pytest>=8.0",
     "ruff>=0.9",
@@ -35,3 +36,9 @@ select = ["B", "E4", "E7", "E9", "F", "I", "SIM", "UP"]
 include = ["src", "tests"]
 pythonVersion = "3.12"
 typeCheckingMode = "strict"
+
+[tool.complexipy]
+paths = ["src/qf_platform"]
+max-complexity-allowed = 15
+check-script = false
+exclude = []

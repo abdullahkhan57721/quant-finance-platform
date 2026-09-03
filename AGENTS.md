@@ -302,13 +302,14 @@ For ordinary changes, install development dependencies and run:
 The canonical gate currently covers:
 
 ```text
+complexipy cognitive-complexity threshold (production package; maximum 15)
 ruff check
 ruff format --check
 pyright
 pytest
 ```
 
-Use `./scripts/fix` for supported Ruff auto-fixes and formatting.
+Use `./scripts/complexity` (or `bash ./scripts/complexity` when executable mode is unavailable) to run the complexity gate independently. Use `./scripts/fix` for supported Ruff auto-fixes and formatting.
 
 Do not weaken quality guards merely to merge. Add new guards only when real code or architecture gives them something meaningful to enforce.
 
