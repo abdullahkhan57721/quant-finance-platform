@@ -160,14 +160,22 @@ Run the canonical quality gate with:
 ./scripts/check_all
 ```
 
+Run the cognitive-complexity gate independently with:
+
+```bash
+bash ./scripts/complexity
+```
+
 Apply supported Ruff fixes and formatting with:
 
 ```bash
 ./scripts/fix
 ```
 
-The current gate runs Ruff linting, Ruff format checking, strict Pyright, and pytest.
-GitHub Actions invokes the same `scripts/check_all` entry point.
+The current gate runs Complexipy cognitive-complexity enforcement for
+`src/qf_platform` with a maximum allowed complexity of 15, Ruff linting, Ruff format
+checking, strict Pyright, and pytest. GitHub Actions invokes the same
+`scripts/check_all` entry point.
 
 ## Current non-goals
 
