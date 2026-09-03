@@ -1,14 +1,11 @@
+import math
 from dataclasses import dataclass
 from datetime import date
-from math import exp
 
 import pytest
 
 from qf_platform.instruments import EuropeanOption, OptionRight
-from qf_platform.market import (
-    FlatContinuousDiscountCurve,
-    MarketEnvironment,
-)
+from qf_platform.market import FlatContinuousDiscountCurve, MarketEnvironment
 from qf_platform.models import BlackScholesParameters
 from qf_platform.valuation import black_scholes_present_value
 
@@ -188,8 +185,8 @@ def test_zero_volatility_returns_discounted_deterministic_intrinsic(
         risk_free_rate=0.05,
         dividend_yield=0.02,
     )
-    risk_free_df = exp(-0.05)
-    dividend_df = exp(-0.02)
+    risk_free_df = math.exp(-0.05)
+    dividend_df = math.exp(-0.02)
     signed_intrinsic = 100.0 * dividend_df - 95.0 * risk_free_df
     expected = max(signed_intrinsic, 0.0)
     if right is OptionRight.PUT:
@@ -212,7 +209,11 @@ def test_zero_spot_limit() -> None:
     put = value(OptionRight.PUT, market=market, strike=100.0, volatility=0.3)
 
     assert call == 0.0
-    assert put == pytest.approx(100.0 * exp(-0.05), rel=0.0, abs=ANALYTIC_ABS_TOL)
+    assert put == pytest.approx(
+        100.0 * math.exp(-0.05),
+        rel=0.0,
+        abs=ANALYTIC_ABS_TOL,
+    )
 
 
 def test_zero_strike_limit() -> None:
@@ -221,7 +222,11 @@ def test_zero_strike_limit() -> None:
     call = value(OptionRight.CALL, market=market, strike=0.0, volatility=0.3)
     put = value(OptionRight.PUT, market=market, strike=0.0, volatility=0.3)
 
-    assert call == pytest.approx(100.0 * exp(-0.02), rel=0.0, abs=ANALYTIC_ABS_TOL)
+    assert call == pytest.approx(
+        100.0 * math.exp(-0.02),
+        rel=0.0,
+        abs=ANALYTIC_ABS_TOL,
+    )
     assert put == 0.0
 
 
