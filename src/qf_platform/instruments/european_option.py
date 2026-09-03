@@ -34,5 +34,6 @@ class EuropeanOption:
             "strike",
             nonnegative_finite_real(self.strike, name="strike"),
         )
-        if not isinstance(self.right, OptionRight):
+        right: object = self.right
+        if not isinstance(right, OptionRight):
             raise TypeError("right must be an OptionRight")

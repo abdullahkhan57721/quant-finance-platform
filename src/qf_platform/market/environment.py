@@ -24,11 +24,13 @@ class MarketEnvironment:
             "spot",
             nonnegative_finite_real(self.spot, name="spot"),
         )
-        if not isinstance(self.risk_free_discounting, DiscountFactorProvider):
+        risk_free_discounting: object = self.risk_free_discounting
+        dividend_discounting: object = self.dividend_discounting
+        if not isinstance(risk_free_discounting, DiscountFactorProvider):
             raise TypeError(
                 "risk_free_discounting must provide maturity discount factors"
             )
-        if not isinstance(self.dividend_discounting, DiscountFactorProvider):
+        if not isinstance(dividend_discounting, DiscountFactorProvider):
             raise TypeError(
                 "dividend_discounting must provide maturity discount factors"
             )
