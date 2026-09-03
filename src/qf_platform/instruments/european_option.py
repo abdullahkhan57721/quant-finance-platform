@@ -14,6 +14,11 @@ class OptionRight(StrEnum):
     PUT = "put"
 
 
+def _validate_option_right(value: object) -> None:
+    if not isinstance(value, OptionRight):
+        raise TypeError("right must be an OptionRight")
+
+
 @dataclass(frozen=True, slots=True)
 class EuropeanOption:
     """Immutable European option contract.
@@ -34,6 +39,4 @@ class EuropeanOption:
             "strike",
             nonnegative_finite_real(self.strike, name="strike"),
         )
-        right: object = self.right
-        if not isinstance(right, OptionRight):
-            raise TypeError("right must be an OptionRight")
+        _validate_option_right(self.right)

@@ -7,6 +7,11 @@ from qf_platform._validation import nonnegative_finite_real
 from qf_platform.market.discounting import DiscountFactorProvider
 
 
+def _validate_discount_factor_provider(value: object, *, name: str) -> None:
+    if not isinstance(value, DiscountFactorProvider):
+        raise TypeError(f"{name} must provide maturity discount factors")
+
+
 @dataclass(frozen=True, slots=True)
 class MarketEnvironment:
     """Immutable valuation-ready spot and deterministic discounting inputs."""
@@ -24,16 +29,14 @@ class MarketEnvironment:
             "spot",
             nonnegative_finite_real(self.spot, name="spot"),
         )
-        risk_free_discounting: object = self.risk_free_discounting
-        dividend_discounting: object = self.dividend_discounting
-        if not isinstance(risk_free_discounting, DiscountFactorProvider):
-            raise TypeError(
-                "risk_free_discounting must provide maturity discount factors"
-            )
-        if not isinstance(dividend_discounting, DiscountFactorProvider):
-            raise TypeError(
-                "dividend_discounting must provide maturity discount factors"
-            )
+        _validate_discount_factor_provider(
+            self.risk_free_discounting,
+            name="risk_free_discounting",
+        )
+        _validate_discount_factor_provider(
+            self.dividend_discounting,
+            name="dividend_discounting",
+        )
         if self.risk_free_discounting.valuation_date != self.valuation_date:
             raise ValueError(
                 "risk-free discounting valuation date must match market environment"
