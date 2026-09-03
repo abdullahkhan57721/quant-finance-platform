@@ -11,9 +11,9 @@ The project is not a feature checklist. Each increase in model or architectural 
 ## v0.1 research narrative
 
 ```text
-Black-Scholes theory
+Black-Scholes theory                  ← M1 complete
         ↓
-independent implementation
+independent implementation            ← M2 next
         ↓
 numerical cross-validation
         ↓
@@ -44,6 +44,8 @@ portfolio-quality release
 
 ## M0 — Engineering bootstrap
 
+**Status: complete.**
+
 **Purpose:** Establish repository truth and quality gates without inventing finance abstractions.
 
 Expected outputs:
@@ -62,24 +64,29 @@ Expected outputs:
 
 ## M1 — European options and Black-Scholes reference vertical
 
+**Status: complete.**
+
 **Question:** Can the platform represent and analytically value its first concrete financial instrument correctly?
 
-Expected capabilities:
+Delivered capabilities:
 
-- European call/put contract semantics;
-- valuation-ready spot/discount/dividend inputs;
-- explicit date/year-fraction treatment;
-- Black-Scholes model structure and parameters;
-- analytic pricing;
-- put-call parity;
-- arbitrage bounds;
-- known limiting/sanity cases.
+- immutable European call/put contract semantics;
+- valuation-ready spot/discount/dividend-carry inputs;
+- explicit calendar-date and M1-local Actual/365 Fixed treatment;
+- separate Black-Scholes model parameters;
+- analytic present value;
+- put-call parity evidence;
+- discounted no-arbitrage bounds;
+- meaningful limiting cases and a published numerical benchmark;
+- explicit quantitative-convention and formula-traceability documentation.
 
-Architectural goal: let the first real consumers determine the smallest useful boundaries. Avoid generic pricer/model hierarchies.
+Architectural result: the first real consumers justified a narrow maturity-dependent discount-factor capability, explicit `MarketEnvironment`, and separate `BlackScholesParameters`, while **not** justifying a generic pricer/model/result/validation hierarchy or a ceremonial `BlackScholesModel` object.
 
 ---
 
 ## M2 — Independent valuation and Greeks
+
+**Status: next.**
 
 **Question:** Can independent methods reproduce the analytical reference and converge for the right reasons?
 
