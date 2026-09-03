@@ -17,7 +17,10 @@ See:
 - [`AGENTS.md`](AGENTS.md) for repository workflow and guardrails;
 - [`docs/development/current_state.md`](docs/development/current_state.md) for current project truth;
 - [`docs/development/roadmap.md`](docs/development/roadmap.md) for M0–M9;
-- [`docs/architecture/index.md`](docs/architecture/index.md) for architecture and validation policy.
+- [`docs/architecture/index.md`](docs/architecture/index.md) for architecture and validation policy;
+- [`docs/quantitative_conventions.md`](docs/quantitative_conventions.md) for project-wide quantitative convention decisions and explicitly deferred choices;
+- [`docs/development/engineering_principles.md`](docs/development/engineering_principles.md) for the rationale behind the engineering/collaboration system;
+- [`docs/decisions/README.md`](docs/decisions/README.md) for ADR policy.
 
 ## v0.1 direction
 
@@ -113,16 +116,21 @@ python -m pip install --upgrade pip
 python -m pip install -e ".[dev]"
 ```
 
-Run the initial quality gate with:
+Run the canonical quality gate with:
 
 ```bash
-python -m ruff check .
-python -m ruff format --check .
-python -m pyright
-python -m pytest
+./scripts/check_all
 ```
 
-GitHub Actions runs the same core checks for pull requests and `main`.
+Apply supported Ruff fixes and formatting with:
+
+```bash
+./scripts/fix
+```
+
+The current gate runs Ruff linting, Ruff format checking, strict Pyright, and pytest. GitHub Actions invokes the same `scripts/check_all` entry point so local and hosted checks remain aligned.
+
+Additional guards such as coverage thresholds, cognitive-complexity checks, architecture/import contracts, strict docs builds, quantitative contract suites, and benchmark harnesses are added only when real code or architecture gives them something meaningful to enforce.
 
 ## Current non-goals
 
