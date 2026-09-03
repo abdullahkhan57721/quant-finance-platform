@@ -13,8 +13,8 @@ earned by real consumers.
 The M0 engineering/collaboration foundation remains in place:
 
 - `src/`-layout package and project metadata;
-- Ruff, formatting, strict Pyright, pytest, and GitHub Actions through
-  `./scripts/check_all`;
+- Ruff, formatting, strict Pyright, Complexipy cognitive-complexity enforcement,
+  pytest, and GitHub Actions through `./scripts/check_all`;
 - repository workflow/agent rules, architecture guardrails, quantitative-convention
   register, ADR policy, and Issue/PR recovery templates.
 
@@ -67,18 +67,22 @@ Important current decisions:
 
 ## Quality-tool maturity
 
-The canonical quality gate remains intentionally lean:
+The canonical quality gate now covers:
 
 ```text
+Complexipy cognitive complexity (max 15)
 Ruff lint
 Ruff format check
 strict Pyright
 pytest
 ```
 
-M1 adds meaningful quantitative tests but does not yet justify coverage thresholds,
-cognitive-complexity guards, Import Linter contracts, benchmark/profile infrastructure,
-or native-backend tooling.
+The complexity guard targets production code under `src/qf_platform` and is routed
+through the same `./scripts/check_all` entry point used by GitHub Actions.
+
+Coverage thresholds, Import Linter contracts, strict docs builds,
+benchmark/profile infrastructure, and native-backend tooling remain deferred until
+concrete code or architecture gives them meaningful invariants to enforce.
 
 ## Deliberately absent
 
