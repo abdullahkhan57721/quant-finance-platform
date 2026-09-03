@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$repo_root"
+
+target="${1:-src/qf_platform}"
+
+if [[ -x "$repo_root/venv/bin/complexipy" ]]; then
+    complexipy="$repo_root/venv/bin/complexipy"
+elif [[ -x "$repo_root/.venv/bin/complexipy" ]]; then
+    complexipy="$repo_root/.venv/bin/complexipy"
+elif command -v complexipy >/dev/null 2>&1; then
+    complexipy="$(command -v complexipy)"
+else
+    echo "Error: Complexipy is not installed." >&2
+    echo "Install development dependencies with: python -m pip install -e '.[dev]'" >&2
+    exit 127
+fi
+
+if [[ ! -e "$target" ]]; then
+    echo "Error: complexity target does not exist: $target" >&2
+    exit 2
+fi
+
+echo "Complexipy threshold check: $target"
+"$complexipy" "$target" --failed --quiet
