@@ -19,6 +19,12 @@ def _checked_discount_factor(value: float, *, name: str) -> float:
     return value
 
 
+def _checked_discounted_amount(value: float, *, name: str) -> float:
+    if not isfinite(value):
+        raise ValueError(f"{name} must be finite")
+    return value
+
+
 def black_scholes_present_value(
     option: EuropeanOption,
     market: MarketEnvironment,
@@ -57,8 +63,14 @@ def black_scholes_present_value(
     )
     volatility = parameters.annualized_volatility
 
-    discounted_spot = spot * dividend_df
-    discounted_strike = strike * risk_free_df
+    discounted_spot = _checked_discounted_amount(
+        spot * dividend_df,
+        name="discounted spot",
+    )
+    discounted_strike = _checked_discounted_amount(
+        strike * risk_free_df,
+        name="discounted strike",
+    )
 
     if volatility == 0.0 or spot == 0.0 or strike == 0.0:
         signed_intrinsic = discounted_spot - discounted_strike
@@ -68,7 +80,7 @@ def black_scholes_present_value(
 
     sigma_sqrt_t = volatility * sqrt(year_fraction)
     log_forward_moneyness = (
-        log(spot / strike) + log(dividend_df) - log(risk_free_df)
+        log(spot) - log(strike) + log(dividend_df) - log(risk_free_df)
     )
     d1 = (
         log_forward_moneyness
