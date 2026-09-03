@@ -248,6 +248,23 @@ def test_negative_interest_rate_is_supported() -> None:
     assert present_value > 0.0
 
 
+def test_extreme_finite_moneyness_avoids_ratio_underflow() -> None:
+    market = make_market(
+        spot=1e-300,
+        risk_free_rate=0.0,
+        dividend_yield=0.0,
+    )
+
+    present_value = value(
+        OptionRight.PUT,
+        market=market,
+        strike=1e300,
+        volatility=0.2,
+    )
+
+    assert present_value == pytest.approx(1e300, rel=1e-15)
+
+
 def test_expiry_before_valuation_date_is_rejected_by_valuation() -> None:
     market = make_market(valuation_date=date(2027, 1, 2))
     option = EuropeanOption(
@@ -267,10 +284,11 @@ def test_expiry_before_valuation_date_is_rejected_by_valuation() -> None:
 @dataclass(frozen=True)
 class InvalidDiscounting:
     valuation_date: date
+    factor: float = 0.0
 
     def discount_factor(self, maturity: date) -> float:
         del maturity
-        return 0.0
+        return self.factor
 
 
 def test_valuation_rejects_nonpositive_discount_factor() -> None:
@@ -285,6 +303,25 @@ def test_valuation_rejects_nonpositive_discount_factor() -> None:
     )
 
     with pytest.raises(ValueError, match="risk-free discount factor"):
+        black_scholes_present_value(
+            make_option(OptionRight.CALL),
+            market,
+            BlackScholesParameters(annualized_volatility=0.2),
+        )
+
+
+def test_valuation_rejects_overflowed_discounted_amount() -> None:
+    market = MarketEnvironment(
+        valuation_date=VALUATION_DATE,
+        spot=1e308,
+        risk_free_discounting=FlatContinuousDiscountCurve(
+            valuation_date=VALUATION_DATE,
+            continuously_compounded_rate=0.0,
+        ),
+        dividend_discounting=InvalidDiscounting(VALUATION_DATE, factor=1e308),
+    )
+
+    with pytest.raises(ValueError, match="discounted spot"):
         black_scholes_present_value(
             make_option(OptionRight.CALL),
             market,
