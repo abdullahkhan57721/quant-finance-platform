@@ -2,73 +2,109 @@
 
 ## Status
 
-**M0 — Engineering Bootstrap is complete.**
+**M1 — European Options & Black-Scholes Reference Vertical is complete.**
 
-The repository also has the durable collaboration/convention layer needed to carry forward the engineering lessons adopted during bootstrap: information-lifetime guidance, an explicit quantitative-convention authority, ADR policy, reusable Issue/PR templates, canonical local quality scripts, and explicit ChatGPT/Codex work allocation.
-
-No finance-domain implementation has been added yet.
+The repository now contains its first concrete finance implementation and theoretical
+validation evidence while preserving the bootstrap rule that new abstractions must be
+earned by real consumers.
 
 ## What exists
 
-The repository establishes:
+The M0 engineering/collaboration foundation remains in place:
 
-- a `src/`-layout Python package;
-- package metadata in `pyproject.toml`;
-- pytest, Ruff, and strict Pyright configuration;
-- a package import smoke test;
-- GitHub Actions CI running the canonical local quality gate;
-- `scripts/fix` and `scripts/check_all` as local quality entry points;
-- repository ignore rules;
-- root agent/navigation guidance;
-- the accepted M0–M9 validation-first roadmap;
-- architecture, provenance, reproducibility/RNG, validation, and future Python/C++ guardrails;
-- `docs/development/engineering_principles.md` for engineering/collaboration rationale;
-- `docs/quantitative_conventions.md` as the authority for committed and deliberately deferred quantitative conventions;
-- lightweight ADR guidance/template under `docs/decisions/`;
-- reusable implementation Issue and pull-request templates with scope, verification, quantitative, ownership, and recovery fields.
+- `src/`-layout package and project metadata;
+- Ruff, formatting, strict Pyright, Complexipy cognitive-complexity enforcement,
+  pytest, and GitHub Actions through `./scripts/check_all`;
+- repository workflow/agent rules, architecture guardrails, quantitative-convention
+  register, ADR policy, and Issue/PR recovery templates.
+
+M1 adds:
+
+- immutable `EuropeanOption` contracts with explicit `OptionRight` call/put semantics;
+- calendar-date expiry and valuation-date semantics;
+- M1-local Actual/365 Fixed model time;
+- narrow maturity-dependent `DiscountFactorProvider` semantics;
+- immutable `FlatContinuousDiscountCurve` as the first concrete discounting provider;
+- immutable valuation-ready `MarketEnvironment` containing spot plus distinct
+  risk-free and continuous dividend/carry discounting;
+- immutable `BlackScholesParameters` with annualized decimal volatility;
+- pure analytic `black_scholes_present_value(...)` valuation;
+- explicit expiry/zero-volatility/zero-spot/zero-strike handling;
+- mathematical traceability in `docs/models/black_scholes.md`;
+- executable evidence for published benchmark values, put-call parity,
+  no-arbitrage bounds, limiting cases, domain validation, day count, compounding,
+  carry direction, and negative rates.
+
+## Boundaries learned from M1
+
+The first vertical resolved several bootstrap hypotheses without creating a general
+finance framework:
+
+```text
+EuropeanOption
+      +
+MarketEnvironment
+      +
+BlackScholesParameters
+      ↓
+black_scholes_present_value
+      ↓
+theoretical validation evidence
+```
+
+Important current decisions:
+
+- contract expiry is a date rather than an anonymous maturity float;
+- valuation-ready discounting crosses the valuation boundary as discount factors,
+  while the concrete flat curve owns continuous-compounding semantics;
+- volatility is model information, not an intrinsic field of `MarketEnvironment`;
+- no `MarketSnapshot` was needed because M1 consumes no observed market data;
+- no `BlackScholesModel` object was added merely to wrap one valuation formula;
+- no generic `ValuationResult` was added because the first completed consumer only
+  requires one scalar present value;
+- focused tests and traceability documentation provide M1 validation evidence without
+  inventing a generic validation subsystem.
 
 ## Quality-tool maturity
 
-The initial gate intentionally remains lean:
+The canonical quality gate now covers:
 
 ```text
+Complexipy cognitive complexity (max 15)
 Ruff lint
 Ruff format check
 strict Pyright
 pytest
 ```
 
-Coverage thresholds, cognitive-complexity guards, Import Linter contracts, strict docs builds, quantitative contract suites, benchmark/profile infrastructure, and release smoke checks should be added only when concrete code or architecture gives them something meaningful to enforce.
+The complexity guard targets production code under `src/qf_platform` and is routed
+through the same `./scripts/check_all` entry point used by GitHub Actions.
+
+Coverage thresholds, Import Linter contracts, strict docs builds,
+benchmark/profile infrastructure, and native-backend tooling remain deferred until
+concrete code or architecture gives them meaningful invariants to enforce.
 
 ## Deliberately absent
 
-The following do not exist yet and should not be invented without real consumers:
+The following still do not exist and should not be invented without real consumers:
 
-- `EuropeanOption`;
-- Black-Scholes pricing;
-- market snapshots/environments;
-- model or valuation hierarchies;
-- generic calibration/risk/validation interfaces;
+- provenance-bearing `MarketSnapshot` / live market-data clients;
+- binomial or Monte Carlo valuation;
+- Greeks and finite-difference sensitivities;
+- delta-hedging/replication studies;
+- implied-volatility inversion and volatility-surface analysis;
+- generic model/pricer/validation/risk hierarchies;
+- generic valuation-result or experiment frameworks;
 - trade/portfolio infrastructure;
-- market-data clients;
-- experiment frameworks;
+- Heston/calibration infrastructure;
 - native/C++ backends.
 
 ## Next objective
 
-Begin **M1 — European options and Black-Scholes reference vertical** using the normal Issue → branch → PR → CI → squash-merge workflow.
+Begin **M2 — Independent Valuation and Greeks** through the normal
+Issue → branch → PR → CI → exact-head review → squash-merge workflow.
 
-M1 should introduce the first concrete finance vertical and let actual Black-Scholes consumers pressure-test the bootstrap architecture rather than pre-creating a general finance framework.
-
-## M1 design questions
-
-Expected questions include:
-
-- what is the smallest correct representation of a European option contract;
-- how valuation dates, expiries, day-count conventions, discounting, dividends/financing, and spot should be represented;
-- whether a narrow maturity-dependent discount-factor capability is justified immediately;
-- how Black-Scholes model structure and its parameters should be separated;
-- what immutable result type is warranted by the first real valuation consumer;
-- which no-arbitrage, limiting-case, and numerical checks should become executable validation evidence.
-
-Do not settle those details in advance when implementation evidence can decide them. Use `docs/quantitative_conventions.md` to distinguish decisions that become project-wide from choices that remain local.
+M2 should use the M1 analytical Black-Scholes path as a reference, then add genuinely
+independent CRR/binomial and Monte Carlo valuation plus analytic/numerical Greeks and
+convergence evidence. Shared abstractions should be extracted only when those second
+consumers demonstrate the same responsibility.

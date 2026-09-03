@@ -2,9 +2,11 @@
 
 ## Status
 
-This document records durable bootstrap guardrails for the Quantitative Finance Research & Validation Platform. It intentionally does **not** define a complete package hierarchy in advance.
+This document records durable architecture guardrails for the Quantitative Finance
+Research & Validation Platform. M1 has supplied the first concrete finance boundaries;
+it still intentionally does **not** define a complete package hierarchy in advance.
 
-The architecture should grow from real quantitative consumers.
+The architecture should continue to grow from real quantitative consumers.
 
 ## Governing extraction rule
 
@@ -22,7 +24,8 @@ different responsibility
 → keep separate
 ```
 
-A future use case that can merely be imagined is not sufficient justification for an abstraction.
+A future use case that can merely be imagined is not sufficient justification for an
+abstraction.
 
 ## Protected conceptual distinctions
 
@@ -32,12 +35,18 @@ A future use case that can merely be imagined is not sufficient justification fo
 MarketSnapshot != MarketEnvironment
 ```
 
-Expected meaning to evaluate when M1/M4 create real consumers:
+M1 establishes `MarketEnvironment` as valuation-ready state. It owns an explicit
+valuation date, spot, and deterministic discounting capabilities required by the first
+valuation consumer. M1 does not create `MarketSnapshot` because there is no observed,
+provenance-bearing market-data consumer yet.
+
+When M4 introduces observations, expected meaning remains:
 
 - `MarketSnapshot`: observed/provenance-bearing market information;
 - `MarketEnvironment`: valuation-ready interpretation/construction from market inputs.
 
-Construction, interpolation, curve building, cleaning, or convention choices should not silently rewrite historical observations.
+Construction, interpolation, cleaning, or convention choices must not silently rewrite
+historical observations.
 
 ### Financial contract vs ownership context
 
@@ -45,9 +54,9 @@ Construction, interpolation, curve building, cleaning, or convention choices sho
 Instrument != Trade != Portfolio
 ```
 
-Do not add trade/portfolio fields to instrument definitions in anticipation of future XVA or market-risk work.
-
-Introduce `Trade` only when real consumers require ownership/quantity/book/counterparty or related semantics. Introduce `Portfolio` only when real aggregation behavior exists.
+M1 `EuropeanOption` contains only contract semantics: expiry, strike, and exercise
+right. Do not add quantity, book, counterparty, or portfolio fields until real ownership
+or aggregation consumers exist.
 
 ### Model structure vs parameters
 
@@ -55,7 +64,13 @@ Introduce `Trade` only when real consumers require ownership/quantity/book/count
 model structure != model parameters
 ```
 
-A calibrated parameter set is not a different model type. Calibration should produce parameter evidence/results rather than mutate the conceptual identity of the stochastic model.
+M1 makes this distinction concretely: `BlackScholesParameters` owns annualized
+volatility, while the model structure/assumptions are expressed by the concrete
+Black-Scholes valuation implementation and mathematical traceability documentation.
+A ceremonial `BlackScholesModel` object was not required.
+
+A calibrated parameter set is not a different model type. Calibration should later
+produce parameter evidence/results rather than mutate conceptual model identity.
 
 ### Financial model vs numerical method
 
@@ -64,19 +79,12 @@ MarketModel != ValuationMethod
 financial model != numerical method
 ```
 
-Examples of the intended distinction:
+Black-Scholes provides financial/model assumptions and an analytical reference result.
+Future CRR, Monte Carlo, Fourier, or PDE algorithms must not be mislabeled as financial
+models merely because they can value claims under a model.
 
-```text
-Heston
-= stochastic/financial model
-
-Monte Carlo
-Fourier integration
-PDE
-= numerical valuation/execution methods
-```
-
-Do not put unrelated valuation algorithms behind a model merely because they can operate on that model.
+Do not create a universal `FinancialModel` base class joining Black-Scholes, Heston,
+Monte Carlo, VaR, CVA, calibration, or unrelated concepts.
 
 ### Valuation vs calibration vs risk vs validation
 
@@ -88,9 +96,9 @@ MarketModel
 != ValidationMethod
 ```
 
-These may compose and consume one another, but they do not share one universal responsibility.
-
-Do not create a universal `FinancialModel` base class joining Black-Scholes, Heston, Monte Carlo, VaR, CVA, calibration, or unrelated quantitative concepts.
+M1 keeps theoretical validation as executable tests and traceability documentation;
+there is not yet a repeated runtime validation responsibility that warrants a generic
+validation interface.
 
 ### Calibration problem vs optimizer
 
@@ -98,16 +106,9 @@ Do not create a universal `FinancialModel` base class joining Black-Scholes, Hes
 calibration problem != numerical optimizer
 ```
 
-Financial calibration owns questions such as:
-
-- which observations are fitted;
-- which model outputs are compared;
-- error definition;
-- weighting;
-- parameter constraints and transforms;
-- diagnostics and failure interpretation.
-
-A numerical optimizer owns the search algorithm. Keep these concerns separable when calibration arrives.
+Financial calibration owns fitted observations, model outputs, errors, weights,
+constraints/transforms, and diagnostics. A numerical optimizer owns search. Keep these
+separate when calibration arrives.
 
 ### Request/configuration vs committed result
 
@@ -115,7 +116,9 @@ A numerical optimizer owns the search algorithm. Keep these concerns separable w
 configuration/request != immutable result
 ```
 
-Prefer immutable result/value objects where practical. Mutable orchestration belongs outside committed results.
+M1 inputs are immutable value objects. Its only completed valuation output is one
+scalar present value, so no generic `ValuationResult` exists yet. Reconsider a result
+contract only when later consumers require shared result metadata/evidence.
 
 ### Production library vs research study vs presentation
 
@@ -123,13 +126,38 @@ Prefer immutable result/value objects where practical. Mutable orchestration bel
 production library != research study != presentation
 ```
 
-Notebooks and reports may orchestrate or display stable APIs; they must not be the only implementation of core quantitative logic.
+Notebooks, reports, and future UI may orchestrate or display stable APIs; they must not
+be the only implementation of core quantitative logic.
 
-Research studies should become reproducible executions against the production library, with study-specific result structures kept concrete until repetition justifies extraction.
+## M1 concrete dependency shape
 
-## Dependency direction
+```text
+EuropeanOption      BlackScholesParameters
+        \              /
+         \            /
+          valuation method
+                ↑
+        MarketEnvironment
+                ↑
+    DiscountFactorProvider
+                ↑
+ FlatContinuousDiscountCurve
+```
 
-Treat this as guidance, not as permission to create empty packages:
+Important interpretation:
+
+- instruments do not depend on valuation;
+- market state does not depend on instruments;
+- volatility/model parameters do not live in `MarketEnvironment`;
+- `DiscountFactorProvider` is narrow maturity-dependent valuation input, not a general
+  rates framework;
+- risk-free and dividend/carry inputs share a discount-factor responsibility but retain
+  distinct economic roles;
+- valuation owns no hidden mutable state or cache.
+
+## Broader dependency direction
+
+Treat this as guidance, not permission to create empty packages:
 
 ```text
 interfaces / research presentation
@@ -150,17 +178,9 @@ numerical utilities are used selectively by valuation,
 calibration, and studies but must not own finance-domain policy.
 ```
 
-Guardrails:
-
-- instruments must not depend on valuation implementations;
-- market observations/environment must not depend on instruments;
-- model semantics must not own calibration orchestration;
-- validation may invoke the capabilities needed to gather independent evidence;
-- high-level research/UI code must consume public library behavior rather than duplicate it.
-
 ## Market-data and provenance direction
 
-Expected conceptual flow:
+Expected later flow:
 
 ```text
 external/raw data
@@ -174,64 +194,39 @@ construction / conventions
 MarketEnvironment
 ```
 
-Core tests must not depend on live data services.
-
-Research data should preserve, where licensing permits:
-
-- provider/source;
-- as-of timestamp;
-- retrieval timestamp;
-- raw artifact or content hash;
-- normalization/transformation version;
-- license/redistribution notes.
-
-If data may not legally be redistributed, commit a reproducible retrieval/processing recipe and deterministic synthetic/curated fixtures instead of copying restricted market data into the repository.
+Core tests must not depend on live data services. Research data should preserve source,
+as-of/retrieval timestamps, hashes, transformation version, and licensing information
+where applicable and legally permitted.
 
 ## Reproducibility and RNG
 
-Stochastic calculations must use explicitly owned randomness rather than ambient global state.
+Stochastic calculations must use explicitly owned randomness rather than ambient global
+state. Studies should record seed/RNG choice, paths/discretization, numerical/model
+configuration, data provenance, and code/software revision as applicable.
 
-Studies should be able to record as applicable:
-
-- seed;
-- RNG/bit-generator choice;
-- number of paths;
-- timestep/discretization configuration;
-- valuation/calibration configuration;
-- input-data provenance/hash;
-- code revision and software environment.
-
-Do not couple future C++ code to NumPy RNG internals merely to make equal integer seeds emit equal streams.
-
-Use two forms of cross-backend evidence when appropriate:
-
-```text
-normal stochastic parity
-→ statistically equivalent seeded calculations
-
-strict kernel parity
-→ same pre-generated numeric/random inputs
-   sent to Python and C++ implementations
-```
+Do not couple future C++ code to NumPy RNG internals merely to make equal integer seeds
+emit equal streams. For strict kernel parity, feed the same pre-generated numerical
+inputs to both implementations.
 
 ## Validation as architecture
 
-Validation is not a final report-writing step. The platform should make evidence reproducible.
+Validation is not a final report-writing step. Relevant evidence categories include:
 
-Relevant evidence categories include:
+1. software correctness;
+2. theoretical/no-arbitrage correctness;
+3. numerical convergence/stability;
+4. stochastic/statistical correctness;
+5. cross-method validation;
+6. calibration recovery/stability/identifiability;
+7. empirical/out-of-sample validation;
+8. model-risk evidence;
+9. backend parity;
+10. performance evidence.
 
-1. **Software correctness** — unit tests, typing, invariants, boundary behavior.
-2. **Theoretical/financial correctness** — no-arbitrage identities, bounds, limiting cases.
-3. **Numerical correctness** — convergence, stability, error behavior.
-4. **Stochastic correctness** — statistical error, confidence intervals, seeded reproducibility.
-5. **Cross-method validation** — independent valuation/Greek methods.
-6. **Calibration validation** — parameter recovery, residuals, stability, identifiability.
-7. **Empirical/out-of-sample validation** — evidence on observations not used to fit the model.
-8. **Model-risk evidence** — assumption violations, sensitivities, hedging/P&L effects, failure modes.
-9. **Backend parity** — Python/C++ numerical/statistical equivalence.
-10. **Performance evidence** — profiling, runtime, memory, scaling.
-
-Independent implementations agreeing are useful evidence but are not automatically proof of conceptual correctness.
+M1 concretely supplies the first two through domain tests, a published benchmark,
+put-call parity, no-arbitrage bounds, limiting cases, and convention-discriminating
+tests. Independent implementations agreeing are useful but are not automatically proof
+of conceptual correctness.
 
 Every nontrivial numerical tolerance should have a documented rationale.
 
@@ -261,38 +256,24 @@ Python reference kernel
 C++ accelerated kernel
 ```
 
-Rules:
-
-- Python remains the reference/correctness implementation.
-- Profile before selecting native work.
-- Accelerate measured numerical hotspots rather than rewriting financial orchestration in C++.
-- Do not introduce `Backend`, `CppBackend`, `CompiledValuationPlan`, registries, or similar native abstractions until a second implementation actually exists and reveals a common responsibility.
-- Prefer primitive numeric arrays/scalars across the binding boundary rather than exporting rich Python financial objects into C++.
-
-## Early hypotheses to evaluate, not yet committed APIs
-
-M1 is expected to test several architectural hypotheses:
-
-- represent contract expiry as a date and make year-fraction/day-count treatment explicit rather than encoding all maturities as anonymous floats;
-- represent discounting through a narrow maturity-dependent capability instead of making every API permanently depend on scalar `r`;
-- keep volatility/model parameters out of `MarketEnvironment` so competing models can interpret the same market state;
-- use immutable domain/result objects where that improves ownership and reproducibility.
-
-These are intentionally not implemented during M0. The first real Black-Scholes consumers should determine the exact contracts.
+Python remains the reference/correctness implementation. Profile before selecting
+native work. Do not introduce backend registries or C++ abstractions until a second real
+implementation and measured hotspot reveal a common responsibility.
 
 ## Explicit traps
 
 Avoid:
 
 - universal `FinancialModel` inheritance trees;
-- god-model objects that price, calibrate, simulate, hedge, plot, and validate themselves;
+- god-model objects that price, calibrate, simulate, hedge, plot, and validate;
 - scalar-rate assumptions embedded throughout public APIs;
-- volatility treated as an intrinsic market-environment field rather than model information;
+- treating the concrete flat continuous curve as a universal interest-rate model;
+- volatility treated as an intrinsic market-environment field;
 - conflating instruments, trades, positions, and portfolios;
-- calibration implemented as `model.calibrate(...)` with hidden objective/optimizer semantics;
+- calibration implemented as `model.calibrate(...)` with hidden optimizer semantics;
 - treating Monte Carlo as a financial model;
-- premature universal stochastic-process interfaces, especially assumptions that would later constrain rough/non-Markovian volatility models;
-- designing rates, XVA, or market-risk abstractions before those domains have real consumers;
+- premature universal stochastic-process interfaces;
+- designing rates, XVA, or market-risk abstractions before real consumers;
 - one giant result object with many optional unrelated fields;
 - generic experiment engines before multiple studies reveal shared semantics;
 - fake Python/C++ backend architectures before native code exists;
@@ -300,6 +281,9 @@ Avoid:
 
 ## ADR policy
 
-Create a dedicated ADR only when a decision is durable, consequential, and difficult to infer from code plus this index.
+Create a dedicated ADR only when a decision is durable, consequential, and difficult to
+infer from code plus this index and the quantitative-convention register.
 
-Do not create ADRs for routine implementation choices or speculative future architecture.
+M1 required no ADR: its date, discounting, parameter-ownership, and result-scope
+rationale is recoverable from the concrete contracts, this index,
+`docs/quantitative_conventions.md`, Issue #5, and the Black-Scholes model note.
