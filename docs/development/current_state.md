@@ -4,10 +4,7 @@
 
 **M0 — Engineering Bootstrap is complete.**
 
-Completed durable work unit:
-
-- Issue #1 — Bootstrap repository, quality gates, and architecture guardrails
-- PR #2 — Bootstrap repository, quality gates, and architecture guardrails
+The repository also has the durable collaboration/convention layer needed to carry forward the engineering lessons adopted during bootstrap: information-lifetime guidance, an explicit quantitative-convention authority, ADR policy, reusable Issue/PR templates, canonical local quality scripts, and explicit ChatGPT/Codex work allocation.
 
 No finance-domain implementation has been added yet.
 
@@ -19,11 +16,29 @@ The repository establishes:
 - package metadata in `pyproject.toml`;
 - pytest, Ruff, and strict Pyright configuration;
 - a package import smoke test;
-- GitHub Actions CI running the core quality gate;
+- GitHub Actions CI running the canonical local quality gate;
+- `scripts/fix` and `scripts/check_all` as local quality entry points;
 - repository ignore rules;
 - root agent/navigation guidance;
 - the accepted M0–M9 validation-first roadmap;
-- architecture, provenance, reproducibility/RNG, validation, and future Python/C++ guardrails.
+- architecture, provenance, reproducibility/RNG, validation, and future Python/C++ guardrails;
+- `docs/development/engineering_principles.md` for engineering/collaboration rationale;
+- `docs/quantitative_conventions.md` as the authority for committed and deliberately deferred quantitative conventions;
+- lightweight ADR guidance/template under `docs/decisions/`;
+- reusable implementation Issue and pull-request templates with scope, verification, quantitative, ownership, and recovery fields.
+
+## Quality-tool maturity
+
+The initial gate intentionally remains lean:
+
+```text
+Ruff lint
+Ruff format check
+strict Pyright
+pytest
+```
+
+Coverage thresholds, cognitive-complexity guards, Import Linter contracts, strict docs builds, quantitative contract suites, benchmark/profile infrastructure, and release smoke checks should be added only when concrete code or architecture gives them something meaningful to enforce.
 
 ## Deliberately absent
 
@@ -56,4 +71,4 @@ Expected questions include:
 - what immutable result type is warranted by the first real valuation consumer;
 - which no-arbitrage, limiting-case, and numerical checks should become executable validation evidence.
 
-Do not settle those details in advance when implementation evidence can decide them.
+Do not settle those details in advance when implementation evidence can decide them. Use `docs/quantitative_conventions.md` to distinguish decisions that become project-wide from choices that remain local.

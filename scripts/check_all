@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$repo_root"
+
+echo "==> Ruff lint"
+python -m ruff check .
+
+echo "==> Ruff format check"
+python -m ruff format --check .
+
+echo "==> Pyright"
+python -m pyright
+
+echo "==> Pytest"
+python -m pytest

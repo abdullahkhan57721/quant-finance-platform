@@ -56,8 +56,6 @@ Expected outputs:
 - architecture index and guardrails;
 - reproducibility/RNG and future Python/C++ policy.
 
-**Current work:** Issue #1.
-
 **Explicit non-goal:** no Black-Scholes or finance-domain code.
 
 ---
