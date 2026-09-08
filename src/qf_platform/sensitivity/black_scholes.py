@@ -104,7 +104,9 @@ class BlackScholesSensitivityResult:
         if not isinstance(self.sensitivity, BlackScholesSensitivity):
             msg = "sensitivity must be a BlackScholesSensitivity"
             raise TypeError(msg)
-        object.__setattr__(self, "value", finite_real(self.value, name="sensitivity value"))
+        object.__setattr__(
+            self, "value", finite_real(self.value, name="sensitivity value")
+        )
 
     @property
     def variable(self) -> BlackScholesVariable:
@@ -284,10 +286,7 @@ def _analytic_gamma(terms: _BlackScholesTerms) -> float:
 
 def _analytic_vega(terms: _BlackScholesTerms) -> float:
     return (
-        terms.spot
-        * terms.spot_discount
-        * terms.density_d1
-        * terms.sqrt_year_fraction
+        terms.spot * terms.spot_discount * terms.density_d1 * terms.sqrt_year_fraction
     )
 
 
@@ -370,8 +369,7 @@ class FiniteDifferenceBlackScholesSensitivity:
             return pricing_problem.current_state.value.spot > self.spot_bump
         if problem.sensitivity is BlackScholesSensitivity.VEGA:
             return (
-                pricing_problem.parameters.annualized_volatility
-                > self.volatility_bump
+                pricing_problem.parameters.annualized_volatility > self.volatility_bump
             )
         if problem.sensitivity is BlackScholesSensitivity.THETA:
             contract = cast(EuropeanOption, pricing_problem.contract)
@@ -414,9 +412,9 @@ class FiniteDifferenceBlackScholesSensitivity:
         upper = _with_spot(pricing_problem, center + self.spot_bump)
         lower = _with_spot(pricing_problem, center - self.spot_bump)
         center_value = _price(pricing_problem)
-        return (
-            _price(upper) - 2.0 * center_value + _price(lower)
-        ) / (self.spot_bump * self.spot_bump)
+        return (_price(upper) - 2.0 * center_value + _price(lower)) / (
+            self.spot_bump * self.spot_bump
+        )
 
     def _volatility_derivative(self, problem: BlackScholesSensitivityProblem) -> float:
         pricing_problem = problem.pricing_problem
@@ -518,7 +516,9 @@ def _recompose(
     numeraire: FlatMoneyMarketNumeraire | None = None,
     pricing_measure: PricingMeasureSemantics[date] | None = None,
 ) -> PricingProblem[date, EquityState, BlackScholesParameters]:
-    selected_state = current_state if current_state is not None else problem.current_state
+    selected_state = (
+        current_state if current_state is not None else problem.current_state
+    )
     selected_parameters = parameters if parameters is not None else problem.parameters
     selected_numeraire = numeraire if numeraire is not None else problem.numeraire
     selected_measure = (
