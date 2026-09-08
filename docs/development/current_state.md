@@ -8,69 +8,30 @@
 
 **M1 — European Options & Black-Scholes Reference Vertical is complete.**
 
-**UI1 — Native Quant Research Workbench Architecture & Black-Scholes Vertical Slice is complete on its milestone branch and is the current desktop architecture once merged.**
+**M2 — Independent Valuation and Sensitivity/Greeks is complete.**
 
-M1 is the first concrete specialization of the M0A pricing architecture. ADR 0002 remains the platform-wide mathematical architecture authority; ADR 0001 remains the historical pricing-composition record. UI1 adds ADR 0003 for the native desktop boundary without changing M0A/M1 quantitative contracts.
+**UI1 — Native Quant Research Workbench Architecture & Black-Scholes Vertical Slice is complete and establishes the current desktop architecture.**
 
-The next finance milestone remains **M2 — Independent Valuation and Sensitivity/Greeks**. M2 may proceed independently of the UI track. Later desktop work must consume only quantitative capabilities that have actually merged to `main`.
+ADR 0002 remains the platform-wide mathematical architecture authority. M2 pressure-tested the M0A/M1 pricing boundary with independent numerical methods and established the first concrete production sensitivity family. UI1 adds ADR 0003 for the downstream native PySide6 + Qt Quick/QML boundary without changing the quantitative contracts.
+
+The next finance milestones are **M3 — Dynamic Hedging / Control** and **M4 — Market Evidence / Inverse Problems**. The next desktop milestone is **UI2**, which may now consume the actual merged M2 capabilities while preserving the UI1 boundary.
 
 ## What exists
 
-The repository establishes:
+The repository now establishes:
 
-- a `src/`-layout Python package;
-- pytest, Ruff, and strict Pyright configuration;
-- GitHub Actions CI invoking the canonical `./scripts/check_all` quality gate;
-- an evidence-based validation cadence in `docs/development/validation_cadence.md`;
-- repository-native Issue → branch → early PR → CI → exact-head → squash-merge workflow;
-- architecture, quantitative-convention, engineering, provenance, reproducibility/RNG, validation, and future Python/C++ guidance;
-- ADR 0002 for the mathematical problem architecture and ADR 0001 for the historical pricing-composition decision;
-- the M0A production pricing core under `qf_platform.pricing`;
-- the M1 European-option / Black-Scholes analytical reference specialization; and
-- the UI1 native PySide6 + Qt Quick/QML Workbench vertical, documented in `docs/architecture/native_quant_workbench.md` and ADR 0003.
+- a `src/`-layout Python package with pytest, Ruff, strict Pyright, and GitHub Actions CI;
+- the M0A production pricing composition under `qf_platform.pricing`;
+- M1 European call/put, Black-Scholes/GBM, ACT/365F, money-market numeraire, and closed-form valuation semantics;
+- three valuation methods over the same M1 `PricingProblem`: `BlackScholesClosedForm`, `CoxRossRubinstein`, and `MonteCarloEuropeanOption`;
+- method-specific Monte Carlo uncertainty through immutable `MonteCarloValuationResult` without adding optional diagnostics to every valuation result;
+- the first concrete sensitivity family under `qf_platform.sensitivity` with explicit Black-Scholes Delta, Gamma, Vega, Theta, and Rho semantics;
+- analytic and finite-difference sensitivity methods with explicit variable, derivative-order, units, scaling, and support semantics;
+- cross-method convergence, stochastic-uncertainty, and finite-difference stability evidence;
+- the native UI1 PySide6 + Qt Quick/QML Workbench vertical over the M1 Black-Scholes analytic method; and
+- dedicated desktop validation including QML/offscreen source smoke and one-platform `pyside6-deploy` standalone build/launch proof.
 
-## Platform-wide mathematical architecture
-
-M0A establishes the durable taxonomy:
-
-```text
-FINANCIAL / MATHEMATICAL FOUNDATIONS
-
-state / state space
-stochastic law
-model parameters
-probability semantics
-physical measure P
-pricing measure Q^N
-numeraire N
-market observations + provenance
-financial contracts
-cash flows
-quantitative conventions
-
-        ↓
-
-PROBLEM FAMILIES
-
-forward / pricing
-inverse / inference
-sensitivity
-prediction
-control / optimization
-risk
-validation
-
-        ↓
-
-SOLUTION METHODS
-
-analytic / tree / Monte Carlo / Fourier / finite difference
-root finding / optimization / filtering / regression / scenario methods / tests
-
-        ↓
-
-SPECIFIC IMMUTABLE RESULTS / EVIDENCE
-```
+## Mathematical architecture
 
 The platform-wide conceptual pattern remains:
 
@@ -78,67 +39,55 @@ The platform-wide conceptual pattern remains:
 Problem + supported Method -> specific immutable Result
 ```
 
-This is architectural, not a universal runtime hierarchy. The repository still intentionally contains no generic production `InverseProblem`, `PredictionProblem`, `ControlProblem`, `RiskProblem`, or `ValidationProblem` framework. Sensitivity remains absent from merged truth until M2 lands.
-
-## Implemented pricing boundary
-
-The production pricing core remains:
+For pricing:
 
 ```text
-state space / modeled state / state path
-        +
-stochastic law + separate parameter values
-        +
-financial contract → immutable cash-flow stream
-        +
-strictly-positive numeraire
-        +
-physical vs numeraire-associated pricing-measure semantics
+same PricingProblem
+        ├── BlackScholesClosedForm
+        ├── CoxRossRubinstein
+        └── MonteCarloEuropeanOption
         ↓
-immutable PricingProblem
-        +
-compatible ValuationMethod
-        ↓
-immutable ValuationResult(present_value)
+ValuationResult or method-specific subtype
 ```
 
-M1 specializes that composition without bypassing it:
+The M2 correction to the original valuation boundary is deliberately small: `evaluate()` preserves the concrete result subtype produced by a method. `ValuationResult` remains the common immutable present-value contract; Monte Carlo-specific uncertainty lives only on `MonteCarloValuationResult`.
+
+For sensitivity:
 
 ```text
-EquityState / EquityStateSpace
-+
-BlackScholesLaw + BlackScholesParameters
-+
-EuropeanOption → terminal CashFlowStream
-+
-FlatMoneyMarketNumeraire + PricingMeasureSemantics
-        ↓
-PricingProblem
+BlackScholesSensitivityProblem
         +
-BlackScholesClosedForm
+supported sensitivity method
         ↓
-ValuationResult(present_value)
+BlackScholesSensitivityResult
 ```
 
-The important responsibility split is preserved:
+with:
 
 ```text
-state
-!= stochastic law
-!= model parameter values
-!= contract
-!= cash flows
-!= numeraire
-!= pricing-measure semantics
-!= valuation method
-!= valuation result
+AnalyticBlackScholesSensitivity
+FiniteDifferenceBlackScholesSensitivity
 ```
 
-`BlackScholesClosedForm` is a valuation method for a supported `PricingProblem`; it is not the stochastic model itself.
+This is a concrete Black-Scholes specialization, not a generic sensitivity engine. The repository still intentionally has no universal `SensitivityProblem`, `Problem`, `Method`, or `Result` hierarchy.
+
+Protect:
+
+```text
+pricing problem != sensitivity problem
+financial model != numerical method
+GBM stochastic law != Monte Carlo valuation method
+simulated states != theoretical price
+sensitivity problem != differentiation method
+analytic Greek != finite-difference algorithm
+sensitivity != risk by definition
+```
+
+Pricing remains upstream of sensitivity; focused dependency tests prevent `qf_platform.pricing` from depending back on `qf_platform.sensitivity`.
 
 ## Native Workbench boundary
 
-UI1 adds a downstream desktop product layer:
+UI1 establishes the downstream desktop direction:
 
 ```text
 Qt Quick / QML
@@ -147,62 +96,116 @@ curated PySide6 controller / view-model boundary
         ↓
 frontend-neutral application + presentation semantics
         ↓
-M0A/M1 public mathematical-finance APIs
+public mathematical-finance APIs
         ↓
 production quantitative core
 ```
 
 Durable rules:
 
-- finance-domain object graphs do not cross into QML; only curated scalar values, signals/actions, list models, and renderer-neutral presentation values do;
+- finance-domain object graphs do not cross into QML; only curated scalar values, signals/actions, typed item models, and renderer-neutral presentation values do;
 - transient QML input state is not authoritative financial state;
 - Python normalizes/validates Guided and Advanced inputs into the same immutable M1 composition;
-- QML owns no payoff, Black-Scholes, day-count, discounting, compatibility, parity, no-arbitrage, or validation semantics;
+- QML owns no payoff, pricing, day-count, discounting, compatibility, parity, no-arbitrage, or validation semantics;
 - the controller privately owns committed `PricingProblem` / `ValuationResult` objects;
-- the M1 evaluation call crosses a deliberately small `QThread` worker boundary, establishing responsive ownership without a generic job framework;
+- the UI1 analytic evaluation crosses a deliberately small `QThread` worker boundary, establishing responsive ownership without a generic job framework;
 - PySide6 is an optional desktop dependency and the canonical core quality gate remains Qt-independent; and
-- a dedicated Desktop CI surface validates typing/linting, architecture tests, QML load/offscreen startup, and a `pyside6-deploy` standalone artifact launch smoke.
+- a dedicated Desktop CI surface validates lint/type checks, architecture tests, QML load/offscreen startup, and a `pyside6-deploy` standalone launch smoke.
 
 The implemented UI1 product proof includes Home/Study navigation, Black-Scholes composition, Guided/Advanced disclosure, a mathematical inspector, authoritative result display, payoff presentation using production contract cash-flow semantics, compatibility/validation evidence, put-call parity evidence, discounted no-arbitrage bounds, and standalone deployment proof.
 
-## M1 concrete capabilities and conventions
+UI1 deliberately remains an **M1 analytical product vertical** even though M2 is now merged. CRR, Monte Carlo, and sensitivity capabilities are available to later desktop work but are not retroactively exposed by UI1.
 
-M1 provides:
+See `docs/architecture/native_quant_workbench.md` and ADR 0003.
 
-- immutable non-negative finite `EquityState(spot)` and `EquityStateSpace`;
-- explicit `OptionRight.CALL` / `OptionRight.PUT` semantics;
-- immutable `EuropeanOption` terminal contingent cash-flow semantics;
-- `datetime.date` valuation/expiry with Actual/365 Fixed model time;
-- `FlatMoneyMarketNumeraire` with a finite continuously compounded annualized decimal rate, including negative rates;
-- immutable `BlackScholesParameters` containing annualized decimal volatility and continuous proportional dividend/carry yield;
-- `BlackScholesLaw` as the GBM / Black-Scholes law identity, separate from parameter values;
-- `BlackScholesClosedForm` as a narrow M0A `ValuationMethod`; and
-- formula traceability in `docs/models/black_scholes.md`.
+## M2 valuation capabilities
 
-The risk-free accumulation rate is not duplicated inside `BlackScholesParameters`; discounting comes from the pricing problem's numeraire. Continuous proportional dividend/carry remains a model parameter because it enters the concrete equity dynamics and analytical specialization.
+### Cox-Ross-Rubinstein
 
-M1 does not create business-day/time-of-day expiry semantics, a general rates framework, curve hierarchy, discrete-dividend engine, market snapshot/environment, forward-input API, or trade/portfolio layer.
+`CoxRossRubinstein(steps)` is an explicitly configured valuation method.
 
-## M1 quantitative evidence
+M2 distinguishes:
 
-Executable evidence includes:
+```text
+fixed finite steps
+    = discrete-time complete-market binomial model
+      when 0 < p < 1
 
-- the published one-year benchmark `S=K=100`, `r=5%`, `q=0`, `sigma=20%` with call PV `10.450583572185565` and put PV `5.573526022256971`;
-- put-call parity across multiple parameter cases, including a negative-rate case;
-- discounted European call/put no-arbitrage bounds;
-- expiry intrinsic-value behavior;
-- zero-volatility deterministic valuation;
-- zero-spot and zero-strike limits;
-- continuous-compounding and Actual/365 Fixed convention discrimination;
-- positive-dividend carry direction;
-- input/domain/immutability checks; and
-- explicit rejection of unsupported pricing problems through the method support boundary.
+increasing steps
+    = numerical approximation converging toward
+      the continuous Black-Scholes reference
+```
 
-See `docs/models/black_scholes.md` for references, notation, assumptions, formulas, limits, tolerance rationale, and the executable evidence map.
+A structurally valid Black-Scholes pricing problem may therefore be unsupported by a particular coarse CRR configuration without becoming an invalid pricing problem.
+
+### Monte Carlo
+
+`MonteCarloEuropeanOption(paths, seed)`:
+
+- owns an explicit integer path count and seed;
+- constructs a fresh local Python RNG on each application;
+- samples the exact Black-Scholes terminal GBM distribution for the supported European payoff;
+- discounts sampled payoffs through the pricing problem's numeraire semantics; and
+- returns present value, estimator standard error, a normal-approximation 95% confidence interval, path count, and seed.
+
+The confidence interval describes sampling uncertainty, not deterministic equality to Black-Scholes and not financial model error.
+
+## M2 sensitivity capabilities
+
+M2 commits these local Black-Scholes Greek semantics:
+
+```text
+Delta = dV/dS
+Gamma = d²V/dS²
+Vega  = dV/dsigma
+Theta = dV/dt
+Rho   = dV/dr
+```
+
+with:
+
+- Vega reported per `1.00` annualized volatility decimal;
+- Rho reported per `1.00` continuously compounded annualized rate decimal;
+- Theta defined as valuation time advancing with expiry fixed and reported per ACT/365F model year;
+- Gamma explicitly second order; and
+- analytic sensitivities limited to the differentiable interior `T>0`, `S>0`, `K>0`, `sigma>0`.
+
+Finite differences use explicit native-unit bumps. Delta, Vega, Theta, and Rho use central first differences; Gamma uses a central second difference. Domain-crossing bumps are unsupported rather than silently clipped or switched to a different scheme.
+
+## M2 quantitative evidence
+
+Executable evidence establishes:
+
+- CRR convergence toward the M1 Black-Scholes analytical value as the tree is refined;
+- explicit rejection of CRR configurations violating the finite-step no-arbitrage probability condition;
+- seeded Monte Carlo reproducibility;
+- Black-Scholes analytical values consistent with reported Monte Carlo sampling uncertainty;
+- approximate `O(n^-1/2)` Monte Carlo standard-error scaling;
+- analytic call/put Delta, Gamma, Vega, Theta, and Rho reference values;
+- analytic-vs-finite-difference cross-validation for every supported Greek;
+- a multi-bump Gamma study demonstrating truncation-to-cancellation tradeoffs; and
+- pricing-to-sensitivity dependency direction.
+
+See `docs/models/m2_numerical_methods_and_sensitivities.md` for formulas, method interpretations, error taxonomy, and the executable evidence map.
+
+## Error taxonomy
+
+M2 keeps these mechanisms distinct:
+
+```text
+financial model error
+CRR discretization / model-approximation error
+Monte Carlo sampling error
+finite-difference truncation error
+finite-difference cancellation / floating-point error
+analytical floating-point error
+```
+
+Agreement or disagreement between methods must be interpreted through the relevant mechanism rather than one universal tolerance.
 
 ## Observation/model boundary
 
-Observed and modeled quantities remain conceptually separate:
+Observed and modeled quantities remain separate:
 
 ```text
 real world
@@ -212,25 +215,17 @@ observations + provenance
 normalization / cleaning / construction
     ↓
 problem-ready information
+
+separately from
+
+modeled state + stochastic law + parameters + probability semantics
 ```
 
-separately from:
+M2 adds no market-data abstraction. M4 is the first planned consumer that should create provenance-bearing option observations and a narrow implied-volatility inverse problem.
 
-```text
-modeled state
-+
-stochastic law
-+
-parameter values
-+
-probability semantics
-```
+## Quality and development cadence
 
-M1's `EquityState.spot` is valuation-ready modeled state. Real quote provenance and market-data normalization remain future M4 concerns.
-
-## Quality-tool maturity
-
-The canonical gate remains intentionally lean:
+The canonical gate remains:
 
 ```text
 Ruff lint
@@ -239,45 +234,42 @@ strict Pyright
 pytest
 ```
 
-The development cadence is:
-
-```text
-coherent implementation batch
-        ↓
-./scripts/fix
-        ↓
-focused behavioral / quantitative validation
-        ↓
-./scripts/check_all at a meaningful checkpoint
-        ↓
-full CI for pushed candidates
-        ↓
-ticket-specific final quantitative/manual evidence
-        ↓
-exact-head review → squash merge → verify main
-```
-
-Desktop-only dependencies and checks live in the dedicated Desktop CI surface rather than bloating `./scripts/check_all` for core-only development. See `docs/development/validation_cadence.md` for the measured rationale and revisit triggers.
+Use `./scripts/fix` after coherent Python batches, focused behavioral/quantitative validation during the inner loop, `./scripts/check_all` at meaningful checkpoints, and full CI on final candidates. Desktop-only dependencies/checks live in the dedicated Desktop workflow rather than the core environment. See `docs/development/validation_cadence.md`.
 
 ## Deliberately absent
 
-Until their own milestones merge, project truth still excludes:
+The following remain absent until later milestones create real consumers:
 
-- CRR/binomial valuation;
-- Monte Carlo valuation and sampling-error results;
-- Greeks/sensitivity production structures;
 - dynamic hedging/control production structures;
-- live market-data ingestion and implied-volatility inference;
-- calibration/inverse-problem production structures;
-- generic risk or validation frameworks;
-- market snapshots/environments;
+- live market-data ingestion and option-observation provenance structures;
+- implied-volatility/inverse-problem production structures;
+- generic prediction, risk, or validation frameworks;
+- market snapshots/environments beyond what future observed-data consumers earn;
 - trade/portfolio infrastructure;
 - Heston;
-- native/C++ quantitative backends; and
+- calibration infrastructure beyond future concrete inverse problems;
+- native/C++ quantitative backends;
 - generic UI schema/form generation, node editors, plugin architecture, or universal background-job infrastructure.
 
 ## Next objectives
 
-The finance track proceeds with **M2 — Independent Valuation and Sensitivity/Greeks** from current `main`.
+### M3 — Dynamic Hedging / Control
 
-The desktop track proceeds only from merged quantitative truth. UI2 must inspect the actual merged M2 public contracts, tests, and evidence before deciding which additional methods, sensitivity views, compatibility semantics, or execution/result presentation are justified. It must not pre-build CRR, Monte Carlo, or Greek panels while M2 remains unmerged.
+Use merged M2 pricing and Delta semantics to test dynamic replication under explicit path, rebalance, transaction-cost, and misspecification assumptions. Keep the control question separate from pricing and sensitivity.
+
+### M4 — Market Evidence / Inverse Problems
+
+Establish provenance-bearing option-market observations and the first concrete inverse problem through implied-volatility inference. Preserve:
+
+```text
+observed quote != modeled state != model-implied value
+inverse problem != root-finding method
+```
+
+M3 and M4 may proceed in parallel provided neither redefines the merged M2 pricing/sensitivity contracts and shared documentation/application files are coordinated.
+
+### UI2 — M2 Valuation Comparison and Sensitivity Workbench
+
+Begin from the actual merged M2 public contracts and evidence. The earned next desktop scope is to extend the existing Black-Scholes Study so the user can compare `BlackScholesClosedForm`, `CoxRossRubinstein`, and `MonteCarloEuropeanOption`, inspect method-specific convergence/sampling uncertainty, and inspect the concrete Black-Scholes Greek family with analytic-vs-finite-difference evidence.
+
+UI2 must preserve the UI1 QML boundary, keep compatibility/execution semantics in Python, expose Monte Carlo uncertainty without flattening it into the common valuation result, and avoid inventing a universal method registry, solver schema, sensitivity framework, job system, or future M3/M4 panels.
