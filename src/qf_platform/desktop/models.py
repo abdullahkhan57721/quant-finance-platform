@@ -10,6 +10,7 @@ _LABEL_ROLE = int(Qt.ItemDataRole.UserRole) + 1
 _VALUE_ROLE = _LABEL_ROLE + 1
 _DETAIL_ROLE = _LABEL_ROLE + 2
 _STATUS_ROLE = _LABEL_ROLE + 3
+_INVALID_INDEX = QModelIndex()
 
 
 class PresentationRowModel(QAbstractListModel):
@@ -19,7 +20,7 @@ class PresentationRowModel(QAbstractListModel):
         super().__init__()
         self._items: tuple[PresentationRow, ...] = ()
 
-    def rowCount(self, parent: QModelIndex = QModelIndex()) -> int:  # noqa: N802
+    def rowCount(self, parent: QModelIndex = _INVALID_INDEX) -> int:  # noqa: N802
         if parent.isValid():
             return 0
         return len(self._items)
