@@ -6,57 +6,28 @@
 
 **M0A — Mathematical Quant-Finance Architecture Foundation is complete.**
 
-M0A now consists of:
+**M1 — European Options & Black-Scholes Reference Vertical is complete.**
 
-1. the implemented mathematical pricing-composition core introduced by PR #10; and
-2. the broader platform-wide mathematical problem taxonomy recorded by ADR 0002.
+M1 is the first concrete specialization of the M0A pricing architecture. ADR 0002 remains the current platform-wide architectural authority; ADR 0001 remains the historical record for the pricing-specific foundation introduced before the broader mathematical taxonomy was adopted.
 
-ADR 0002 is the current architectural authority. ADR 0001 remains the historical record for the pricing-specific foundation that was implemented first.
-
-The next finance milestone is **M1 — European Options & Black-Scholes Reference Vertical**, implemented as the first concrete specialization of the M0A pricing core.
+The next finance milestone is **M2 — Independent Valuation and Sensitivity/Greeks**.
 
 ## What exists
 
 The repository establishes:
 
 - a `src/`-layout Python package;
-- package metadata in `pyproject.toml`;
 - pytest, Ruff, and strict Pyright configuration;
-- GitHub Actions CI invoking the canonical local quality gate;
-- `scripts/fix` and `scripts/check_all` as local quality entry points;
-- repository ignore rules and repository-native collaboration guidance;
-- the validation-first M0–M9 research roadmap;
-- architecture, quantitative-convention, provenance, reproducibility/RNG, validation, and future Python/C++ guardrails;
-- `docs/development/engineering_principles.md` for engineering/collaboration rationale;
-- `docs/quantitative_conventions.md` as the authority for committed and deliberately deferred quantitative conventions;
-- ADR 0001 for the historical pricing-specific foundation and ADR 0002 for the current mathematical problem architecture;
-- reusable implementation Issue and pull-request templates.
-
-M0A adds the first finance-domain production semantics under `qf_platform.pricing`:
-
-```text
-state space / modeled state / state path
-        +
-stochastic law + separate parameter values
-        +
-financial contract → immutable cash-flow stream
-        +
-strictly-positive numeraire
-        +
-physical vs numeraire-associated pricing-measure semantics
-        ↓
-immutable PricingProblem
-        +
-compatible ValuationMethod
-        ↓
-immutable ValuationResult(present_value)
-```
-
-The core deliberately does not define every stochastic model through drift/diffusion, does not implement a generic change-of-measure engine, and does not make every valuation method support every pricing problem.
+- GitHub Actions CI invoking the canonical `./scripts/check_all` quality gate;
+- repository-native Issue → branch → early PR → CI → exact-head → squash-merge workflow;
+- architecture, quantitative-convention, engineering, provenance, reproducibility/RNG, validation, and future Python/C++ guidance;
+- ADR 0002 for the mathematical problem architecture and ADR 0001 for the historical pricing-composition decision;
+- the M0A production pricing core under `qf_platform.pricing`; and
+- the M1 European-option / Black-Scholes analytical reference specialization.
 
 ## Platform-wide mathematical architecture
 
-M0A also establishes this durable taxonomy:
+M0A establishes the durable taxonomy:
 
 ```text
 FINANCIAL / MATHEMATICAL FOUNDATIONS
@@ -97,27 +68,120 @@ root finding / optimization / filtering / regression / scenario methods / tests
 SPECIFIC IMMUTABLE RESULTS / EVIDENCE
 ```
 
-The platform-wide conceptual pattern is:
+The platform-wide conceptual pattern remains:
 
 ```text
 Problem + supported Method -> specific immutable Result
 ```
 
-This is architectural rather than a universal runtime hierarchy. The repository intentionally does **not** contain generic production `InverseProblem`, `SensitivityProblem`, `PredictionProblem`, `ControlProblem`, `RiskProblem`, or `ValidationProblem` frameworks yet. Their first implementations should remain concrete until real consumers establish shared software behavior.
+This is architectural, not a universal runtime hierarchy. The repository still intentionally contains no generic production `InverseProblem`, `SensitivityProblem`, `PredictionProblem`, `ControlProblem`, `RiskProblem`, or `ValidationProblem` framework.
 
-The governing doctrine is:
+## Implemented pricing boundary
+
+The production pricing core remains:
 
 ```text
-Foundational mathematical domain distinctions
-may be represented explicitly from the outset.
-
-Problem-specific software frameworks
-should remain narrow and evidence-driven.
-
-Mathematical generality
-does not imply
-universal operational APIs.
+state space / modeled state / state path
+        +
+stochastic law + separate parameter values
+        +
+financial contract → immutable cash-flow stream
+        +
+strictly-positive numeraire
+        +
+physical vs numeraire-associated pricing-measure semantics
+        ↓
+immutable PricingProblem
+        +
+compatible ValuationMethod
+        ↓
+immutable ValuationResult(present_value)
 ```
+
+M1 specializes that composition without bypassing it:
+
+```text
+EquityState / EquityStateSpace
++
+BlackScholesLaw + BlackScholesParameters
++
+EuropeanOption → terminal CashFlowStream
++
+FlatMoneyMarketNumeraire + PricingMeasureSemantics
+        ↓
+PricingProblem
+        +
+BlackScholesClosedForm
+        ↓
+ValuationResult(present_value)
+```
+
+The important responsibility split is preserved:
+
+```text
+state
+!= stochastic law
+!= model parameter values
+!= contract
+!= cash flows
+!= numeraire
+!= pricing-measure semantics
+!= valuation method
+!= valuation result
+```
+
+`BlackScholesClosedForm` is therefore a valuation method for a supported `PricingProblem`; it is not the stochastic model itself.
+
+## M1 concrete capabilities
+
+M1 adds:
+
+- immutable non-negative finite `EquityState(spot)` and `EquityStateSpace`;
+- explicit `OptionRight.CALL` / `OptionRight.PUT` semantics;
+- immutable `EuropeanOption` terminal contingent cash-flow semantics;
+- Actual/365 Fixed calendar-date-to-model-time conversion;
+- `FlatMoneyMarketNumeraire` with a finite continuously compounded annualized decimal rate and support for negative rates;
+- immutable `BlackScholesParameters` containing annualized decimal volatility and continuous proportional dividend/carry yield;
+- `BlackScholesLaw` as the GBM / Black-Scholes law identity, separate from parameter values;
+- `BlackScholesClosedForm` as a narrow M0A `ValuationMethod` specialization; and
+- formula traceability in `docs/models/black_scholes.md`.
+
+The risk-free accumulation rate is not duplicated inside `BlackScholesParameters`; closed-form valuation obtains risk-free discounting from the pricing problem's numeraire. Continuous proportional dividend/carry remains a model parameter because it enters the concrete equity dynamics and analytical specialization.
+
+## M1 quantitative conventions
+
+M1 commits only the conventions needed by this vertical:
+
+- valuation and expiry are `datetime.date` calendar dates, not datetimes;
+- Actual/365 Fixed model time uses actual calendar days divided by exactly 365;
+- no business-day adjustment or time-of-day expiry semantics are introduced;
+- spot is an explicit modeled spot input, not a forward and not a market-observation/provenance container;
+- spot and strike are finite and non-negative, with zero admitted as a degenerate boundary;
+- volatility is a finite non-negative annualized decimal standard deviation (`0.20` means 20%);
+- the M1 money-market rate is a finite continuously compounded annualized decimal rate; negative rates are allowed;
+- dividend/carry is a finite continuously compounded proportional annualized decimal yield;
+- completed analytical output continues to use `ValuationResult.present_value` terminology.
+
+These conventions do not create a general rates framework, curve hierarchy, discrete-dividend engine, market snapshot/environment, forward-input API, or trade/portfolio layer.
+
+## M1 quantitative evidence
+
+The executable evidence includes:
+
+- the published one-year benchmark `S=K=100`, `r=5%`, `q=0`, `sigma=20%` with call PV `10.450583572185565` and put PV `5.573526022256971`;
+- put-call parity across multiple parameter cases, including a negative-rate case;
+- discounted European call/put no-arbitrage bounds;
+- expiry intrinsic-value behavior;
+- zero-volatility deterministic valuation;
+- zero-spot and zero-strike limits;
+- continuous-compounding discrimination;
+- Actual/365 Fixed leap-day discrimination;
+- positive-dividend carry direction;
+- input/domain/immutability checks;
+- explicit rejection of expired or otherwise unsupported pricing problems through the valuation-method support boundary; and
+- dependency-direction tests keeping concrete state/contract/law/parameter/date/numeraire semantics upstream of valuation.
+
+See `docs/models/black_scholes.md` for source references, notation mapping, assumptions, formulas, limits, tolerance rationale, and the executable evidence map.
 
 ## Observation/model boundary
 
@@ -145,25 +209,11 @@ parameter values
 probability semantics
 ```
 
-A specific problem may combine problem-ready observed information with model semantics, but raw observations must not be silently overwritten by model-generated or model-implied quantities.
-
-## Foundational pricing boundary
-
-The current pricing architecture reflects:
-
-```math
-\mathfrak P_{\mathrm{price}}
-=
-(\mathcal X,\mathcal L_\theta,\mathcal C,N,\mathbb Q^N)
-```
-
-and keeps the theoretical pricing question separate from the analytic/numerical method used to evaluate it.
-
-The broader M0A doctrine does **not** waive evidence-driven extraction for operational calibration/inference, sensitivity, prediction, control, risk, validation, market-data, portfolio, research, or native-backend frameworks.
+M1's `EquityState.spot` is intentionally valuation-ready modeled state. Real quote provenance and market-data normalization remain future M4 concerns rather than being smuggled into the M1 pricing specialization.
 
 ## Quality-tool maturity
 
-The canonical gate remains intentionally lean on current `main`:
+The canonical gate remains intentionally lean:
 
 ```text
 Ruff lint
@@ -172,70 +222,49 @@ strict Pyright
 pytest
 ```
 
-Issue #7 separately tracks a cognitive-complexity guard. Coverage thresholds, Import Linter contracts beyond focused architectural tests, strict docs builds, quantitative contract suites, benchmark/profile infrastructure, and release smoke checks should still be added only when concrete code gives them meaningful enforcement targets.
+Issue #7 separately tracks a cognitive-complexity guard. Coverage thresholds, broader import-linter contracts, strict docs builds, benchmark/profile infrastructure, and release smoke checks should still be added only when concrete code gives them meaningful enforcement targets.
 
 ## Deliberately absent
 
-The following are still absent from merged project truth until their milestones land:
+The following remain absent from merged project truth until their milestones land:
 
-- `EuropeanOption` and option-right semantics;
-- GBM / Black-Scholes stochastic-law specialization;
-- money-market-account specialization and concrete M1 rate/carry conventions;
-- Black-Scholes closed-form valuation;
-- CRR/binomial or Monte Carlo methods;
+- CRR/binomial valuation;
+- Monte Carlo valuation and sampling-error results;
 - Greeks/sensitivity production structures;
-- hedging/control production structures;
-- inference/calibration production structures;
+- dynamic hedging/control production structures;
+- live market-data ingestion and implied-volatility inference;
+- calibration/inverse-problem production structures;
 - prediction frameworks;
 - generic risk or validation frameworks;
-- market snapshots/environments and live market-data clients;
+- market snapshots/environments;
 - trade/portfolio infrastructure;
 - Heston;
 - native/C++ backends.
 
 ## Next objective
 
-Begin revised **M1 — European Options & Black-Scholes Reference Vertical** from current `main`.
+Begin **M2 — Independent Valuation and Sensitivity/Greeks** from current `main` after M1 is merged and verified.
 
-Approximate specialization:
+M2 should use the *same* M1 financial semantics as the analytical reference while adding genuinely independent methods:
 
 ```text
-Equity state / path
-+
-GBM / Black-Scholes stochastic law
-+
-Black-Scholes parameter values
-+
-European call/put contract
-+
-money-market numeraire
-+
-risk-neutral pricing-measure semantics
+same Black-Scholes PricingProblem
         ↓
-PricingProblem
-        +
-Black-Scholes closed-form ValuationMethod
+BlackScholesClosedForm
+CRR / binomial
+Monte Carlo
         ↓
-ValuationResult
-        ↓
-parity + bounds + limiting cases + benchmark evidence
+cross-method evidence
 ```
 
-M1 owns the concrete date/year-fraction, discounting, carry/dividend, spot, volatility, option-right, formula, and theoretical-validation decisions. It should specialize M0A rather than bypassing it or expanding M0A into a universal rates/market-data framework.
+and introduce the first concrete sensitivity pressure:
 
-M1 does **not** need to implement the other problem-family frameworks merely because M0A now names them architecturally.
+```text
+valuation map F
+    ↓
+differentiate
+    ↓
+analytic Greeks ↔ finite-difference Greeks
+```
 
-## M1 design pressure
-
-Expected questions include:
-
-- the smallest concrete equity state/path representation needed by GBM and a European terminal-payoff contract;
-- how calendar expiry, valuation date, year fraction, and day count become explicit M1 semantics;
-- how a money-market-account numeraire is specialized without spreading scalar interest-rate assumptions through the pricing core;
-- how continuous dividend/carry semantics interact with the chosen state/dynamics/numeraire representation;
-- the exact GBM/Black-Scholes stochastic-law and parameter domain under Q;
-- how `EuropeanOption.cash_flows(...)` remains contract semantics while the closed-form method owns analytic valuation;
-- how the closed-form method advertises compatibility with only the M1 problem family it actually supports;
-- which no-arbitrage, limiting-case, and benchmark checks become executable validation evidence.
-
-Do not pre-build unrelated rates, inference/calibration, prediction, control, market-data, portfolio, risk, or validation frameworks while answering those questions.
+M2 must keep financial model error, tree discretization error, Monte Carlo sampling error, finite-difference truncation/cancellation, and floating-point error distinct. It should not create universal sensitivity, portfolio, risk, calibration, or hedging frameworks before real consumers justify them.
