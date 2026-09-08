@@ -6,12 +6,14 @@ Build a professional quantitative-finance research and model-validation platform
 
 The project should demonstrate quantitative-finance knowledge, mathematical modeling, numerical methods, reproducible research, calibration, pricing, risk reasoning, model validation, empirical analysis, performance engineering, testing, typing, documentation, CI, Python, and modern C++.
 
-The project is not a feature checklist. Each increase in model or architectural complexity must be justified by evidence produced by the previous stages.
+The project is not a feature checklist. Each increase in model or architectural complexity must be justified by evidence, except for the narrow foundational asset-pricing semantic decomposition accepted by ADR 0001.
 
 ## v0.1 research narrative
 
 ```text
-Black-Scholes theory
+mathematical asset-pricing composition foundation
+        ↓
+Black-Scholes theory + first concrete specialization
         ↓
 independent implementation
         ↓
@@ -56,26 +58,95 @@ Expected outputs:
 - architecture index and guardrails;
 - reproducibility/RNG and future Python/C++ policy.
 
-**Explicit non-goal:** no Black-Scholes or finance-domain code.
+**Historical non-goal:** M0 itself added no Black-Scholes or finance-domain code.
+
+---
+
+## M0A — Mathematical pricing composition foundation
+
+**Question:** Can the platform represent the stable mathematical responsibilities of arbitrage-free asset pricing explicitly, without turning them into a universal finance framework?
+
+Conceptual decomposition:
+
+```text
+state space / modeled state
++
+stochastic law
++
+model parameter values
++
+financial contract → contingent cash-flow stream
++
+numeraire
++
+numeraire-associated pricing-measure semantics
+        ↓
+PricingProblem
+        +
+supported ValuationMethod
+        ↓
+immutable ValuationResult
+```
+
+Expected capabilities:
+
+- generic state-space, modeled-state, and path semantics that do not require finite-dimensional or Markov structure;
+- stochastic-law responsibility without a universal drift/diffusion ontology;
+- model-specific immutable/value-like parameter objects kept separate from law structure;
+- immutable cash flows and cash-flow streams;
+- contract semantics that map paths to cash flows and own no valuation/calibration/market-data/portfolio behavior;
+- strictly-positive numeraire access;
+- distinct physical- and pricing-measure semantics, with Q associated to its numeraire and no generic change-of-measure engine;
+- immutable compositional `PricingProblem`;
+- valuation-method compatibility separate from structural validity;
+- narrow immutable present-value result;
+- one tiny deterministic composition fixture proving the architecture without implementing M1.
+
+Architectural rule: ADR 0001 supersedes the ordinary two-consumer extraction discipline **only** for this foundational pricing-semantic core. All unrelated application abstractions remain evidence-driven.
 
 ---
 
 ## M1 — European options and Black-Scholes reference vertical
 
-**Question:** Can the platform represent and analytically value its first concrete financial instrument correctly?
+**Question:** Can the platform specialize the M0A pricing semantics to represent and analytically value its first concrete financial instrument correctly?
+
+Approximate composition:
+
+```text
+Equity state / path
++
+GBM / Black-Scholes stochastic law
++
+Black-Scholes parameters
++
+European call/put contract
++
+money-market numeraire
++
+risk-neutral pricing semantics
+        ↓
+PricingProblem
+        +
+Black-Scholes closed-form ValuationMethod
+        ↓
+ValuationResult
+        ↓
+theoretical validation evidence
+```
 
 Expected capabilities:
 
-- European call/put contract semantics;
-- valuation-ready spot/discount/dividend inputs;
-- explicit date/year-fraction treatment;
-- Black-Scholes model structure and parameters;
-- analytic pricing;
+- European call/put terminal cash-flow semantics;
+- valuation-ready equity state with explicit date/year-fraction treatment;
+- concrete money-market/risk-free discounting semantics and explicit dividend/carry treatment without creating a general rates framework;
+- GBM / Black-Scholes stochastic-law structure and separate parameter values under the relevant pricing measure;
+- analytic closed-form valuation as a compatible valuation method;
 - put-call parity;
 - arbitrage bounds;
-- known limiting/sanity cases.
+- known limiting/sanity cases and independently justified benchmark values;
+- formula traceability.
 
-Architectural goal: let the first real consumers determine the smallest useful boundaries. Avoid generic pricer/model hierarchies.
+Architectural goal: make every M1-specific choice a specialization of M0A. Do not create a competing isolated Black-Scholes API, a universal `FinancialModel`, or unrelated market/rates abstractions.
 
 ---
 
@@ -85,7 +156,7 @@ Architectural goal: let the first real consumers determine the smallest useful b
 
 Expected capabilities:
 
-- CRR/binomial valuation;
+- CRR/binomial valuation as another valuation method over the supported Black-Scholes problem family;
 - Monte Carlo valuation with explicit RNG ownership;
 - analytic Greeks;
 - bump-and-revalue/finite-difference Greeks;
@@ -99,6 +170,8 @@ Black-Scholes analytic ↔ binomial
 Black-Scholes analytic ↔ Monte Carlo
 analytic Greeks ↔ numerical Greeks
 ```
+
+M2 should let the second real valuation consumers pressure-test the M0A method/problem boundaries. Do not generalize Greek/result/statistics structures beyond what the actual consumers require.
 
 ---
 
@@ -154,9 +227,9 @@ Do not make core tests depend on live external APIs.
 
 Expected capabilities:
 
-- Heston model structure and parameter object(s);
-- characteristic-function/Fourier valuation;
-- Monte Carlo valuation;
+- Heston state/law structure and parameter object(s) specialized through the M0A pricing core;
+- characteristic-function/Fourier valuation method;
+- Monte Carlo valuation method;
 - parameter-domain validation;
 - Fourier ↔ Monte Carlo comparison;
 - convergence/stability and limiting/sanity studies.
@@ -164,9 +237,10 @@ Expected capabilities:
 Keep separate:
 
 ```text
-Heston stochastic model
-!= Fourier method
-!= Monte Carlo method
+Heston stochastic law
+!= Heston parameter values
+!= Fourier valuation method
+!= Monte Carlo valuation method
 ```
 
 PDE valuation is optional future evidence, not a v0.1 requirement unless a real validation need justifies it.
@@ -195,7 +269,7 @@ Protect:
 
 ```text
 calibration problem != numerical optimizer
-model structure != calibrated parameters
+stochastic law != calibrated parameter values
 ```
 
 Expected evidence:
@@ -322,12 +396,12 @@ Do not implement these future specializations prematurely.
 
 ## Parallelism guidance
 
-Early milestones are intentionally mostly sequential because each supplies evidence and consumers for the next.
+M0A must settle before revised M1 because it defines M1's composition contracts. M1 and the early numerical validation milestones remain intentionally mostly sequential because each supplies evidence and consumers for the next.
 
-Reasonable parallel work once contracts stabilize includes:
+Reasonable parallel work once shared contracts stabilize includes:
 
 - documentation/report presentation alongside validated implementation;
-- market-data provenance/fixture work alongside later Black-Scholes validation studies;
+- market-data provenance/fixture preparation alongside later Black-Scholes validation studies;
 - Heston validation-study preparation alongside stable Heston valuation code.
 
 Do **not** begin a parallel C++ workstream before profiling creates a concrete native-acceleration task.

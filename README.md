@@ -6,34 +6,90 @@ The first specialization is **Equity Derivatives & Volatility Modeling**.
 
 > Don’t just implement quantitative models—show how to determine whether they are correct, stable, useful, and trustworthy.
 
-> Every increase in model or architectural complexity must earn its place through evidence.
+> Every increase in model or architectural complexity must earn its place through evidence, with one narrow finance-native exception for foundational pricing semantics.
 
 ## Status
 
-**M0 — Engineering Bootstrap is complete.** The next milestone is **M1 — European options and Black-Scholes reference vertical**. No finance-domain implementation has been added yet.
+**M0 — Engineering Bootstrap is complete.**
+
+**M0A — Mathematical Pricing Composition Foundation** establishes the first finance-domain architecture. The next concrete milestone is **M1 — European Options & Black-Scholes Reference Vertical**, implemented as a specialization of M0A.
 
 See:
 
 - [`AGENTS.md`](AGENTS.md) for repository workflow and guardrails;
 - [`docs/development/current_state.md`](docs/development/current_state.md) for current project truth;
-- [`docs/development/roadmap.md`](docs/development/roadmap.md) for M0–M9;
+- [`docs/development/roadmap.md`](docs/development/roadmap.md) for milestone sequencing;
 - [`docs/architecture/index.md`](docs/architecture/index.md) for architecture and validation policy;
-- [`docs/quantitative_conventions.md`](docs/quantitative_conventions.md) for project-wide quantitative convention decisions and explicitly deferred choices;
-- [`docs/development/engineering_principles.md`](docs/development/engineering_principles.md) for the rationale behind the engineering/collaboration system;
-- [`docs/decisions/README.md`](docs/decisions/README.md) for ADR policy.
+- [`docs/quantitative_conventions.md`](docs/quantitative_conventions.md) for committed and deferred quantitative conventions;
+- [`docs/decisions/0001-foundational-pricing-composition.md`](docs/decisions/0001-foundational-pricing-composition.md) for the M0A architectural decision;
+- [`docs/development/engineering_principles.md`](docs/development/engineering_principles.md) for engineering/collaboration rationale.
+
+## Mathematical pricing core
+
+M0A makes the general asset-pricing composition explicit:
+
+```text
+state / state space / path
++
+stochastic law + separate parameter values
++
+financial contract → cash-flow stream
++
+numeraire + pricing-measure semantics
+        ↓
+PricingProblem
+        +
+supported ValuationMethod
+        ↓
+ValuationResult(present_value)
+```
+
+The conceptual starting point is
+
+```math
+\mathfrak P = (\mathcal X,\mathcal L_\theta,\mathcal C,N,\mathbb Q^N)
+```
+
+while the numerical/analytic method remains separate from the financial pricing problem.
+
+This does **not** create a universal finance framework. M0A deliberately omits generic rates, market-data, calibration, risk, portfolio, XVA, validation-study, and native-backend architecture.
+
+## Next specialization: M1
+
+M1 should approximately compose:
+
+```text
+Equity state / path
++
+GBM / Black-Scholes stochastic law
++
+Black-Scholes parameters
++
+European call/put contract
++
+money-market numeraire
++
+risk-neutral pricing semantics
+        ↓
+PricingProblem
+        +
+Black-Scholes closed-form ValuationMethod
+        ↓
+ValuationResult
+        ↓
+parity + bounds + limiting cases + benchmark evidence
+```
+
+M1 still owns the concrete date/year-fraction, day-count, rate/compounding, dividend/carry, spot, volatility, option-right, and formula-traceability decisions.
 
 ## v0.1 direction
 
-The first flagship release is intended to build one coherent research narrative:
-
 ```text
-Black-Scholes theory
+mathematical pricing foundation
         ↓
-independent valuation
+Black-Scholes reference specialization
         ↓
-numerical cross-validation
-        ↓
-Greeks / replication
+independent valuation + Greeks
         ↓
 delta-hedging experiments
         ↓
@@ -64,6 +120,7 @@ The project deliberately does **not** begin as a checklist of pricing, VaR, XVA,
 
 The platform is expected to accumulate multiple independent forms of evidence:
 
+- software/type/invariant correctness;
 - no-arbitrage identities and bounds;
 - known analytical/limiting cases;
 - independent pricing methods;
@@ -82,26 +139,26 @@ Plausible-looking prices are not sufficient validation.
 
 ## Architecture philosophy
 
-The project prefers concrete responsibilities and explicit composition over speculative universal frameworks.
+The project prefers mathematically meaningful composition over god objects and speculative universal frameworks.
 
 Key distinctions include:
 
 ```text
+state != stochastic law != parameters
+contract != cash-flow stream
+numeraire != pricing measure
+pricing problem != valuation method != result
 MarketSnapshot != MarketEnvironment
-Instrument != Trade != Portfolio
-MarketModel != ValuationMethod
-financial model != numerical method
-model structure != model parameters
+FinancialContract != Trade != Portfolio
 calibration problem != numerical optimizer
-configuration/request != immutable result
 production library != research study != presentation
 ```
 
-A shared abstraction should normally emerge only after multiple real consumers demonstrate the same responsibility.
+The ordinary two-consumer extraction rule still governs non-foundational application abstractions. ADR 0001 is the narrow exception for asset-pricing semantics.
 
 ## Python/C++ direction
 
-Python owns the reference financial semantics, research orchestration, calibration, validation, and market-data workflows.
+Python owns reference financial semantics, research orchestration, calibration, validation, and market-data workflows.
 
 C++ will be introduced only after profiling identifies numerical hotspots worth accelerating. The project will preserve Python correctness/reference implementations and test numerical/statistical equivalence across the native boundary.
 
@@ -128,20 +185,20 @@ Apply supported Ruff fixes and formatting with:
 ./scripts/fix
 ```
 
-The current gate runs Ruff linting, Ruff format checking, strict Pyright, and pytest. GitHub Actions invokes the same `scripts/check_all` entry point so local and hosted checks remain aligned.
-
-Additional guards such as coverage thresholds, cognitive-complexity checks, architecture/import contracts, strict docs builds, quantitative contract suites, and benchmark harnesses are added only when real code or architecture gives them something meaningful to enforce.
+The current `main` gate runs Ruff linting, Ruff format checking, strict Pyright, and pytest. GitHub Actions invokes the same `scripts/check_all` entry point so local and hosted checks remain aligned.
 
 ## Current non-goals
 
-The bootstrap intentionally contains no:
+The repository intentionally still contains no merged production implementation of:
 
-- Black-Scholes implementation;
-- `EuropeanOption` domain type;
-- generic model/pricer/calibrator/risk hierarchy;
-- trade/portfolio/VaR framework;
-- market-data client;
+- European option specialization or Black-Scholes pricing;
+- CRR/binomial or Monte Carlo valuation;
+- Greeks or delta hedging;
+- live market-data ingestion or implied-volatility surfaces;
+- generic calibration/risk/validation hierarchy;
+- trade/portfolio/VaR/XVA framework;
+- Heston;
 - generic experiment engine;
 - C++ backend abstraction.
 
-The first finance APIs will be introduced in M1 only when concrete Black-Scholes consumers can pressure-test their design.
+Those capabilities should specialize or consume the M0A core only when their milestones provide real quantitative pressure.

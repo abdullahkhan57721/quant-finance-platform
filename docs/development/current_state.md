@@ -4,9 +4,9 @@
 
 **M0 — Engineering Bootstrap is complete.**
 
-The repository also has the durable collaboration/convention layer needed to carry forward the engineering lessons adopted during bootstrap: information-lifetime guidance, an explicit quantitative-convention authority, ADR policy, reusable Issue/PR templates, canonical local quality scripts, and explicit ChatGPT/Codex work allocation.
+**M0A — Mathematical Pricing Composition Foundation is complete once its reviewed PR is merged.** It intentionally supersedes the bootstrap rule that foundational pricing semantics must wait for two concrete consumers. The exception is narrow and recorded in ADR 0001.
 
-No finance-domain implementation has been added yet.
+The next finance milestone is **M1 — European Options & Black-Scholes Reference Vertical**, implemented as the first concrete specialization of the M0A pricing core.
 
 ## What exists
 
@@ -15,21 +15,53 @@ The repository establishes:
 - a `src/`-layout Python package;
 - package metadata in `pyproject.toml`;
 - pytest, Ruff, and strict Pyright configuration;
-- a package import smoke test;
-- GitHub Actions CI running the canonical local quality gate;
+- GitHub Actions CI invoking the canonical local quality gate;
 - `scripts/fix` and `scripts/check_all` as local quality entry points;
-- repository ignore rules;
-- root agent/navigation guidance;
-- the accepted M0–M9 validation-first roadmap;
-- architecture, provenance, reproducibility/RNG, validation, and future Python/C++ guardrails;
+- repository ignore rules and repository-native collaboration guidance;
+- the validation-first M0–M9 research roadmap, now with M0A as a foundational insertion before M1;
+- architecture, quantitative-convention, provenance, reproducibility/RNG, validation, and future Python/C++ guardrails;
 - `docs/development/engineering_principles.md` for engineering/collaboration rationale;
 - `docs/quantitative_conventions.md` as the authority for committed and deliberately deferred quantitative conventions;
-- lightweight ADR guidance/template under `docs/decisions/`;
-- reusable implementation Issue and pull-request templates with scope, verification, quantitative, ownership, and recovery fields.
+- ADR guidance plus ADR 0001 for the foundational pricing-composition decision;
+- reusable implementation Issue and pull-request templates.
+
+M0A adds the first finance-domain production semantics under `qf_platform.pricing`:
+
+```text
+state space / modeled state / state path
+        +
+stochastic law + separate parameter values
+        +
+financial contract → immutable cash-flow stream
+        +
+strictly-positive numeraire
+        +
+physical vs numeraire-associated pricing-measure semantics
+        ↓
+immutable PricingProblem
+        +
+compatible ValuationMethod
+        ↓
+immutable ValuationResult(present_value)
+```
+
+The core deliberately does not define every stochastic model through drift/diffusion, does not implement a generic change-of-measure engine, and does not make every valuation method support every pricing problem.
+
+## Foundational pricing boundary
+
+The current mathematical architecture reflects
+
+```math
+\mathfrak P = (\mathcal X,\mathcal L_\theta,\mathcal C,N,\mathbb Q^N)
+```
+
+and keeps the theoretical pricing question separate from the analytic/numerical method used to evaluate it.
+
+This foundational exception does **not** waive the ordinary two-consumer extraction discipline for calibration, risk, market data, portfolios, research workflows, native backends, or other application abstractions.
 
 ## Quality-tool maturity
 
-The initial gate intentionally remains lean:
+The canonical gate remains intentionally lean on current `main`:
 
 ```text
 Ruff lint
@@ -38,37 +70,64 @@ strict Pyright
 pytest
 ```
 
-Coverage thresholds, cognitive-complexity guards, Import Linter contracts, strict docs builds, quantitative contract suites, benchmark/profile infrastructure, and release smoke checks should be added only when concrete code or architecture gives them something meaningful to enforce.
+Issue #7 separately tracks a cognitive-complexity guard. Coverage thresholds, Import Linter contracts beyond focused architectural tests, strict docs builds, quantitative contract suites, benchmark/profile infrastructure, and release smoke checks should still be added only when concrete code gives them meaningful enforcement targets.
 
 ## Deliberately absent
 
-The following do not exist yet and should not be invented without real consumers:
+The following are still absent from merged project truth until their milestones land:
 
-- `EuropeanOption`;
-- Black-Scholes pricing;
-- market snapshots/environments;
-- model or valuation hierarchies;
-- generic calibration/risk/validation interfaces;
+- `EuropeanOption` and option-right semantics;
+- GBM / Black-Scholes stochastic-law specialization;
+- money-market-account specialization and concrete M1 rate/carry conventions;
+- Black-Scholes closed-form valuation;
+- CRR/binomial or Monte Carlo methods;
+- Greeks, hedging, calibration, model-risk, or generic validation frameworks;
+- market snapshots/environments and live market-data clients;
 - trade/portfolio infrastructure;
-- market-data clients;
-- experiment frameworks;
+- Heston;
 - native/C++ backends.
 
 ## Next objective
 
-Begin **M1 — European options and Black-Scholes reference vertical** using the normal Issue → branch → PR → CI → squash-merge workflow.
+Begin revised **M1 — European Options & Black-Scholes Reference Vertical** from M0A.
 
-M1 should introduce the first concrete finance vertical and let actual Black-Scholes consumers pressure-test the bootstrap architecture rather than pre-creating a general finance framework.
+Approximate specialization:
 
-## M1 design questions
+```text
+Equity state / path
++
+GBM / Black-Scholes stochastic law
++
+Black-Scholes parameter values
++
+European call/put contract
++
+money-market numeraire
++
+risk-neutral pricing-measure semantics
+        ↓
+PricingProblem
+        +
+Black-Scholes closed-form ValuationMethod
+        ↓
+ValuationResult
+        ↓
+parity + bounds + limiting cases + benchmark evidence
+```
+
+M1 owns the concrete date/year-fraction, discounting, carry/dividend, spot, volatility, option-right, formula, and theoretical-validation decisions. It should specialize M0A rather than bypassing it or expanding M0A into a universal rates/market-data framework.
+
+## M1 design pressure
 
 Expected questions include:
 
-- what is the smallest correct representation of a European option contract;
-- how valuation dates, expiries, day-count conventions, discounting, dividends/financing, and spot should be represented;
-- whether a narrow maturity-dependent discount-factor capability is justified immediately;
-- how Black-Scholes model structure and its parameters should be separated;
-- what immutable result type is warranted by the first real valuation consumer;
-- which no-arbitrage, limiting-case, and numerical checks should become executable validation evidence.
+- the smallest concrete equity state/path representation needed by GBM and a European terminal-payoff contract;
+- how calendar expiry, valuation date, year fraction, and day count become explicit M1 semantics;
+- how a money-market-account numeraire is specialized without spreading scalar interest-rate assumptions through the pricing core;
+- how continuous dividend/carry semantics interact with the chosen state/dynamics/numeraire representation;
+- the exact GBM/Black-Scholes stochastic-law and parameter domain under Q;
+- how `EuropeanOption.cash_flows(...)` remains contract semantics while the closed-form method owns analytic valuation;
+- how the closed-form method advertises compatibility with only the M1 problem family it actually supports;
+- which no-arbitrage, limiting-case, and benchmark checks become executable validation evidence.
 
-Do not settle those details in advance when implementation evidence can decide them. Use `docs/quantitative_conventions.md` to distinguish decisions that become project-wide from choices that remain local.
+Do not pre-build unrelated rates, calibration, market-data, portfolio, risk, or validation frameworks while answering those questions.

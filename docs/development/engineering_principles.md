@@ -2,11 +2,11 @@
 
 ## Purpose
 
-This document records the engineering lessons intentionally carried into the Quantitative Finance Research & Validation Platform from prior repository work, especially Evolution Simulation Engine v0.1.0.
+This document records the engineering lessons intentionally carried into the Quantitative Finance Research & Validation Platform from prior repository work.
 
-The transfer is about **development discipline**, not domain architecture. Evolution-specific concepts are not templates for finance. The finance repository, its current consumers, tests, and evidence decide what survives.
+The transfer is about **development discipline**, not domain architecture. Finance-specific mathematics, repository consumers, tests, and evidence decide the architecture.
 
-`AGENTS.md` contains the operating rules. This document explains the reasoning behind them so future agents can apply the principles instead of cargo-culting them.
+`AGENTS.md` contains operating rules. This document explains the reasoning behind them so future agents can apply the principles instead of cargo-culting them.
 
 ## 1. Repository truth is collaboration memory
 
@@ -34,8 +34,6 @@ Conversation memory can help locate a decision. It should not override live repo
 
 ## 2. Put information at the right lifetime
 
-Different information changes at different rates. Mixing all of it into one giant project-context document makes important rules hard to find and volatile details go stale.
-
 | Information | Durable home |
 | --- | --- |
 | Operating rules for agents/contributors | `AGENTS.md` |
@@ -51,11 +49,11 @@ Different information changes at different rates. Mixing all of it into one gian
 | Historical evolution | Git history |
 | Explanatory/teaching material | Dedicated learning docs |
 
-The point is not more documentation. The point is **less duplicated documentation with clearer ownership**.
+The point is not more documentation. The point is less duplicated documentation with clearer ownership.
 
-## 3. Generalize from pressure, not imagination
+## 3. Generalize from pressure — with one finance-native foundational exception
 
-A useful architecture loop is:
+The ordinary architecture loop remains:
 
 ```text
 concrete use case
@@ -69,14 +67,34 @@ separate only what the evidence requires
 add a discriminating consumer/test
 ```
 
-The first Black-Scholes vertical should therefore remain concrete enough to reveal real boundaries. Do not invent a universal finance framework because Heston, rates, XVA, or rough volatility might exist later.
+For most of the platform, one consumer stays concrete and two real consumers are required before shared extraction is considered.
 
-At the same time, do not overfit the first use case. When a public contract is proposed, ask:
+M0A introduces one deliberate exception, recorded by ADR 0001: the stable mathematical responsibilities of the asset-pricing problem may be represented explicitly before two implemented consumers exist.
 
-1. What part is intrinsic to the responsibility?
-2. What part exists only because the first example is simple?
-3. What future pressure is reasonably foreseeable and expensive to block accidentally?
-4. What should remain deliberately deferred until a second real consumer exists?
+That exception is justified because
+
+```text
+state
+stochastic law
+parameters
+contract / cash flows
+numeraire / pricing measure
+pricing problem
+valuation method
+valuation result
+```
+
+are distinct mathematical responsibilities, not merely future software-reuse guesses.
+
+The exception is narrow. It does **not** mean “generalize finance from imagination.” Market-data, calibration, risk, portfolio, validation, studies, rates infrastructure, and native execution still need concrete consumer pressure.
+
+When a public contract is proposed, ask:
+
+1. Is this responsibility part of the accepted foundational pricing mathematics, or an application abstraction?
+2. What part is intrinsic to the responsibility?
+3. What part exists only because the first example is simple?
+4. What future pressure is reasonably foreseeable and expensive to block accidentally?
+5. What should remain deliberately deferred until a second real consumer exists?
 
 ## 4. Separate concepts that merely happen to coincide
 
@@ -85,17 +103,18 @@ Simple examples make different responsibilities look identical. The project shou
 Examples:
 
 ```text
+state != stochastic law != parameters
+contract != realized cash-flow stream
+numeraire != pricing measure
+pricing problem != valuation method != valuation result
 market observation != valuation-ready market state
-instrument != trade != portfolio
-financial model != numerical valuation method
-model structure != parameter set
+financial contract != trade != portfolio
 calibration problem != optimizer
-pricing result != calibration result != validation result
 observed market value != model-generated value
 research study != production library != presentation
 ```
 
-This is not abstraction for abstraction's sake. It prevents one object from accumulating unrelated ownership, mutation, and lifecycle responsibilities.
+This is not abstraction for abstraction's sake. It prevents one object from accumulating unrelated ownership, mutation, lifecycle, and mathematical responsibilities.
 
 ## 5. Make ownership and mutability explicit
 
@@ -106,13 +125,15 @@ Consequential boundaries should answer:
 - If it changes, is that mutation part of the model or merely orchestration state?
 - Is the value observed, derived, configured, calibrated, simulated, or committed evidence?
 
-Prefer immutable completed evidence objects where practical. Calibration work buffers, optimizer state, caches, and simulation scratch arrays may be mutable internally without making committed results mutable.
+Prefer immutable completed evidence/value objects where practical. M0A uses immutable modeled state, cash flows, pricing problems, and valuation results. Model-specific parameter objects should likewise be value-like where appropriate.
+
+Calibration work buffers, optimizer state, caches, and simulation scratch arrays may be mutable internally without making committed results mutable.
 
 Configuration/request objects should not double as mutable runtime state or completed results.
 
 ## 6. Quantitative conventions are part of correctness
 
-Many finance bugs are not algebra mistakes. They are silent convention mismatches:
+Many finance bugs are silent convention mismatches:
 
 - annual vs continuously compounded rates;
 - decimal vs percentage volatility;
@@ -123,7 +144,9 @@ Many finance bugs are not algebra mistakes. They are silent convention mismatche
 - Greek scaling/sign conventions;
 - hidden unit assumptions.
 
-The project therefore maintains an explicit convention register. A convention can remain deferred, but it may not remain *implicit* at a public boundary.
+The project therefore maintains an explicit convention register. A convention can remain deferred, but it may not remain implicit at a public boundary.
+
+M0A commits structural pricing semantics and strictly-positive numeraire values; it deliberately does not pretend those decisions settle M1's dates, rate/compounding, carry, or volatility conventions.
 
 ## 7. Validation is an architectural capability
 
@@ -149,6 +172,8 @@ empirical / out-of-sample evidence
 model-risk analysis
 ```
 
+M0A's evidence is architectural rather than financial-formula evidence: composition, immutability, compatibility, numeraire validity, P-vs-Q semantics, typing, and dependency direction. M1 adds the first formula-level financial evidence.
+
 Do not let one implementation validate itself. Independent implementations can still share a conceptual error, so theoretical and limiting evidence remain important.
 
 Tests should protect mathematical/financial invariants and public semantics rather than incidental internal structure.
@@ -173,7 +198,7 @@ For Python/C++ parity, do not require equal integer seeds to produce identical r
 
 ## 9. Formula provenance should be traceable
 
-When mathematical implementations arrive, important formulas should be traceable through:
+When mathematical formula implementations arrive, important formulas should be traceable through:
 
 ```text
 reference or derivation
@@ -189,7 +214,7 @@ limiting cases / identities
 automated tests
 ```
 
-This is especially valuable in a model-validation portfolio because the code should be auditable by someone who knows the mathematics.
+M0A defines semantic architecture but no production pricing formula. M1 should be the first concrete demonstration of this traceability chain.
 
 ## 10. Performance work needs evidence
 
@@ -235,7 +260,7 @@ A substantial Issue should make the implementation hard to misunderstand. Useful
 - documentation impact;
 - follow-up boundary.
 
-The **likely wrong interpretations / traps** section is especially valuable for AI-assisted development because locally plausible implementations can violate the intended architecture while still looking polished.
+The **likely wrong interpretations / traps** section is especially valuable for AI-assisted development because locally plausible implementations can violate the intended architecture, quantitative semantics, scope, or validation strategy while still looking polished.
 
 Out-of-scope discoveries normally become follow-up Issues instead of invisible scope expansion.
 
@@ -279,8 +304,6 @@ Do not delegate architecture-sensitive work merely because it is substantial. Se
 
 ## 14. Parallelize only behind settled interfaces
 
-Parallel work is useful only when coordination cost stays low.
-
 Good candidates:
 
 - independent test expansion around a stable API;
@@ -290,8 +313,8 @@ Good candidates:
 
 Poor candidates:
 
-- two branches simultaneously inventing the same foundational finance types;
-- model and calibration work before their shared parameter semantics are settled;
+- two branches simultaneously redefining the foundational pricing semantics;
+- model and calibration work before shared parameter semantics are settled;
 - C++ work before a measured Python hotspot and native boundary are known.
 
 ## 15. Automated tests are primary; manual verification is targeted
@@ -319,12 +342,12 @@ Heavy presentation dependencies should remain optional where practical and recei
 
 ## 17. Prefer one coherent flagship story
 
-Portfolio quality is improved by a causal, reproducible narrative rather than a large feature checklist.
-
 The intended v0.1 story is approximately:
 
 ```text
-Black-Scholes reference
+mathematical pricing foundation
+      ↓
+Black-Scholes reference specialization
       ↓
 independent validation
       ↓
@@ -345,13 +368,12 @@ Empirical claims should be separated from illustrative or synthetic evidence. Do
 
 ## 18. Add tooling when it has something real to guard
 
-The initial gate is intentionally lean: Ruff, formatting, strict Pyright, and pytest.
+The initial gate remains intentionally lean on current `main`: Ruff, formatting, strict Pyright, and pytest.
 
-Add later guards when justified:
+Issue #7 tracks cognitive complexity now that production finance code exists. Other guards should still be added when justified:
 
-- coverage threshold → once meaningful production code exists and the target measures useful test completeness;
-- complexity guard → once nontrivial functions make cognitive complexity measurable;
-- Import Linter / architecture contracts → once real package boundaries exist;
+- coverage threshold → once meaningful production code makes the target useful;
+- Import Linter / architecture contracts → when broader package boundaries need machine enforcement beyond focused tests;
 - strict docs build → once generated documentation becomes a supported product surface;
 - quantitative contract suite → as models create identities/convergence/parameter-recovery contracts;
 - benchmark/profile harness → after meaningful numerical workloads exist;
@@ -374,10 +396,10 @@ documentation update
 roadmap change
 ```
 
-Most observations should remain local. Promote them only when repeated evidence shows that they deserve a longer lifetime.
+Most observations should remain local. Promote them only when repeated evidence—or, for ADR 0001, stable finance-native mathematics—shows they deserve a longer lifetime.
 
 ## 20. Core transfer rule
 
-> Do not copy the old architecture. Copy the discipline that produced a good architecture.
+> Do not copy the old architecture. Copy the discipline that produced a good architecture, then let finance mathematics and evidence correct the discipline where appropriate.
 
-The finance platform should become increasingly finance-native as real Black-Scholes, market-data, Heston, calibration, risk, and research consumers provide evidence. If a principle inherited from Evolution conflicts with stronger finance-domain evidence, update the finance repository and let repository truth win.
+If a principle inherited from earlier work conflicts with stronger finance-domain evidence, update the finance repository explicitly, preserve the historical rationale, and let repository truth win.
