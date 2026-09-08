@@ -328,9 +328,7 @@ def _rebalance_step(
     target_units = policy.target_underlying_units(current_problem)
     trade_units = target_units - previous_underlying_units
     trade_notional = trade_units * spot
-    transaction_cost = (
-        problem.proportional_transaction_cost_rate * abs(trade_notional)
-    )
+    transaction_cost = problem.proportional_transaction_cost_rate * abs(trade_notional)
     cash_after_rebalance = cash_before_rebalance - trade_notional - transaction_cost
     portfolio_before = previous_underlying_units * spot + cash_before_rebalance
     portfolio_after = target_units * spot + cash_after_rebalance
