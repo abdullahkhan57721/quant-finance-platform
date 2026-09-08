@@ -4,7 +4,7 @@
 
 **M0 — Engineering Bootstrap is complete.**
 
-**M0A — Mathematical Pricing Composition Foundation is complete once its reviewed PR is merged.** It intentionally supersedes the bootstrap rule that foundational pricing semantics must wait for two concrete consumers. The exception is narrow and recorded in ADR 0001.
+**M0A — Mathematical Pricing Composition Foundation is complete.** It intentionally supersedes the bootstrap rule that foundational pricing semantics must wait for two concrete consumers. The exception is narrow and recorded in ADR 0001.
 
 The next finance milestone is **M1 — European Options & Black-Scholes Reference Vertical**, implemented as the first concrete specialization of the M0A pricing core.
 
