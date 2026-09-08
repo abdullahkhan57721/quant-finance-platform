@@ -1,0 +1,100 @@
+name: Desktop
+
+on:
+  pull_request:
+    paths:
+      - "src/qf_platform/desktop/**"
+      - "src/qf_platform/application/**"
+      - "src/qf_platform/presentation/**"
+      - "tests/desktop/**"
+      - "tests/application/**"
+      - "tests/presentation/**"
+      - "tests/architecture/test_desktop_dependency_boundary.py"
+      - "pyproject.toml"
+      - "pyrightconfig-desktop.json"
+      - "MANIFEST.in"
+      - ".github/workflows/desktop.yml"
+  push:
+    branches: [main]
+    paths:
+      - "src/qf_platform/desktop/**"
+      - "src/qf_platform/application/**"
+      - "src/qf_platform/presentation/**"
+      - "tests/desktop/**"
+      - "tests/application/**"
+      - "tests/presentation/**"
+      - "tests/architecture/test_desktop_dependency_boundary.py"
+      - "pyproject.toml"
+      - "pyrightconfig-desktop.json"
+      - "MANIFEST.in"
+      - ".github/workflows/desktop.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  qt-quick-smoke:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      QT_QPA_PLATFORM: offscreen
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install headless Qt runtime prerequisites
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes libegl1
+
+      - name: Install project and optional desktop tools
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev,desktop]"
+
+      - name: Verify pinned Qt runtime
+        run: python -c "import PySide6; assert PySide6.__version__ == '6.11.2'; print(PySide6.__version__)"
+
+      - name: Desktop lint and type checks
+        run: |
+          python -m ruff check src/qf_platform/desktop tests/desktop
+          python -m pyright --project pyrightconfig-desktop.json
+
+      - name: Native and frontend-neutral tests
+        run: |
+          python -m pytest -q \
+            tests/desktop \
+            tests/application \
+            tests/presentation \
+            tests/architecture/test_desktop_dependency_boundary.py
+
+      - name: Source launch smoke
+        run: python -m qf_platform.desktop.main --smoke-test
+
+      - name: Build standalone desktop artifact
+        run: pyside6-deploy src/qf_platform/desktop/main.py --force --name QuantResearchWorkbench
+
+      - name: Packaged artifact launch smoke
+        id: packaged
+        shell: bash
+        run: |
+          artifact="$(find . -maxdepth 6 -type f -name 'QuantResearchWorkbench*' -perm -111 | head -n 1)"
+          if [[ -z "$artifact" ]]; then
+            echo "Standalone desktop artifact not found" >&2
+            exit 1
+          fi
+          QT_QPA_PLATFORM=offscreen "$artifact" --smoke-test
+          echo "artifact=$artifact" >> "$GITHUB_OUTPUT"
+
+      - name: Upload standalone proof
+        uses: actions/upload-artifact@v4
+        with:
+          name: ui1-linux-desktop-proof
+          path: ${{ steps.packaged.outputs.artifact }}
+          if-no-files-found: error
