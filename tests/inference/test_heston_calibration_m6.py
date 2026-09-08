@@ -9,6 +9,7 @@ from qf_platform.inference import (
     HestonCalibrationConvergenceError,
     HestonCalibrationCoordinates,
     HestonCalibrationProblem,
+    HestonCalibrationResult,
     HestonCalibrationTargetSource,
     HestonCalibrationWeighting,
     HestonPriceCalibrationTarget,
@@ -176,8 +177,8 @@ def _method(
     )
 
 
-def _assert_recovers_truth(result: object) -> None:
-    estimate = result.estimate  # type: ignore[attr-defined]
+def _assert_recovers_truth(result: HestonCalibrationResult) -> None:
+    estimate = result.estimate
     assert estimate.initial_variance == pytest.approx(0.04, abs=2.0e-5)
     assert estimate.parameters.mean_reversion_speed == pytest.approx(2.0, abs=2.0e-3)
     assert estimate.parameters.long_run_variance == pytest.approx(0.04, abs=2.0e-5)
@@ -279,7 +280,9 @@ def test_optimizer_nonconvergence_has_deterministic_failure_semantics() -> None:
         )
 
 
-def test_noiseless_synthetic_surface_recovers_known_truth_from_multiple_starts() -> None:
+def test_noiseless_synthetic_surface_recovers_known_truth_from_multiple_starts() -> (
+    None
+):
     problem = _problem(_synthetic_targets())
 
     result_a = calibrate_heston(problem, _method(_START_A))
@@ -318,7 +321,9 @@ def test_thin_slice_can_have_tiny_loss_but_materially_different_parameters() -> 
     assert distance > 0.1
 
 
-def test_controlled_price_perturbation_moves_parameters_without_destroying_fit() -> None:
+def test_controlled_price_perturbation_moves_parameters_without_destroying_fit() -> (
+    None
+):
     baseline_targets = _synthetic_targets()
     perturbed = tuple(
         HestonPriceCalibrationTarget.synthetic(
@@ -334,9 +339,6 @@ def test_controlled_price_perturbation_moves_parameters_without_destroying_fit()
     assert result.objective_value < 0.02
     assert abs(result.estimate.initial_variance - _TRUTH.initial_variance) < 0.005
     assert (
-        abs(
-            result.estimate.parameters.correlation
-            - _TRUTH.parameters.correlation
-        )
+        abs(result.estimate.parameters.correlation - _TRUTH.parameters.correlation)
         > 1.0e-4
     )
