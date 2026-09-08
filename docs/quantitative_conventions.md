@@ -6,7 +6,7 @@ This document is the authoritative register for project quantitative representat
 
 A convention may be **committed**, **explicitly deferred**, or **local to a specific API/study**. What is not allowed is a consequential convention remaining implicit across a public boundary.
 
-M0A commits the structural mathematics of the platform-wide problem taxonomy and the implemented pricing core. M1 makes the first concrete equity-option conventions explicit. M2 now resolves the first concrete numerical-valuation and sensitivity conventions without promoting Black-Scholes-specific choices into universal solver, risk, portfolio, or market-data policy.
+M0A commits the structural mathematics of the platform-wide problem taxonomy and the implemented pricing core. M1 makes the first concrete equity-option conventions explicit. M2 resolves the first concrete numerical-valuation and sensitivity conventions. M3 resolves the first concrete dynamic-hedging/control conventions without promoting Black-Scholes-specific choices into universal solver, risk, portfolio, simulation, or execution policy.
 
 ADR 0002 is the current authority for the mathematical problem architecture. ADR 0001 remains the historical pricing-specific decision record.
 
@@ -209,6 +209,8 @@ Use explicitly owned/configured RNG state. Record seed/RNG information in reprod
 
 M2's Monte Carlo valuation method exercises this rule concretely: the method owns an explicit integer seed and creates a fresh local `random.Random(seed)` for each application. The seed is retained in the immutable Monte Carlo result. This gives repeatability within the committed Python implementation without promising identical random streams across future backends.
 
+M3 follows the same ownership rule for path simulation: `BlackScholesPathSimulation` owns an explicit integer seed, `simulate_black_scholes_path` creates fresh local RNG state, and the immutable realized path retains the generating configuration and seed.
+
 Equal integer seeds across Python/C++ are **not** a contract for identical random streams. Use shared pre-generated random inputs when strict kernel parity is required.
 
 ### Reproducible core tests do not depend on live market services
@@ -248,7 +250,7 @@ M2 resolves the conventions needed by the first independent numerical valuation 
 | --- | --- | --- |
 | CRR configuration | `steps` is an explicit positive integer | No universal tree/grid configuration abstraction. |
 | CRR finite-model support | For non-degenerate steps, require `d < exp((r-q)dt) < u`, equivalently `0 < p < 1` | A valid Black-Scholes problem may be unsupported by a particular coarse CRR configuration. |
-| CRR interpretation | Fixed `steps` is a discrete-time complete-market model; increasing `steps` is also studied as convergence toward Black-Scholes | Do not silently identify the finite tree with the continuous model. |
+| CRR interpretation | Fixed `steps` is a discrete-time complete-market model; increasing steps are also studied as convergence toward Black-Scholes | Do not silently identify the finite tree with the continuous model. |
 | Monte Carlo path count | Explicit integer `paths >= 2` | Minimum supports sample-variance / standard-error estimation; no global default path budget. |
 | Monte Carlo RNG | Explicit integer seed; fresh local Python `random.Random(seed)` on each method application | Reproducible in the committed Python implementation; no cross-language stream-identity promise. |
 | Monte Carlo state simulation | Exact terminal GBM sampling for the supported European terminal-payoff problem | No generic path simulator or time-discretized SDE engine is introduced. |
@@ -266,6 +268,29 @@ M2 resolves the conventions needed by the first independent numerical valuation 
 
 Detailed numerical formulas, error taxonomy, and executable evidence are in `docs/models/m2_numerical_methods_and_sensitivities.md`.
 
+## M3 local dynamic-hedging/control conventions
+
+M3 resolves the deferred control choices for the first concrete Black-Scholes replication consumer. These decisions are **local to this dynamic Delta-hedging specialization**; they are not universal trading, portfolio, execution, or control policy.
+
+| Convention | M3 decision | Scope / non-claim |
+| --- | --- | --- |
+| Liability / objective | One short European option; terminal replication error is `hedge value - option payoff` | Positive means surplus after settlement; this is not a universal P&L convention. |
+| Initial funding | Initial hedge cash/stock wealth equals the hedging-model Black-Scholes present value | No trade premium, margin, collateral, or balance-sheet layer. |
+| Hedge action | Target stock units equal M2 analytic Delta at the current modeled state | Delta is consumed by a policy; sensitivity does not own dynamic hedge state. |
+| Hedge timing | First rebalance equals valuation date; all later rebalance dates are explicit and strictly before expiry | No intraday timing or event-driven execution model. |
+| Path probability semantics | Exact-transition GBM under the configured M1 money-market pricing measure | A replication experiment, not a physical-world forecast. |
+| Path dates | Explicit observation/output grid; adjacent GBM transitions are exact | Observation dates are not Euler timesteps and are distinct from hedge rebalance dates. |
+| Financing | Cash compounds between hedge dates by the existing money-market numeraire ratio | No funding spread, collateral rate, or multiple cash accounts. |
+| Frictionless rebalance | Stock purchase/sale is offset exactly by cash, preserving wealth at the trade time | Local self-financing stock/cash convention. |
+| Proportional transaction cost | `kappa * abs(stock trade notional)` deducted from cash at each rebalance | Symmetric stock-trade cost only; no bid/ask, impact, option-trading, or terminal liquidation cost. |
+| Terminal hedge value | Final stock holding is marked at terminal spot plus financed cash | Stock is not automatically liquidated at expiry. |
+| Dividend/carry execution support | Hedge execution requires `continuous_dividend_yield == 0` | Nonzero carry remains unsupported until dividend/carry cash-flow accounting is explicit. |
+| Volatility misspecification | Generating volatility and hedging/pricing volatility are separately represented | Current misspecification study varies volatility only. |
+| Stochastic replicate summary | At least two results with distinct seeds and one identical study condition, including identical observation grid | Duplicate seeds are not treated as independent replicates; mixed conditions are rejected. |
+| Aggregate error evidence | Mean/median error, standard deviation, MAE, and RMSE | Experiment summaries, not additions to pricing or sensitivity result types. |
+
+Detailed equations, accounting identities, path semantics, limitations, and executable evidence are in `docs/models/m3_dynamic_delta_hedging.md`.
+
 ## Explicitly deferred finance conventions
 
 These decisions should be settled by the first milestones that create real consumers. Until then, do not spread a local choice across the codebase as if it were canonical.
@@ -274,10 +299,9 @@ These decisions should be settled by the first milestones that create real consu
 | --- | --- | --- | --- |
 | General business-day/calendar framework | Deferred | M4 | M1 intentionally performs no business-day adjustment; do not generalize that into a universal calendar policy. |
 | General discount-factor/curve representation | Deferred | M4/M5 | M1 uses a flat money-market numeraire; M0A commits numeraire semantics, not a curve hierarchy. |
-| Discrete dividend/corporate-action representation | Deferred | M4/future instrument consumer | M1's continuous yield is local; do not reinterpret it as a discrete dividend schedule. |
+| Discrete dividend/corporate-action representation | Deferred | M4/future instrument consumer | M1's continuous yield is local; do not reinterpret it as a discrete dividend schedule. M3 explicitly rejects nonzero continuous yield for hedge execution until cash-flow accounting is settled. |
 | Forward-market observation semantics | Deferred | M4 | M1 prices from modeled spot; observed spot/forward quote provenance belongs to market-data work. |
 | Array axis/order conventions for numerical kernels | Deferred | M5 | Define only when vectorized/compiled kernels create a shared boundary. |
-| Hedging/control objective and admissible-action semantics | Deferred | M3 | The first control-like workflow must state objective, actions, constraints, and timing explicitly. |
 | Market timestamp timezone convention | Deferred | M4 | Must become explicit before real-market ingestion. |
 | Missing/bad quote policy | Deferred | M4 | Preserve raw observations/provenance; normalization/cleaning policy must be explicit and testable. |
 | Inference/calibration loss/objective convention | Deferred | M4/M6 | Must belong to the concrete inverse problem; do not hide it inside a generic optimizer. |
@@ -318,6 +342,8 @@ Important mathematical implementations should document or link enough informatio
 M1 is the first production valuation implementation to exercise this convention fully; `docs/models/black_scholes.md` maps the Black-Scholes-Merton references and notation to the M0A composition, formulas, assumptions, limits, benchmark, tolerance rationale, and tests.
 
 M2 extends the same discipline to independent numerical valuation and sensitivities in `docs/models/m2_numerical_methods_and_sensitivities.md`, including method interpretation, stochastic ownership, uncertainty, derivative variables/units/sign conventions, numerical error mechanisms, and the executable evidence map.
+
+M3 extends it to dynamic replication in `docs/models/m3_dynamic_delta_hedging.md`, including exact-transition GBM path semantics, the Delta-to-policy boundary, stock/cash self-financing identities, terminal error sign convention, transaction costs, misspecification, and distributional validation evidence.
 
 ## Market-data provenance convention
 
