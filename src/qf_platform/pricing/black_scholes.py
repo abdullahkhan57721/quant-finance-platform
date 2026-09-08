@@ -55,5 +55,5 @@ class BlackScholesLaw:
 
     state_space: EquityStateSpace = field(default_factory=EquityStateSpace)
 
-    def accepts_parameters(self, parameters: BlackScholesParameters, /) -> bool:
+    def accepts_parameters(self, parameters: object, /) -> bool:
         return isinstance(parameters, BlackScholesParameters)
