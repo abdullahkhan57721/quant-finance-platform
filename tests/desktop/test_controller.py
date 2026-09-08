@@ -11,17 +11,17 @@ from PySide6.QtGui import QGuiApplication
 
 from qf_platform.desktop.controller import WorkbenchController
 
-_APP: QGuiApplication | None = None
+_app_instance: QGuiApplication | None = None
 
 
 def _app() -> QGuiApplication:
-    global _APP  # noqa: PLW0603
+    global _app_instance  # noqa: PLW0603
     existing = QGuiApplication.instance()
     if isinstance(existing, QGuiApplication):
-        _APP = existing
-    elif _APP is None:
-        _APP = QGuiApplication(["ui1-controller-tests"])
-    return _APP
+        _app_instance = existing
+    elif _app_instance is None:
+        _app_instance = QGuiApplication(["ui1-controller-tests"])
+    return _app_instance
 
 
 def _controller() -> WorkbenchController:
