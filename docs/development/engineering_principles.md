@@ -51,7 +51,7 @@ Conversation memory can help locate a decision. It should not override live repo
 
 The point is not more documentation. The point is less duplicated documentation with clearer ownership.
 
-## 3. Generalize from pressure — with one finance-native foundational exception
+## 3. Generalize from pressure — while respecting mathematical structure
 
 The ordinary architecture loop remains:
 
@@ -67,11 +67,33 @@ separate only what the evidence requires
 add a discriminating consumer/test
 ```
 
-For most of the platform, one consumer stays concrete and two real consumers are required before shared extraction is considered.
+For ordinary operational software abstractions, one consumer stays concrete and two real consumers are normally required before shared extraction is considered.
 
-M0A introduces one deliberate exception, recorded by ADR 0001: the stable mathematical responsibilities of the asset-pricing problem may be represented explicitly before two implemented consumers exist.
+M0A adds a deliberate finance-native correction to that rule, recorded by ADR 0002:
 
-That exception is justified because
+> Stable mathematical domain distinctions may be represented explicitly from the outset when their distinctness follows from the mathematical question itself rather than from speculative software reuse.
+
+The platform recognizes these problem families architecturally:
+
+```text
+forward / pricing
+inverse / inference
+sensitivity
+prediction
+control / optimization
+risk
+validation
+```
+
+and the conceptual execution pattern:
+
+```text
+Problem + supported Method -> specific immutable Result
+```
+
+This does **not** mean “generalize finance from imagination.” It means the repository may protect a mathematical distinction before repeated software consumers exist, while still refusing to create an operational framework without real behavior.
+
+The pricing family is the first production realization because its core semantics are already implemented:
 
 ```text
 state
@@ -79,22 +101,34 @@ stochastic law
 parameters
 contract / cash flows
 numeraire / pricing measure
-pricing problem
-valuation method
-valuation result
+PricingProblem
+ValuationMethod
+ValuationResult
 ```
 
-are distinct mathematical responsibilities, not merely future software-reuse guesses.
-
-The exception is narrow. It does **not** mean “generalize finance from imagination.” Market-data, calibration, risk, portfolio, validation, studies, rates infrastructure, and native execution still need concrete consumer pressure.
+The inverse, sensitivity, prediction, control, risk, and validation families remain conceptual until their milestones provide real consumers.
 
 When a public contract is proposed, ask:
 
-1. Is this responsibility part of the accepted foundational pricing mathematics, or an application abstraction?
-2. What part is intrinsic to the responsibility?
+1. Is this a stable mathematical responsibility or merely a possible software reuse seam?
+2. What part is intrinsic to the quantitative question?
 3. What part exists only because the first example is simple?
-4. What future pressure is reasonably foreseeable and expensive to block accidentally?
-5. What should remain deliberately deferred until a second real consumer exists?
+4. Does the current milestone require executable behavior for this concept?
+5. If not, can the distinction remain architectural rather than becoming an empty class/package?
+6. What should remain concrete until a second real consumer exposes shared software behavior?
+
+The resulting doctrine is:
+
+```text
+mathematical distinction
+→ may be explicit when genuinely foundational
+
+runtime framework
+→ must be earned by concrete behavior
+
+cross-family universal abstraction
+→ must be earned by demonstrated shared software responsibility
+```
 
 ## 4. Separate concepts that merely happen to coincide
 
@@ -103,18 +137,25 @@ Simple examples make different responsibilities look identical. The project shou
 Examples:
 
 ```text
+financial state != market observation
 state != stochastic law != parameters
 contract != realized cash-flow stream
 numeraire != pricing measure
+problem != solution method
 pricing problem != valuation method != valuation result
+inverse problem != optimizer / root finder
+sensitivity problem != differentiation method
+prediction problem != pricing problem
+control problem != optimizer
+risk problem != risk-measure implementation
+validation problem != validation method
 market observation != valuation-ready market state
 financial contract != trade != portfolio
-calibration problem != optimizer
 observed market value != model-generated value
 research study != production library != presentation
 ```
 
-This is not abstraction for abstraction's sake. It prevents one object from accumulating unrelated ownership, mutation, lifecycle, and mathematical responsibilities.
+This is not abstraction for abstraction's sake. It prevents one object from accumulating unrelated ownership, mutation, lifecycle, probability, and mathematical responsibilities.
 
 ## 5. Make ownership and mutability explicit
 
@@ -123,11 +164,11 @@ Consequential boundaries should answer:
 - Who owns this value?
 - Can it change after construction?
 - If it changes, is that mutation part of the model or merely orchestration state?
-- Is the value observed, derived, configured, calibrated, simulated, or committed evidence?
+- Is the value observed, normalized, derived, configured, inferred/calibrated, simulated, controlled, or committed evidence?
 
 Prefer immutable completed evidence/value objects where practical. M0A uses immutable modeled state, cash flows, pricing problems, and valuation results. Model-specific parameter objects should likewise be value-like where appropriate.
 
-Calibration work buffers, optimizer state, caches, and simulation scratch arrays may be mutable internally without making committed results mutable.
+Optimizer state, root-finder state, caches, work buffers, control-solver state, and simulation scratch arrays may be mutable internally without making committed results mutable.
 
 Configuration/request objects should not double as mutable runtime state or completed results.
 
@@ -142,13 +183,25 @@ Many finance bugs are silent convention mismatches:
 - spot vs forward interpretation;
 - inconsistent dividend/carry treatment;
 - Greek scaling/sign conventions;
+- physical vs pricing probability interpretation;
+- inconsistent risk horizon/loss definition;
+- hidden objective/weighting assumptions in inference;
 - hidden unit assumptions.
 
 The project therefore maintains an explicit convention register. A convention can remain deferred, but it may not remain implicit at a public boundary.
 
-M0A commits structural pricing semantics and strictly-positive numeraire values; it deliberately does not pretend those decisions settle M1's dates, rate/compounding, carry, or volatility conventions.
+M0A commits:
 
-## 7. Validation is an architectural capability
+- the mathematical problem-family taxonomy;
+- the Problem → Method → Result distinction;
+- the observation/model separation;
+- structural pricing semantics;
+- strictly-positive numeraire values;
+- explicit P-vs-Q semantics.
+
+It deliberately does not pretend those decisions settle M1's dates, rate/compounding, carry, or volatility conventions, nor future inference/risk/control conventions.
+
+## 7. Validation is both a problem family and an architectural capability
 
 A price that looks plausible is weak evidence.
 
@@ -172,7 +225,23 @@ empirical / out-of-sample evidence
 model-risk analysis
 ```
 
-M0A's evidence is architectural rather than financial-formula evidence: composition, immutability, compatibility, numeraire validity, P-vs-Q semantics, typing, and dependency direction. M1 adds the first formula-level financial evidence.
+M0A now identifies **validation** as its own mathematical problem family:
+
+```text
+object / claim under review
++
+criteria
++
+reference / independent evidence
++
+tolerance / statistical decision semantics
+        ↓
+validation question
+```
+
+That architectural distinction does not justify a generic validation engine today. Validation behavior should remain concrete until repeated workflows reveal shared operational semantics.
+
+M0A's current executable evidence is architectural rather than financial-formula evidence: composition, immutability, compatibility, numeraire validity, P-vs-Q semantics, typing, and dependency direction. M1 adds the first formula-level financial evidence.
 
 Do not let one implementation validate itself. Independent implementations can still share a conceptual error, so theoretical and limiting evidence remain important.
 
@@ -188,6 +257,7 @@ For stochastic studies, record as applicable:
 - path counts and discretization;
 - numerical method/configuration;
 - model and parameter values;
+- probability/scenario semantics;
 - market-data provenance or fixture identity;
 - code revision/software environment;
 - tolerances and stopping conditions.
@@ -207,7 +277,7 @@ project notation mapping
       ↓
 implementation
       ↓
-assumptions / domain restrictions
+assumptions / probability semantics / domain restrictions
       ↓
 limiting cases / identities
       ↓
@@ -234,7 +304,7 @@ optimize the narrow cause
 re-measure
 ```
 
-Benchmark the layer being claimed. A pricing kernel, Monte Carlo path loop, calibration objective, and end-to-end research workflow are not interchangeable benchmarks.
+Benchmark the layer being claimed. A pricing kernel, Monte Carlo path loop, inference/calibration objective, control solver, risk aggregation, and end-to-end research workflow are not interchangeable benchmarks.
 
 Prefer repeated-run medians. Treat hosted CI wall-clock time as noisy. When possible, add structural evidence such as counts of valuations, objective evaluations, paths, factorizations, or characteristic-function evaluations.
 
@@ -313,8 +383,9 @@ Good candidates:
 
 Poor candidates:
 
-- two branches simultaneously redefining the foundational pricing semantics;
-- model and calibration work before shared parameter semantics are settled;
+- two branches simultaneously redefining the same foundational semantics;
+- model and inference/calibration work before shared parameter semantics are settled;
+- generic risk/control/prediction infrastructure before concrete problem behavior exists;
 - C++ work before a measured Python hotspot and native boundary are known.
 
 ## 15. Automated tests are primary; manual verification is targeted
@@ -345,21 +416,23 @@ Heavy presentation dependencies should remain optional where practical and recei
 The intended v0.1 story is approximately:
 
 ```text
-mathematical pricing foundation
+mathematical problem architecture + pricing foundation
       ↓
 Black-Scholes reference specialization
       ↓
-independent validation
+independent valuation + sensitivity validation
       ↓
-replication / hedging evidence
+replication / hedging-control evidence
       ↓
-real-market smile/skew contradiction
+real-market observation boundary
+      ↓
+implied-volatility inference + smile/skew contradiction
       ↓
 Heston
       ↓
-calibration + parameter recovery
+calibration / inverse problem + parameter recovery
       ↓
-out-of-sample/model-risk comparison
+out-of-sample/model-risk validation
       ↓
 measured performance work
 ```
@@ -396,7 +469,9 @@ documentation update
 roadmap change
 ```
 
-Most observations should remain local. Promote them only when repeated evidence—or, for ADR 0001, stable finance-native mathematics—shows they deserve a longer lifetime.
+Most observations should remain local. Promote them when repeated evidence shows they deserve a longer lifetime, or when a stable mathematical responsibility is sufficiently intrinsic to the domain that ADR 0002 justifies documenting the distinction before multiple software consumers exist.
+
+Promotion to a **runtime abstraction** still requires concrete behavior and evidence.
 
 ## 20. Core transfer rule
 
