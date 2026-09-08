@@ -16,7 +16,9 @@ from qf_platform.pricing.state import ModeledState
 
 def _require_pricing_measure(value: object) -> None:
     if not isinstance(value, PricingMeasureSemantics):
-        msg = "pricing problems require pricing-measure, not physical-measure, semantics"
+        msg = (
+            "pricing problems require pricing-measure, not physical-measure, semantics"
+        )
         raise TypeError(msg)
 
 
