@@ -289,13 +289,16 @@ def test_expiry_returns_intrinsic_value(
     strike: float,
     expected: float,
 ) -> None:
-    assert value(
-        right,
-        spot=spot,
-        strike=strike,
-        expiry=VALUATION_DATE,
-        volatility=0.9,
-    ) == expected
+    assert (
+        value(
+            right,
+            spot=spot,
+            strike=strike,
+            expiry=VALUATION_DATE,
+            volatility=0.9,
+        )
+        == expected
+    )
 
 
 def test_zero_volatility_returns_discounted_deterministic_intrinsic() -> None:
@@ -318,12 +321,15 @@ def test_zero_volatility_returns_discounted_deterministic_intrinsic() -> None:
 
 
 def test_zero_spot_and_zero_strike_limits() -> None:
-    assert value(
-        OptionRight.CALL,
-        spot=0.0,
-        dividend_yield=0.02,
-        volatility=0.30,
-    ) == 0.0
+    assert (
+        value(
+            OptionRight.CALL,
+            spot=0.0,
+            dividend_yield=0.02,
+            volatility=0.30,
+        )
+        == 0.0
+    )
     assert value(
         OptionRight.PUT,
         spot=0.0,

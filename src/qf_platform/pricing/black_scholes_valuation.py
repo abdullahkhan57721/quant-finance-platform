@@ -103,9 +103,7 @@ class BlackScholesClosedForm:
         strike = contract.strike
 
         if year_fraction == 0.0:
-            return ValuationResult(
-                _deterministic_value(contract.right, spot, strike)
-            )
+            return ValuationResult(_deterministic_value(contract.right, spot, strike))
 
         numeraire_now = validated_numeraire_value(
             problem.numeraire,
@@ -148,25 +146,19 @@ class BlackScholesClosedForm:
 
         sigma_sqrt_t = volatility * sqrt(year_fraction)
         log_forward_moneyness = (
-            log(spot)
-            - log(strike)
-            + log(dividend_discount)
-            - log(risk_free_discount)
+            log(spot) - log(strike) + log(dividend_discount) - log(risk_free_discount)
         )
         d1 = (
-            log_forward_moneyness
-            + 0.5 * volatility * volatility * year_fraction
+            log_forward_moneyness + 0.5 * volatility * volatility * year_fraction
         ) / sigma_sqrt_t
         d2 = d1 - sigma_sqrt_t
 
         if contract.right is OptionRight.CALL:
-            present_value = (
-                discounted_spot * _standard_normal_cdf(d1)
-                - discounted_strike * _standard_normal_cdf(d2)
-            )
+            present_value = discounted_spot * _standard_normal_cdf(
+                d1
+            ) - discounted_strike * _standard_normal_cdf(d2)
         else:
-            present_value = (
-                discounted_strike * _standard_normal_cdf(-d2)
-                - discounted_spot * _standard_normal_cdf(-d1)
-            )
+            present_value = discounted_strike * _standard_normal_cdf(
+                -d2
+            ) - discounted_spot * _standard_normal_cdf(-d1)
         return ValuationResult(present_value)
