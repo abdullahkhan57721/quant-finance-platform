@@ -75,11 +75,12 @@ def normalize_european_option_midpoint(
     underlying: RawUnderlyingObservation,
     /,
 ) -> NormalizedOptionObservation:
-    """Normalize one European option quote with an explicit positive midpoint policy.
+    """Normalize one European PM-settled option with a positive midpoint policy.
 
     The first M4 policy deliberately does not infer stale-quote status when the source
-    lacks contract-level timestamps. It also rejects AM-settled contracts because M1's
-    date-only expiry semantics do not encode an AM settlement adjustment.
+    lacks contract-level timestamps. It requires explicit PM settlement because M1's
+    date-only expiry semantics cannot faithfully represent AM or unknown settlement
+    timing.
     """
 
     if quote.underlying_id != underlying.underlying_id:
@@ -91,8 +92,8 @@ def normalize_european_option_midpoint(
     if quote.exercise_style is not OptionExerciseStyle.EUROPEAN:
         msg = "M4 midpoint normalization supports European exercise only"
         raise QuoteNormalizationError(msg)
-    if quote.settlement_time is OptionSettlementTime.AM:
-        msg = "AM-settled contracts require time semantics not represented by M1"
+    if quote.settlement_time is not OptionSettlementTime.PM:
+        msg = "M4 midpoint normalization requires explicit PM settlement semantics"
         raise QuoteNormalizationError(msg)
 
     bid = quote.bid
