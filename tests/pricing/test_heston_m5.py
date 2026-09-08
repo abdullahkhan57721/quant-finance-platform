@@ -201,9 +201,10 @@ def test_zero_vol_of_variance_matches_independent_black_scholes_limit() -> None:
     theta = 0.09
     kappa = 1.7
     year_fraction = 1.0
-    integrated_variance = theta * year_fraction + (initial_variance - theta) * (
-        1.0 - exp(-kappa * year_fraction)
-    ) / kappa
+    integrated_variance = (
+        theta * year_fraction
+        + (initial_variance - theta) * (1.0 - exp(-kappa * year_fraction)) / kappa
+    )
     effective_volatility = sqrt(integrated_variance / year_fraction)
 
     heston = evaluate(
@@ -260,7 +261,9 @@ def test_heston_monte_carlo_is_reproducible_and_records_boundary_pressure() -> N
     assert first.time_steps == 32
 
 
-def test_heston_monte_carlo_agrees_with_fourier_with_sampling_and_bias_allowance() -> None:
+def test_heston_monte_carlo_agrees_with_fourier_with_sampling_and_bias_allowance() -> (
+    None
+):
     problem = _heston_problem()
     fourier = evaluate(
         problem,
