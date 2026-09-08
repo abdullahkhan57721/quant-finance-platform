@@ -2,11 +2,15 @@
 
 ## Status
 
-This document records durable bootstrap guardrails for the Quantitative Finance Research & Validation Platform. It intentionally does **not** define a complete package hierarchy in advance.
+This document records durable architecture guardrails for the Quantitative Finance Research & Validation Platform.
 
-The architecture should grow from real quantitative consumers.
+M0A establishes the first production finance architecture: a narrow mathematical asset-pricing composition core. The repository still intentionally does **not** define a complete package hierarchy or universal finance framework in advance.
+
+The architecture should grow from real quantitative consumers, subject to the foundational exception in ADR 0001.
 
 ## Governing extraction rule
+
+For ordinary application abstractions:
 
 ```text
 one consumer
@@ -24,6 +28,161 @@ different responsibility
 
 A future use case that can merely be imagined is not sufficient justification for an abstraction.
 
+### Foundational pricing-semantic exception
+
+ADR 0001 intentionally supersedes that two-consumer rule **only** for the stable mathematical responsibilities of asset pricing:
+
+```text
+state / state space / path
+stochastic law
+model parameter values
+financial contract
+cash-flow stream
+numeraire
+physical- and pricing-measure semantics
+pricing problem
+valuation method
+completed valuation result
+```
+
+These are represented explicitly because they are mathematically distinct responsibilities of the pricing problem, not because a future second consumer is merely imaginable.
+
+The exception does **not** apply to calibration, risk, market-data architecture, rates curves, portfolios, studies, validation frameworks, native backends, registries, or unrelated domains.
+
+## Mathematical pricing composition
+
+The conceptual pricing problem is
+
+```math
+\mathfrak P = (\mathcal X,\mathcal L_\theta,\mathcal C,N,\mathbb Q^N)
+```
+
+with theoretical valuation
+
+```math
+\Pi_t = N_t E_t^{\mathbb Q^N}\left[
+    \sum_i \frac{C_i(X_{[0,\tau_i]})}{N_{\tau_i}}
+\right].
+```
+
+An analytic or numerical method is separate:
+
+```math
+\mathcal A(\mathfrak P) \approx \Pi_t(\mathfrak P).
+```
+
+The production architecture therefore preserves:
+
+```text
+ModeledState / StateSpace / StatePath
+        ↓
+StochasticLaw + separate parameter values
+        +
+FinancialContract → CashFlowStream
+        +
+Numeraire + PricingMeasureSemantics
+        ↓
+PricingProblem
+        ↓
+compatible ValuationMethod
+        ↓
+ValuationResult
+```
+
+### State and state space
+
+`StateSpace[T]` supplies membership semantics. `ModeledState[Time, T]` is an immutable current modeled state plus its state-space semantics. `StatePath[Time, T]` provides point evaluation without requiring a discrete path container.
+
+These contracts do not require a finite-dimensional state space or Markov sufficiency. A concrete modeled-state value may itself contain history/conditioning information when a model requires it.
+
+### Stochastic law and parameter values
+
+`StochasticLaw[State, Parameters]` exposes the state space it governs and parameter compatibility. It does not define every law through `drift()` and `diffusion()`.
+
+The project explicitly protects:
+
+```text
+stochastic law structure != parameter values
+```
+
+Parameter value objects should be immutable/value-like where appropriate. Calibration may later produce new parameter values; it must not turn calibrated values into a new model type.
+
+### Financial contracts and cash flows
+
+`FinancialContract[Path, Time]` maps a modeled path to a realized immutable `CashFlowStream[Time]`.
+
+The current foundational `CashFlow` contains only:
+
+```text
+payment time
+amount
+```
+
+The contract owns contingent payment semantics, not:
+
+- valuation;
+- calibration;
+- observed market data;
+- trade/portfolio ownership;
+- hedging/P&L;
+- plotting/presentation;
+- numerical algorithms.
+
+A terminal-payoff contract is a specialization of this contract-to-stream responsibility, not a reason to collapse contract and valuation method.
+
+### Numeraire and pricing-measure semantics
+
+`Numeraire[Time]` represents the strictly positive denomination process. Every value consumed through the pricing core must be finite and strictly positive.
+
+The foundational API intentionally does not spread scalar interest-rate assumptions through pricing semantics. M1 may introduce a concrete money-market-account/discounting specialization without making that specialization universal.
+
+`PhysicalMeasureSemantics` and `PricingMeasureSemantics[Time]` are distinct. The latter is associated with a particular numeraire and means that appropriately modeled traded assets denominated by that numeraire are martingales under the supplied pricing measure.
+
+The architecture does **not** provide a generic measure-theory engine or a method that mechanically transforms arbitrary P-dynamics into Q-dynamics. `PricingProblem` receives law structure and parameter values under the relevant pricing-measure semantics explicitly.
+
+### Pricing problem
+
+`PricingProblem` is immutable and answers:
+
+> What financial value is mathematically being asked for?
+
+It composes current modeled state, stochastic-law structure, parameter values, contract, numeraire, pricing measure, and valuation time. It does not choose an algorithm.
+
+### Valuation method and compatibility
+
+`ValuationMethod` answers:
+
+> How will this supported pricing problem be evaluated?
+
+Structural validity and implementation capability are distinct. The canonical `evaluate(problem, method)` path checks `method.supports(problem)` before applying the method and raises `UnsupportedPricingProblem` for unsupported combinations.
+
+This is designed to permit concrete specializations such as:
+
+```text
+Black-Scholes closed form
+CRR/binomial
+Monte Carlo
+Heston Fourier
+Heston Monte Carlo
+```
+
+without treating those algorithms as stochastic models or implying universal support.
+
+### Valuation result
+
+`ValuationResult` is currently only an immutable finite `present_value`.
+
+It is intentionally not a universal container for:
+
+- Greeks;
+- Monte Carlo convergence/confidence intervals;
+- calibration diagnostics;
+- hedging/P&L evidence;
+- validation evidence;
+- benchmark/performance metadata.
+
+Those receive specific structures when real consumers arrive.
+
 ## Protected conceptual distinctions
 
 ### Market observations vs valuation state
@@ -32,48 +191,48 @@ A future use case that can merely be imagined is not sufficient justification fo
 MarketSnapshot != MarketEnvironment
 ```
 
-Expected meaning to evaluate when M1/M4 create real consumers:
+Expected meaning when M4 creates observed-data consumers:
 
 - `MarketSnapshot`: observed/provenance-bearing market information;
 - `MarketEnvironment`: valuation-ready interpretation/construction from market inputs.
 
-Construction, interpolation, curve building, cleaning, or convention choices should not silently rewrite historical observations.
+M0A does not create either merely because future observed-market workflows are foreseeable.
+
+Construction, interpolation, curve building, cleaning, or convention choices must not silently rewrite historical observations.
 
 ### Financial contract vs ownership context
 
 ```text
-Instrument != Trade != Portfolio
+FinancialContract != Trade != Portfolio
 ```
 
-Do not add trade/portfolio fields to instrument definitions in anticipation of future XVA or market-risk work.
+Do not add trade/portfolio fields to contract definitions in anticipation of future XVA or market-risk work.
 
-Introduce `Trade` only when real consumers require ownership/quantity/book/counterparty or related semantics. Introduce `Portfolio` only when real aggregation behavior exists.
+Introduce `Trade` only when real consumers require ownership/quantity/book/counterparty semantics. Introduce `Portfolio` only when real aggregation behavior exists.
 
 ### Model structure vs parameters
 
 ```text
-model structure != model parameters
+stochastic law != model parameters
 ```
 
-A calibrated parameter set is not a different model type. Calibration should produce parameter evidence/results rather than mutate the conceptual identity of the stochastic model.
+A calibrated parameter set is not a different model type. Calibration should produce parameter evidence/results rather than mutate the conceptual identity of the stochastic law.
 
 ### Financial model vs numerical method
 
 ```text
-MarketModel != ValuationMethod
+stochastic law != ValuationMethod
 financial model != numerical method
 ```
 
-Examples of the intended distinction:
+Examples:
 
 ```text
-Heston
-= stochastic/financial model
+GBM / Heston
+= stochastic-law/model semantics
 
-Monte Carlo
-Fourier integration
-PDE
-= numerical valuation/execution methods
+closed form / binomial / Monte Carlo / Fourier / PDE
+= valuation methods
 ```
 
 Do not put unrelated valuation algorithms behind a model merely because they can operate on that model.
@@ -81,7 +240,7 @@ Do not put unrelated valuation algorithms behind a model merely because they can
 ### Valuation vs calibration vs risk vs validation
 
 ```text
-MarketModel
+StochasticLaw
 != ValuationMethod
 != CalibrationMethod
 != RiskMeasure
@@ -90,7 +249,7 @@ MarketModel
 
 These may compose and consume one another, but they do not share one universal responsibility.
 
-Do not create a universal `FinancialModel` base class joining Black-Scholes, Heston, Monte Carlo, VaR, CVA, calibration, or unrelated quantitative concepts.
+Do not create a universal `FinancialModel` joining Black-Scholes, Heston, Monte Carlo, VaR, CVA, calibration, or unrelated quantitative concepts.
 
 ### Calibration problem vs optimizer
 
@@ -129,7 +288,21 @@ Research studies should become reproducible executions against the production li
 
 ## Dependency direction
 
-Treat this as guidance, not as permission to create empty packages:
+The current pricing-core dependency direction is deliberately small:
+
+```text
+state / cash flows / measures
+          ↓
+contracts + stochastic-law semantics
+          ↓
+PricingProblem
+          ↓
+valuation methods/results
+```
+
+Low-level state, cash-flow, contract, measure, and stochastic-law modules must not depend on valuation implementations. `PricingProblem` must not depend on valuation methods. Focused tests enforce this boundary.
+
+Broader future guidance remains:
 
 ```text
 interfaces / research presentation
@@ -138,29 +311,29 @@ studies / experiments
               ↓
 validation / calibration / local risk analysis
               ↓
-valuation
+valuation methods
               ↓
-instruments + model semantics
+pricing problems + contract/model semantics
               ↓
-valuation-ready market environment
+valuation-ready market construction when earned
               ↓
-market observations / provenance
+market observations / provenance when earned
 
-numerical utilities are used selectively by valuation,
-calibration, and studies but must not own finance-domain policy.
+numerical utilities are used selectively downstream
+but must not own finance-domain policy.
 ```
 
 Guardrails:
 
-- instruments must not depend on valuation implementations;
-- market observations/environment must not depend on instruments;
-- model semantics must not own calibration orchestration;
+- financial contracts must not depend on valuation implementations;
+- market observations/environment must not depend on contracts;
+- stochastic-law semantics must not own calibration orchestration;
 - validation may invoke the capabilities needed to gather independent evidence;
 - high-level research/UI code must consume public library behavior rather than duplicate it.
 
 ## Market-data and provenance direction
 
-Expected conceptual flow:
+Expected future conceptual flow:
 
 ```text
 external/raw data
@@ -171,7 +344,7 @@ MarketSnapshot
        ↓
 construction / conventions
        ↓
-MarketEnvironment
+MarketEnvironment / valuation-ready inputs
 ```
 
 Core tests must not depend on live data services.
@@ -242,7 +415,7 @@ Long-term target:
 ```text
 Python
 ────────────────────────
-financial objects
+financial semantics
 market data
 configuration
 calibration orchestration
@@ -266,32 +439,47 @@ Rules:
 - Python remains the reference/correctness implementation.
 - Profile before selecting native work.
 - Accelerate measured numerical hotspots rather than rewriting financial orchestration in C++.
-- Do not introduce `Backend`, `CppBackend`, `CompiledValuationPlan`, registries, or similar native abstractions until a second implementation actually exists and reveals a common responsibility.
+- Do not introduce `Backend`, `CppBackend`, compiled-plan registries, or similar native abstractions until a second implementation actually exists and reveals a common responsibility.
 - Prefer primitive numeric arrays/scalars across the binding boundary rather than exporting rich Python financial objects into C++.
 
-## Early hypotheses to evaluate, not yet committed APIs
+## M1 specialization pressure
 
-M1 is expected to test several architectural hypotheses:
+M1 should now specialize M0A rather than inventing a parallel Black-Scholes architecture:
 
-- represent contract expiry as a date and make year-fraction/day-count treatment explicit rather than encoding all maturities as anonymous floats;
-- represent discounting through a narrow maturity-dependent capability instead of making every API permanently depend on scalar `r`;
-- keep volatility/model parameters out of `MarketEnvironment` so competing models can interpret the same market state;
-- use immutable domain/result objects where that improves ownership and reproducibility.
+```text
+Equity state / path
++
+GBM law + Black-Scholes parameters under Q
++
+European terminal-payoff contract
++
+money-market numeraire
+        ↓
+PricingProblem
+        +
+Black-Scholes closed-form ValuationMethod
+        ↓
+ValuationResult
+```
 
-These are intentionally not implemented during M0. The first real Black-Scholes consumers should determine the exact contracts.
+M1 still owns concrete decisions for dates/year fractions, day count, rate/compounding representation, dividend/carry, spot semantics, volatility units, option-right encoding, formula traceability, limits, parity, bounds, and benchmark values.
+
+M0A does not decide those merely because its generic types can carry them.
 
 ## Explicit traps
 
 Avoid:
 
+- expanding ADR 0001 into a universal quantitative-finance abstraction policy;
 - universal `FinancialModel` inheritance trees;
 - god-model objects that price, calibrate, simulate, hedge, plot, and validate themselves;
-- scalar-rate assumptions embedded throughout public APIs;
-- volatility treated as an intrinsic market-environment field rather than model information;
-- conflating instruments, trades, positions, and portfolios;
+- forcing all stochastic laws into drift/diffusion;
+- generic measure objects that pretend to transform arbitrary dynamics between P and Q;
+- scalar-rate assumptions embedded throughout public pricing APIs;
+- volatility treated as intrinsic observed-market state rather than model information;
+- conflating contracts, trades, positions, and portfolios;
 - calibration implemented as `model.calibrate(...)` with hidden objective/optimizer semantics;
-- treating Monte Carlo as a financial model;
-- premature universal stochastic-process interfaces, especially assumptions that would later constrain rough/non-Markovian volatility models;
+- treating Monte Carlo/Fourier/PDE as financial models;
 - designing rates, XVA, or market-risk abstractions before those domains have real consumers;
 - one giant result object with many optional unrelated fields;
 - generic experiment engines before multiple studies reveal shared semantics;
@@ -302,4 +490,4 @@ Avoid:
 
 Create a dedicated ADR only when a decision is durable, consequential, and difficult to infer from code plus this index.
 
-Do not create ADRs for routine implementation choices or speculative future architecture.
+ADR 0001 is the historical authority for the foundational pricing-semantic exception. Do not rewrite it to hide later changes; supersede it with a new ADR if this architecture materially changes.

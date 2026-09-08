@@ -6,7 +6,7 @@ This document is the authoritative register for project-wide quantitative repres
 
 A convention may be **committed**, **explicitly deferred**, or **local to a specific API/study**. What is not allowed is a consequential convention remaining implicit across a public boundary.
 
-The project is still pre-M1, so this register intentionally contains more deferred decisions than fixed finance conventions.
+M0A commits the structural mathematics of the pricing core. Detailed equity-option conventions are still deliberately deferred to M1.
 
 ## Decision statuses
 
@@ -31,6 +31,54 @@ Avoid APIs where an anonymous float could ambiguously mean one of several conven
 ```
 
 This rule does not require a wrapper type for every number. It requires ambiguity to be removed where it affects correctness.
+
+### Foundational asset-pricing semantics
+
+ADR 0001 commits these project-wide conceptual distinctions:
+
+```text
+modeled state / state space
+!= stochastic law
+!= model parameter values
+!= financial contract
+!= realized cash-flow stream
+!= numeraire
+!= physical-measure semantics
+!= numeraire-associated pricing-measure semantics
+!= pricing problem
+!= valuation method
+!= completed valuation result
+```
+
+The theoretical pricing problem is composed from those semantics; an analytic/numerical valuation method is a separate capability.
+
+A pricing problem supplies stochastic-law structure and parameter values under the relevant pricing-measure semantics. The project does not assume that a generic measure object can mechanically transform arbitrary physical-measure dynamics into pricing dynamics.
+
+This is a **structural convention**, not permission to create generic calibration, risk, market-data, rates, portfolio, or research frameworks before consumers justify them.
+
+### Numeraire positivity
+
+At every supported access used by pricing code, a numeraire value must be finite and strictly positive:
+
+```math
+N_t > 0.
+```
+
+Concrete rates/discounting representations remain deferred to their consumers. The foundational pricing API must not silently spread naked scalar-rate assumptions where numeraire semantics are the relevant mathematical boundary.
+
+### Physical vs pricing measure
+
+Physical-measure semantics `P` and numeraire-associated pricing-measure semantics `Q^N` are distinct.
+
+`Q^N` carries the martingale interpretation that appropriately modeled traded assets denominated by `N` are martingales under that pricing measure. M0A does not provide generic change-of-measure machinery.
+
+### Cash-flow amount semantics
+
+A foundational `CashFlow` currently consists only of payment time and a finite real amount. Positive and negative amounts are allowed. Currency, collateral, counterparty, settlement, and XVA semantics are intentionally absent until real consumers justify them.
+
+### Present-value terminology
+
+The foundational completed valuation result uses **present value** terminology. `ValuationResult.present_value` is a finite scalar. Greeks, confidence intervals, calibration outputs, hedging evidence, validation evidence, and benchmark metadata are not optional fields on this result and will receive specific result structures when consumers arrive.
 
 ### No hidden project-wide numerical tolerance
 
@@ -71,19 +119,18 @@ These decisions should be settled by the first milestones that create real consu
 
 | Convention | Status | First expected pressure | Guidance until settled |
 | --- | --- | --- | --- |
-| Contract expiry representation | Deferred | M1 European option | Prefer explicit semantics; architecture currently hypothesizes date-based expiry but has not committed an API. |
-| Valuation date representation | Deferred | M1 | Keep explicit wherever maturity/year-fraction depends on it. |
+| Contract expiry representation | Deferred | M1 European option | Prefer explicit semantics; M0A's generic time type does not choose dates vs year fractions. |
+| Valuation date representation | Deferred | M1 | `PricingProblem.valuation_time` comes from the modeled state, but the concrete time type remains M1-specific. |
 | Year-fraction API | Deferred | M1 | Do not pass anonymous maturity floats across broad public APIs before deciding whether/how dates are converted. |
 | Day-count convention | Deferred | M1 | Must be explicit if calendar dates are converted to year fractions. |
 | Business-day/calendar handling | Deferred | M1/M4 | Do not invent a full calendar framework until concrete contract/data needs justify it. |
-| Interest-rate representation | Deferred | M1 | Do not silently assume scalar `r` is the permanent public representation. |
-| Compounding convention | Deferred | M1 | State explicitly wherever rates are accepted. |
-| Discount-factor/curve representation | Deferred | M1 | Architecture suggests evaluating a narrow maturity-dependent capability; exact contract is not decided. |
+| Interest-rate representation | Deferred | M1 | Specialize the numeraire/discounting semantics explicitly; do not silently make scalar `r` the permanent pricing-core boundary. |
+| Compounding convention | Deferred | M1 | State explicitly wherever concrete rates are accepted. |
+| Discount-factor/curve representation | Deferred | M1 | M0A commits numeraire semantics, not a general curve hierarchy. |
 | Dividend/carry representation | Deferred | M1 | Do not silently choose continuous yield vs discrete cash dividends as a universal assumption. |
 | Spot vs forward input semantics | Deferred | M1/M4 | Name and document explicitly; do not make them interchangeable. |
 | Volatility representation/units | Deferred | M1/M2 | Public APIs must make decimal/percentage and annualization semantics unambiguous once introduced. |
-| Option type/right encoding | Deferred | M1 | Exact enum/type naming belongs to the first instrument design. |
-| Price vs present-value terminology | Deferred | M1 | Choose terminology with the first valuation result contract and use it consistently. |
+| Option type/right encoding | Deferred | M1 | Exact enum/type naming belongs to the first instrument specialization. |
 | Greek sign conventions | Deferred | M2 | Record each Greek's differentiation variable and sign convention. |
 | Greek scaling/units | Deferred | M2 | Make per-unit vs per-1%-point conventions explicit; avoid unexplained presentation scaling in core results. |
 | Monte Carlo confidence level/reporting | Deferred | M2 | Encode explicitly in result/study configuration rather than assuming one global reporting level. |
@@ -116,7 +163,7 @@ Once mathematical model code exists, important formula implementations should do
 - limiting cases or identities used for validation;
 - tests that provide independent evidence.
 
-The exact documentation location can vary by subsystem; the traceability requirement is the invariant.
+M0A contains mathematical semantic contracts but no production pricing formula. M1 is the first milestone expected to apply full formula traceability to a valuation implementation.
 
 ## Market-data provenance convention
 
