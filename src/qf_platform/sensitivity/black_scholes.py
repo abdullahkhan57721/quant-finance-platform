@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import date, timedelta
 from enum import StrEnum
-from math import erfc, exp, isfinite, log, pi, sqrt
+from math import erfc, exp, log, pi, sqrt
 from typing import Protocol, cast
 
 from qf_platform._validation import finite_real
@@ -518,11 +518,17 @@ def _recompose(
     numeraire: FlatMoneyMarketNumeraire | None = None,
     pricing_measure: PricingMeasureSemantics[date] | None = None,
 ) -> PricingProblem[date, EquityState, BlackScholesParameters]:
+    selected_state = current_state if current_state is not None else problem.current_state
+    selected_parameters = parameters if parameters is not None else problem.parameters
+    selected_numeraire = numeraire if numeraire is not None else problem.numeraire
+    selected_measure = (
+        pricing_measure if pricing_measure is not None else problem.pricing_measure
+    )
     return PricingProblem(
-        current_state=current_state or problem.current_state,
+        current_state=selected_state,
         stochastic_law=problem.stochastic_law,
-        parameters=parameters or problem.parameters,
+        parameters=selected_parameters,
         contract=problem.contract,
-        numeraire=numeraire or problem.numeraire,
-        pricing_measure=pricing_measure or problem.pricing_measure,
+        numeraire=selected_numeraire,
+        pricing_measure=selected_measure,
     )
