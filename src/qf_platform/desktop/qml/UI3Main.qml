@@ -124,7 +124,7 @@ ApplicationWindow {
 
         Label {
             Layout.fillWidth: true
-            text: "M5/Heston is intentionally absent from UI3 until its backend contracts are merged and a later UI milestone earns that surface."
+            text: "M5/Heston is merged but intentionally absent from UI3. UI4 should expose stochastic-volatility workflows only from actual merged M5/M6 contracts."
             color: hub.textMuted
             font.pixelSize: 12
             wrapMode: Text.WordWrap
