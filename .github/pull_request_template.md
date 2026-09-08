@@ -18,25 +18,15 @@ If none, say so.
 
 ## Validation cadence checklist
 
-Follow `docs/development/validation_cadence.md`. During draft work, leave incomplete items unchecked and update them only at meaningful checkpoints. For a genuinely inapplicable item, mark it N/A and explain why in the relevant section below.
+Follow `docs/development/validation_cadence.md`. During draft work, leave unfinished items unchecked. Mark genuinely inapplicable items N/A with a reason in the relevant section below.
 
-### Development / checkpoint
-
-- [ ] Ran `./scripts/fix` after the final coherent Python changes, or documented why it is N/A.
-- [ ] Ran focused behavioral tests and focused quantitative/numerical checks appropriate to the changed behavior, or documented why they are N/A.
-
-### Final candidate
-
+- [ ] Ran `./scripts/fix` after the final coherent Python changes, or N/A is justified.
+- [ ] Ran focused behavioral and quantitative/numerical checks appropriate to the change, or N/A is justified.
 - [ ] `./scripts/check_all` passed at the exact candidate head.
 - [ ] Full required CI passed on that same candidate head.
-- [ ] Ticket-specific quantitative/numerical evidence is complete when relevant, or N/A is justified below.
-- [ ] Ticket-specific manual verification is complete when useful, or N/A is justified below.
-- [ ] The exact reviewed candidate head is recorded below.
-- [ ] `main` / base freshness was re-checked when concurrent work could affect this PR's assumptions.
-
-### Post-merge completion
-
-- [ ] Merged `main` was verified after squash merge. Leave this unchecked until the merge actually occurs.
+- [ ] Ticket-specific quantitative/numerical and manual evidence below is complete or explicitly N/A.
+- [ ] Exact candidate head is recorded below; `main` / base freshness was re-checked when concurrent work could affect assumptions.
+- [ ] After squash merge, merged `main` was verified. Leave this unchecked until merge actually occurs.
 
 ## Verification
 
@@ -75,9 +65,7 @@ If performance is not in scope, state that no performance claim is made.
 
 ## Validation-cadence / CI-policy impact
 
-Does this PR fire any revisit trigger in `docs/development/validation_cadence.md` (for example by materially changing gate cost or introducing a genuinely different validation cost tier)?
-
-If yes, include the measurement/evidence and link the follow-up Issue or policy change. If no, state that no documented revisit trigger fired. Do not redesign CI speculatively.
+Did this PR fire a revisit trigger in `docs/development/validation_cadence.md`, such as materially changing gate cost or creating a distinct validation cost tier? If yes, include evidence and link the follow-up Issue/policy change. If no, say no trigger fired; do not redesign CI speculatively.
 
 ## Documentation impact
 
