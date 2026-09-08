@@ -67,10 +67,13 @@ def test_ui3_hedge_worker_exposes_path_and_aggregate_models() -> None:
     assert cast(HedgeStepModel, controller.hedgeStepModel).rowCount() > 0
     assert cast(HedgeFrequencyModel, controller.hedgeFrequencyModel).rowCount() >= 4
     controller.selectHedgeStep(0)
-    assert cast(
-        PresentationRowModel,
-        controller.hedgeSelectedStepModel,
-    ).rowCount() >= 7
+    assert (
+        cast(
+            PresentationRowModel,
+            controller.hedgeSelectedStepModel,
+        ).rowCount()
+        >= 7
+    )
 
     underlying = json.loads(cast(str, controller.hedgeUnderlyingPlotJson))
     assert underlying["series"][0]["key"] == "spot"
@@ -85,7 +88,9 @@ def test_ui3_market_worker_exposes_observation_inverse_and_empirical_evidence() 
     _finish(controller)
 
     assert controller.marketAnalysisReady
-    assert cast(MarketObservationModel, controller.marketObservationModel).rowCount() == 10
+    assert (
+        cast(MarketObservationModel, controller.marketObservationModel).rowCount() == 10
+    )
     assert cast(PresentationRowModel, controller.marketDiagnosticModel).rowCount() == 4
     controller.selectMarketObservation(0)
     assert cast(PresentationRowModel, controller.marketProvenanceModel).rowCount() >= 7

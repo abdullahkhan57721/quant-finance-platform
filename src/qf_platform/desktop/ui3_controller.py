@@ -28,7 +28,9 @@ from qf_platform.desktop.models import (
     MarketObservationModel,
     PresentationRowModel,
 )
-from qf_platform.desktop.ui2_controller import WorkbenchController as UI2WorkbenchController
+from qf_platform.desktop.ui2_controller import (
+    WorkbenchController as UI2WorkbenchController,
+)
 from qf_platform.presentation import (
     HedgeWorkbenchPresentation,
     MarketWorkbenchPresentation,
@@ -330,15 +332,15 @@ class WorkbenchController(UI2WorkbenchController):
         if presentation is None:
             self._hedge_selected_step.set_items(())
             return
-        self._hedge_selected_step.set_items(
-            hedge_step_detail_rows(presentation, index)
-        )
+        self._hedge_selected_step.set_items(hedge_step_detail_rows(presentation, index))
         self.hedgeChanged.emit()
 
     @Slot(int)
     def selectMarketObservation(self, index: int) -> None:  # noqa: N802
         presentation = self._market_presentation
-        if presentation is None or not 0 <= index < len(presentation.observation_details):
+        if presentation is None or not 0 <= index < len(
+            presentation.observation_details
+        ):
             self._market_provenance.set_items(())
             self._market_inverse.set_items(())
             self._market_inspector.set_items(())
@@ -366,7 +368,9 @@ class WorkbenchController(UI2WorkbenchController):
     @Slot(object)
     def _market_completed(self, payload: object) -> None:
         if not isinstance(payload, MarketWorkbenchAnalysis):
-            self._set_status("UI3 market workflow returned an unexpected result payload.")
+            self._set_status(
+                "UI3 market workflow returned an unexpected result payload."
+            )
             return
         self._market_analysis = payload
         presentation = build_market_workbench_presentation(payload)

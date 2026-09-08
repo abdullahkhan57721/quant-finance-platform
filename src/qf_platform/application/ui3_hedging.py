@@ -89,7 +89,9 @@ class HedgeWorkbenchAnalysis:
     frictionless_summary: ReplicationErrorSummary
 
 
-def normalize_hedge_workbench_config(draft: HedgeWorkbenchDraft) -> HedgeWorkbenchConfig:
+def normalize_hedge_workbench_config(
+    draft: HedgeWorkbenchDraft,
+) -> HedgeWorkbenchConfig:
     """Normalize transient UI controls without changing M3 quantitative semantics."""
 
     return HedgeWorkbenchConfig(

@@ -55,7 +55,6 @@ class MarketWorkbenchPresentation:
     empirical_conditioning_plot: PlotData
 
 
-
 def build_market_workbench_presentation(
     analysis: MarketWorkbenchAnalysis,
 ) -> MarketWorkbenchPresentation:
@@ -76,9 +75,7 @@ def build_market_workbench_presentation(
                 "Derived SPX evidence; no smoothing or surface repair is applied.",
                 "Derived evidence",
             )
-            for index, text in enumerate(
-                analysis.empirical_evidence.diagnostic_summary
-            )
+            for index, text in enumerate(analysis.empirical_evidence.diagnostic_summary)
         ),
         synthetic_smile_plot=_synthetic_smile_plot(analysis),
         synthetic_conditioning_plot=_synthetic_conditioning_plot(analysis),
@@ -104,9 +101,7 @@ def _observation_detail(outcome: MarketObservationOutcome) -> MarketObservationD
         normalized_price=(
             "—" if normalized is None else _number(normalized.target_price)
         ),
-        observed_spot=(
-            "—" if normalized is None else _number(normalized.spot)
-        ),
+        observed_spot=("—" if normalized is None else _number(normalized.spot)),
         implied_volatility=(
             "—" if result is None else _percent(result.annualized_volatility)
         ),
@@ -114,14 +109,53 @@ def _observation_detail(outcome: MarketObservationOutcome) -> MarketObservationD
         diagnostic=outcome.diagnostic,
     )
     provenance_rows = (
-        PresentationRow("Raw contract id", quote.contract_id, "Immutable raw observation identity.", "Raw"),
-        PresentationRow("Provider", provenance.provider, provenance.source, "Raw provenance"),
-        PresentationRow("Market date", provenance.market_date.isoformat(), "Historical/as-of date carried by the raw evidence.", "Raw provenance"),
-        PresentationRow("Retrieved at", provenance.retrieved_at.isoformat(), "Timezone-aware retrieval timestamp.", "Raw provenance"),
-        PresentationRow("Observed at", "—" if provenance.observed_at is None else provenance.observed_at.isoformat(), "May be absent when the source lacks contract-level timestamps.", "Raw provenance"),
-        PresentationRow("Raw artifact SHA-256", provenance.raw_artifact_sha256 or "—", "Source artifact identity when available.", "Raw provenance"),
-        PresentationRow("License / redistribution note", provenance.license_notes, "Preserved source-use context.", "Raw provenance"),
-        PresentationRow("Normalization", "Rejected" if normalized is None else normalized.normalization_version, outcome.diagnostic, "Normalization"),
+        PresentationRow(
+            "Raw contract id",
+            quote.contract_id,
+            "Immutable raw observation identity.",
+            "Raw",
+        ),
+        PresentationRow(
+            "Provider", provenance.provider, provenance.source, "Raw provenance"
+        ),
+        PresentationRow(
+            "Market date",
+            provenance.market_date.isoformat(),
+            "Historical/as-of date carried by the raw evidence.",
+            "Raw provenance",
+        ),
+        PresentationRow(
+            "Retrieved at",
+            provenance.retrieved_at.isoformat(),
+            "Timezone-aware retrieval timestamp.",
+            "Raw provenance",
+        ),
+        PresentationRow(
+            "Observed at",
+            "—"
+            if provenance.observed_at is None
+            else provenance.observed_at.isoformat(),
+            "May be absent when the source lacks contract-level timestamps.",
+            "Raw provenance",
+        ),
+        PresentationRow(
+            "Raw artifact SHA-256",
+            provenance.raw_artifact_sha256 or "—",
+            "Source artifact identity when available.",
+            "Raw provenance",
+        ),
+        PresentationRow(
+            "License / redistribution note",
+            provenance.license_notes,
+            "Preserved source-use context.",
+            "Raw provenance",
+        ),
+        PresentationRow(
+            "Normalization",
+            "Rejected" if normalized is None else normalized.normalization_version,
+            outcome.diagnostic,
+            "Normalization",
+        ),
     )
     inverse_rows = _inverse_rows(outcome)
     inspector_rows = _inverse_inspector(outcome)
@@ -142,31 +176,112 @@ def _inverse_rows(outcome: MarketObservationOutcome) -> tuple[PresentationRow, .
         )
     if result is None:
         return (
-            PresentationRow("Observed target", _number(normalized.target_price), "Normalized bid/ask midpoint.", "Observed"),
-            PresentationRow("Inverse result", "Unresolved", outcome.diagnostic, "Inference failed"),
+            PresentationRow(
+                "Observed target",
+                _number(normalized.target_price),
+                "Normalized bid/ask midpoint.",
+                "Observed",
+            ),
+            PresentationRow(
+                "Inverse result", "Unresolved", outcome.diagnostic, "Inference failed"
+            ),
         )
     return (
-        PresentationRow("Observed target", _number(result.target_price), "Normalized observed price; not a model-generated price.", "Observed"),
-        PresentationRow("Implied volatility", _percent(result.annualized_volatility), "Annualized decimal volatility solving the M4 inverse problem.", "Inferred"),
-        PresentationRow("Model price", _number(result.model_price), "Forward Black-Scholes price at the inferred volatility.", "Modeled"),
-        PresentationRow("Residual", _number(result.residual), "Model price minus observed target at termination.", "Numerical evidence"),
-        PresentationRow("Iterations / evaluations", f"{result.iterations} / {result.function_evaluations}", "Bisection iteration and model-price evaluation counts.", "Solver evidence"),
-        PresentationRow("Vega at solution", _optional_number(result.vega), "M2 analytic Vega retained as local conditioning evidence.", "Conditioning"),
-        PresentationRow("dVol / dPrice", _optional_number(result.volatility_change_per_price_unit), "Local inverse price-to-volatility sensitivity, approximately 1/Vega.", "Conditioning"),
-        PresentationRow("Half-spread IV shift", _optional_percent(result.local_volatility_shift_for_half_spread), "First-order volatility shift induced by half the observed bid/ask spread.", "Conditioning"),
+        PresentationRow(
+            "Observed target",
+            _number(result.target_price),
+            "Normalized observed price; not a model-generated price.",
+            "Observed",
+        ),
+        PresentationRow(
+            "Implied volatility",
+            _percent(result.annualized_volatility),
+            "Annualized decimal volatility solving the M4 inverse problem.",
+            "Inferred",
+        ),
+        PresentationRow(
+            "Model price",
+            _number(result.model_price),
+            "Forward Black-Scholes price at the inferred volatility.",
+            "Modeled",
+        ),
+        PresentationRow(
+            "Residual",
+            _number(result.residual),
+            "Model price minus observed target at termination.",
+            "Numerical evidence",
+        ),
+        PresentationRow(
+            "Iterations / evaluations",
+            f"{result.iterations} / {result.function_evaluations}",
+            "Bisection iteration and model-price evaluation counts.",
+            "Solver evidence",
+        ),
+        PresentationRow(
+            "Vega at solution",
+            _optional_number(result.vega),
+            "M2 analytic Vega retained as local conditioning evidence.",
+            "Conditioning",
+        ),
+        PresentationRow(
+            "dVol / dPrice",
+            _optional_number(result.volatility_change_per_price_unit),
+            "Local inverse price-to-volatility sensitivity, approximately 1/Vega.",
+            "Conditioning",
+        ),
+        PresentationRow(
+            "Half-spread IV shift",
+            _optional_percent(result.local_volatility_shift_for_half_spread),
+            "First-order volatility shift induced by half the observed bid/ask spread.",
+            "Conditioning",
+        ),
     )
 
 
-def _inverse_inspector(outcome: MarketObservationOutcome) -> tuple[PresentationRow, ...]:
+def _inverse_inspector(
+    outcome: MarketObservationOutcome,
+) -> tuple[PresentationRow, ...]:
     normalized = outcome.normalized
     result = outcome.result
     return (
-        PresentationRow("Observed target", "Unavailable" if normalized is None else _number(normalized.target_price), "Historical/synthetic observation after explicit midpoint normalization.", "M4 observation"),
-        PresentationRow("Forward model", "Black-Scholes European option pricing", "Forward direction maps volatility to a model price.", "M1/M4"),
-        PresentationRow("Unknown parameter", "Annualized volatility sigma", "Inverse direction asks which sigma reconciles the observed target.", "M4 inverse"),
-        PresentationRow("Admissible domain", "[0, 5] annualized decimal volatility", "Canonical UI3 M4 example; financial price bounds are checked before solving.", "M4 inverse"),
-        PresentationRow("Inverse method", "Bracketed bisection", "Root finder is the numerical method, not the inverse financial problem.", "M4 method"),
-        PresentationRow("Conditioning evidence", "Unavailable" if result is None else f"Vega={_optional_number(result.vega)}; dVol/dPrice={_optional_number(result.volatility_change_per_price_unit)}", "Root convergence and local conditioning remain separate claims.", "M4 evidence"),
+        PresentationRow(
+            "Observed target",
+            "Unavailable" if normalized is None else _number(normalized.target_price),
+            "Historical/synthetic observation after explicit midpoint normalization.",
+            "M4 observation",
+        ),
+        PresentationRow(
+            "Forward model",
+            "Black-Scholes European option pricing",
+            "Forward direction maps volatility to a model price.",
+            "M1/M4",
+        ),
+        PresentationRow(
+            "Unknown parameter",
+            "Annualized volatility sigma",
+            "Inverse direction asks which sigma reconciles the observed target.",
+            "M4 inverse",
+        ),
+        PresentationRow(
+            "Admissible domain",
+            "[0, 5] annualized decimal volatility",
+            "Canonical UI3 M4 example; financial price bounds are checked before solving.",
+            "M4 inverse",
+        ),
+        PresentationRow(
+            "Inverse method",
+            "Bracketed bisection",
+            "Root finder is the numerical method, not the inverse financial problem.",
+            "M4 method",
+        ),
+        PresentationRow(
+            "Conditioning evidence",
+            "Unavailable"
+            if result is None
+            else f"Vega={_optional_number(result.vega)}; dVol/dPrice={_optional_number(result.volatility_change_per_price_unit)}",
+            "Root convergence and local conditioning remain separate claims.",
+            "M4 evidence",
+        ),
     )
 
 
@@ -177,7 +292,9 @@ def _diagnostic_rows(analysis: MarketWorkbenchAnalysis) -> tuple[PresentationRow
         rows.append(
             PresentationRow(
                 f"{item.expiry.isoformat()} {item.right.value} strike slice",
-                "Passes checked conditions" if diagnostics.passes else "Observed violations",
+                "Passes checked conditions"
+                if diagnostics.passes
+                else "Observed violations",
                 (
                     f"monotonicity={len(diagnostics.monotonicity_violations)}; "
                     f"convexity={len(diagnostics.convexity_violations)}; "
@@ -193,12 +310,42 @@ def _empirical_provenance_rows(
     evidence: EmpiricalSmileEvidence,
 ) -> tuple[PresentationRow, ...]:
     return (
-        PresentationRow("Evidence kind", "Derived Black-Scholes implied-volatility strike/maturity evidence", "No raw option rows are redistributed in UI3.", "Empirical derived"),
-        PresentationRow("Source repository", evidence.source_repository, f"commit {evidence.source_commit}; {evidence.source_path}", "External source"),
-        PresentationRow("Source blob SHA-1", evidence.source_blob_sha1, "Pinned upstream data-object identity used by M4.", "Provenance"),
-        PresentationRow("Quote date / underlying", f"{evidence.quote_date.isoformat()} / {evidence.underlying}", f"observed spot={evidence.observed_spot:g}", "Historical evidence"),
-        PresentationRow("Model assumptions", f"r={evidence.continuously_compounded_rate:g}; q={evidence.continuous_dividend_yield:g}; ACT/365F", "Rate/carry are explicit research assumptions, not inferred observations.", "Derived evidence"),
-        PresentationRow("License note", evidence.license_note, "UI3 therefore renders only the derived M4 evidence points.", "Non-redistribution"),
+        PresentationRow(
+            "Evidence kind",
+            "Derived Black-Scholes implied-volatility strike/maturity evidence",
+            "No raw option rows are redistributed in UI3.",
+            "Empirical derived",
+        ),
+        PresentationRow(
+            "Source repository",
+            evidence.source_repository,
+            f"commit {evidence.source_commit}; {evidence.source_path}",
+            "External source",
+        ),
+        PresentationRow(
+            "Source blob SHA-1",
+            evidence.source_blob_sha1,
+            "Pinned upstream data-object identity used by M4.",
+            "Provenance",
+        ),
+        PresentationRow(
+            "Quote date / underlying",
+            f"{evidence.quote_date.isoformat()} / {evidence.underlying}",
+            f"observed spot={evidence.observed_spot:g}",
+            "Historical evidence",
+        ),
+        PresentationRow(
+            "Model assumptions",
+            f"r={evidence.continuously_compounded_rate:g}; q={evidence.continuous_dividend_yield:g}; ACT/365F",
+            "Rate/carry are explicit research assumptions, not inferred observations.",
+            "Derived evidence",
+        ),
+        PresentationRow(
+            "License note",
+            evidence.license_note,
+            "UI3 therefore renders only the derived M4 evidence points.",
+            "Non-redistribution",
+        ),
     )
 
 

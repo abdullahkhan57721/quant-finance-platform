@@ -71,7 +71,9 @@ def test_hedge_workbench_builds_paired_frequency_misspecification_and_cost_evide
     assert tuple(
         point.rebalance_day_interval for point in analysis.frequency_evidence
     ) == (30, 14, 7, 1, 10)
-    assert all(point.summary.seeds == (70, 71, 72) for point in analysis.frequency_evidence)
+    assert all(
+        point.summary.seeds == (70, 71, 72) for point in analysis.frequency_evidence
+    )
     assert analysis.correctly_specified_summary.seeds == (70, 71, 72)
     assert analysis.correctly_specified_summary.generating_annualized_volatility == 0.30
     assert analysis.correctly_specified_summary.hedging_annualized_volatility == 0.30

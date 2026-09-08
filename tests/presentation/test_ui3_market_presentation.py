@@ -4,7 +4,9 @@ from qf_platform.application.ui3_market import canonical_m4_market_workbench
 from qf_platform.presentation.ui3_market import build_market_workbench_presentation
 
 
-def test_market_presentation_preserves_observation_inverse_and_empirical_layers() -> None:
+def test_market_presentation_preserves_observation_inverse_and_empirical_layers() -> (
+    None
+):
     presentation = build_market_workbench_presentation(canonical_m4_market_workbench())
 
     assert len(presentation.observation_details) == 10
@@ -38,4 +40,6 @@ def test_market_presentation_preserves_observation_inverse_and_empirical_layers(
         "raw rows are not redistributed" in row.value
         for row in presentation.empirical_provenance_rows
     )
-    assert all("no repair" in row.status.lower() for row in presentation.diagnostic_rows)
+    assert all(
+        "no repair" in row.status.lower() for row in presentation.diagnostic_rows
+    )
