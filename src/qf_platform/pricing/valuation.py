@@ -27,7 +27,12 @@ class UnsupportedPricingProblem(ValueError):
     """Raised when a valuation method does not implement a pricing problem."""
 
 
-class ValuationMethod[TimeT, StateT, ParametersT](Protocol):
+class ValuationMethod[
+    TimeT,
+    StateT,
+    ParametersT,
+    ResultT: ValuationResult,
+](Protocol):
     """Algorithmic valuation responsibility, separate from financial-model semantics."""
 
     def supports(
@@ -42,16 +47,21 @@ class ValuationMethod[TimeT, StateT, ParametersT](Protocol):
         self,
         problem: PricingProblem[TimeT, StateT, ParametersT],
         /,
-    ) -> ValuationResult:
+    ) -> ResultT:
         """Evaluate a problem already known to be supported by this method."""
         ...
 
 
-def evaluate[TimeT, StateT, ParametersT](
+def evaluate[
+    TimeT,
+    StateT,
+    ParametersT,
+    ResultT: ValuationResult,
+](
     problem: PricingProblem[TimeT, StateT, ParametersT],
-    method: ValuationMethod[TimeT, StateT, ParametersT],
+    method: ValuationMethod[TimeT, StateT, ParametersT, ResultT],
     /,
-) -> ValuationResult:
+) -> ResultT:
     """Evaluate ``problem`` only after explicit implementation-capability checking."""
 
     if not method.supports(problem):
