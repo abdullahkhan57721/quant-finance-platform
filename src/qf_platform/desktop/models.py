@@ -350,7 +350,7 @@ class MarketObservationModel(QAbstractListModel):
             _MARKET_CONTRACT_ROLE: QByteArray(b"contractId"),
             _MARKET_EXPIRY_ROLE: QByteArray(b"expiry"),
             _MARKET_STRIKE_ROLE: QByteArray(b"strike"),
-            _MARKET_RIGHT_ROLE: QByteArray(b"right"),
+            _MARKET_RIGHT_ROLE: QByteArray(b"optionRight"),
             _MARKET_BID_ROLE: QByteArray(b"bid"),
             _MARKET_ASK_ROLE: QByteArray(b"ask"),
             _MARKET_NORMALIZED_ROLE: QByteArray(b"normalizedPrice"),

@@ -279,7 +279,7 @@ Item {
                                 required property string contractId
                                 required property string expiry
                                 required property string strike
-                                required property string right
+                                required property string optionRight
                                 required property string bid
                                 required property string ask
                                 required property string normalizedPrice
@@ -294,7 +294,7 @@ Item {
                                     anchors.margins: 8
                                     Label { text: parent.parent.contractId; color: root.textPrimary; Layout.preferredWidth: 160; elide: Text.ElideRight }
                                     Label { text: parent.parent.expiry; color: root.textMuted; Layout.preferredWidth: 95 }
-                                    Label { text: parent.parent.right + " K=" + parent.parent.strike; color: root.textMuted; Layout.preferredWidth: 120 }
+                                    Label { text: parent.parent.optionRight + " K=" + parent.parent.strike; color: root.textMuted; Layout.preferredWidth: 120 }
                                     Label { text: "bid " + parent.parent.bid; color: root.textMuted; Layout.preferredWidth: 105 }
                                     Label { text: "ask " + parent.parent.ask; color: root.textMuted; Layout.preferredWidth: 105 }
                                     Label { text: "mid " + parent.parent.normalizedPrice; color: root.textMuted; Layout.preferredWidth: 110 }
