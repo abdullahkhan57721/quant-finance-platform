@@ -41,7 +41,9 @@ class ScipyLeastSquaresHestonCalibration:
     max_function_evaluations: int = 300
 
     def __post_init__(self) -> None:
-        if not isinstance(cast(object, self.initial_guess), HestonCalibrationCoordinates):
+        if not isinstance(
+            cast(object, self.initial_guess), HestonCalibrationCoordinates
+        ):
             msg = "initial_guess must be HestonCalibrationCoordinates"
             raise TypeError(msg)
         for name in (
@@ -132,7 +134,9 @@ class ScipyLeastSquaresHestonCalibration:
             self.initial_guess.parameters.continuous_dividend_yield
             != problem.continuous_dividend_yield
         ):
-            msg = "initial guess must use the calibration problem's fixed dividend yield"
+            msg = (
+                "initial guess must use the calibration problem's fixed dividend yield"
+            )
             raise InvalidHestonCalibrationInitialGuess(msg)
         if not problem.bounds.contains(self.initial_guess):
             msg = "initial guess lies outside the admissible Heston calibration domain"
