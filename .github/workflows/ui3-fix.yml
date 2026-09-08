@@ -1,4 +1,4 @@
-name: UI3 Format Repair
+name: UI3 Integration Repair
 
 on:
   push:
@@ -22,16 +22,33 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           python -m pip install -e ".[dev]"
-      - name: Apply repository formatter and autofixes
-        run: ./scripts/fix
-      - name: Commit mechanical fixes
+      - name: Apply UI3 entrypoint integration and repository autofixes
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          main = Path("src/qf_platform/desktop/main.py")
+          text = main.read_text()
+          text = text.replace('qml" / "Main.qml"', 'qml" / "UI3Main.qml"')
+          main.write_text(text)
+
+          qml = Path("src/qf_platform/desktop/qml/UI3Main.qml")
+          text = qml.read_text()
+          text = text.replace(
+              "M5/Heston is intentionally absent from UI3 until its backend contracts are merged and a later UI milestone earns that surface.",
+              "M5/Heston is merged but intentionally absent from UI3. UI4 should expose stochastic-volatility workflows only from actual merged M5/M6 contracts.",
+          )
+          qml.write_text(text)
+          PY
+          ./scripts/fix
+      - name: Commit integration fixes
         run: |
           if git diff --quiet; then
-            echo "No formatter changes required."
+            echo "No integration changes required."
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add .
-          git commit -m "UI3: apply repository autofixes"
+          git commit -m "UI3: wire native three-workflow entry point"
           git push origin HEAD:ui3/32-hedging-market-inverse-workbench
