@@ -1,0 +1,21 @@
+{
+  "description": "Synthetic European option observations for deterministic M4 CI. Prices are Black-Scholes-generated with deliberately nonconstant volatility by strike and maturity; they are not market observations.",
+  "provider": "synthetic:m4-ci",
+  "source": "repository fixture",
+  "market_date": "2026-01-02",
+  "spot": 100.0,
+  "continuously_compounded_rate": 0.03,
+  "continuous_dividend_yield": 0.01,
+  "rows": [
+    {"contract_id": "SYN-20260402-P-80", "expiry": "2026-04-02", "strike": 80.0, "right": "put", "bid": 0.3511730806957949, "ask": 0.3711730806957949, "expected_implied_volatility": 0.30},
+    {"contract_id": "SYN-20260402-P-90", "expiry": "2026-04-02", "strike": 90.0, "right": "put", "bid": 1.44971364813132, "ask": 1.46971364813132, "expected_implied_volatility": 0.27},
+    {"contract_id": "SYN-20260402-P-100", "expiry": "2026-04-02", "strike": 100.0, "right": "put", "bid": 4.476912169390138, "ask": 4.496912169390138, "expected_implied_volatility": 0.24},
+    {"contract_id": "SYN-20260402-C-110", "expiry": "2026-04-02", "strike": 110.0, "right": "call", "bid": 1.294607271324123, "ask": 1.314607271324123, "expected_implied_volatility": 0.22},
+    {"contract_id": "SYN-20260402-C-120", "expiry": "2026-04-02", "strike": 120.0, "right": "call", "bid": 0.1970973700882357, "ask": 0.2170973700882357, "expected_implied_volatility": 0.21},
+    {"contract_id": "SYN-20260701-P-80", "expiry": "2026-07-01", "strike": 80.0, "right": "put", "bid": 0.994161150392397, "ask": 1.014161150392397, "expected_implied_volatility": 0.28},
+    {"contract_id": "SYN-20260701-P-90", "expiry": "2026-07-01", "strike": 90.0, "right": "put", "bid": 2.626344787547415, "ask": 2.646344787547415, "expected_implied_volatility": 0.255},
+    {"contract_id": "SYN-20260701-P-100", "expiry": "2026-07-01", "strike": 100.0, "right": "put", "bid": 6.025026134139123, "ask": 6.045026134139123, "expected_implied_volatility": 0.235},
+    {"contract_id": "SYN-20260701-C-110", "expiry": "2026-07-01", "strike": 110.0, "right": "call", "bid": 2.904109786167252, "ask": 2.924109786167252, "expected_implied_volatility": 0.22},
+    {"contract_id": "SYN-20260701-C-120", "expiry": "2026-07-01", "strike": 120.0, "right": "call", "bid": 0.9434232912587033, "ask": 0.9634232912587033, "expected_implied_volatility": 0.21}
+  ]
+}

@@ -6,7 +6,7 @@ This document is the authoritative register for project quantitative representat
 
 A convention may be **committed**, **explicitly deferred**, or **local to a specific API/study**. What is not allowed is a consequential convention remaining implicit across a public boundary.
 
-M0A commits the structural mathematics of the platform-wide problem taxonomy and the implemented pricing core. M1 makes the first concrete equity-option conventions explicit. M2 resolves the first concrete numerical-valuation and sensitivity conventions. M3 resolves the first concrete dynamic-hedging/control conventions without promoting Black-Scholes-specific choices into universal solver, risk, portfolio, simulation, or execution policy.
+M0A commits the structural mathematics of the platform-wide problem taxonomy and the implemented pricing core. M1 makes the first concrete equity-option conventions explicit. M2 resolves the first concrete numerical-valuation and sensitivity conventions. M3 resolves the first concrete dynamic-hedging/control conventions without promoting Black-Scholes-specific choices into universal solver, risk, portfolio, simulation, or execution policy. M4 resolves the first concrete observed-market normalization and implied-volatility inverse-problem conventions without creating generic market-data, surface, or inverse-problem frameworks.
 
 ADR 0002 is the current authority for the mathematical problem architecture. ADR 0001 remains the historical pricing-specific decision record.
 
@@ -130,6 +130,8 @@ probability semantics
 
 Do not silently overwrite or reinterpret historical observations as model outputs. Raw observation, normalized input, inferred/calibrated quantity, and model-implied quantity are distinct semantics even when they share the same numerical type.
 
+M4 is the first production consumer of this rule: raw option/underlying observations retain provenance, normalized midpoint observations retain references to their raw evidence, and implied volatility remains a separate model-dependent result.
+
 ### Probability semantics are part of the quantitative question
 
 Do not silently reuse one probability interpretation across problem families.
@@ -185,6 +187,8 @@ annualized_volatility = 0.20
 
 means 20% annualized volatility, not 0.20% and not 20 percentage points. Variance, instantaneous variance, volatility-of-volatility, and model-specific variance-state quantities remain distinct concepts and should be named accordingly.
 
+M4 implied volatility follows the same unit convention, but the semantic role differs: it is the Black-Scholes parameter value inferred from an observed option target under explicit model inputs, not an observed or physical-measure volatility.
+
 ### No hidden project-wide numerical tolerance
 
 There is no universal magic tolerance for finance/numerical tests.
@@ -217,6 +221,8 @@ Equal integer seeds across Python/C++ are **not** a contract for identical rando
 
 Live data can support research and manual workflows, but core CI tests should use deterministic fixtures, synthetic data, or curated snapshots whose provenance/licensing permits repository use.
 
+M4 follows this rule by testing market-observation, normalization, inversion, conditioning, and strike-slice diagnostics against deterministic synthetic fixtures. Real SPX evidence is a separately pinned research artifact and is not required for CI.
+
 ## M1 local equity-option / Black-Scholes conventions
 
 M1 resolves the conventions needed by the first concrete pricing specialization. These are **local to the M1 Black-Scholes/European-option family unless explicitly identified above as committed cross-cutting rules**.
@@ -227,12 +233,12 @@ M1 resolves the conventions needed by the first concrete pricing specialization.
 | Valuation date representation | `PricingProblem.valuation_time` is a `datetime.date` for this specialization | Other future problem families may use other time representations. |
 | Year-fraction API | `actual_365_fixed_year_fraction(start, end)` | Concrete helper, not a generic day-count framework. |
 | Day-count convention | Actual/365 Fixed: actual calendar days divided by exactly 365 | Leap days count as days; denominator remains 365. |
-| Business-day/calendar handling | No business-day adjustment in M1 | General calendar handling remains deferred until a real consumer such as M4 requires it. |
+| Business-day/calendar handling | No business-day adjustment in M1 | General calendar handling remains deferred until a real consumer justifies it. |
 | Interest-rate representation | `FlatMoneyMarketNumeraire(reference_date, continuously_compounded_rate)` | The pricing core still depends on numeraire semantics, not a universal scalar-rate field. |
 | Compounding convention | Continuously compounded annualized decimal rate | Negative finite rates are allowed. |
 | Discounting representation | Risk-free discount from valuation to expiry is the numeraire ratio `N_V / N_E` | No general discount-curve/yield-curve hierarchy. |
 | Dividend/carry representation | Finite continuously compounded proportional annualized yield `q` in `BlackScholesParameters` | No discrete cash-dividend schedule. |
-| Spot vs forward | `EquityState.spot` is modeled spot | M1 closed form is a spot-input specialization; future market-data workflows may also observe forwards. |
+| Spot vs forward | `EquityState.spot` is modeled spot | M1 closed form is a spot-input specialization; market-data workflows keep observed spot separate. |
 | Volatility | `BlackScholesParameters.annualized_volatility` follows the committed decimal annualized-volatility rule | Non-negative finite values; zero is an admitted deterministic boundary. |
 | Option right | `OptionRight.CALL` / `OptionRight.PUT` | No general instrument taxonomy. |
 | Spot domain | Finite, non-negative; zero admitted as a degenerate boundary | Negative equity spot is invalid. |
@@ -291,22 +297,53 @@ M3 resolves the deferred control choices for the first concrete Black-Scholes re
 
 Detailed equations, accounting identities, path semantics, limitations, and executable evidence are in `docs/models/m3_dynamic_delta_hedging.md`.
 
+## M4 local market-observation and implied-volatility conventions
+
+M4 resolves only the conventions needed by its first observed option-market consumer and Black-Scholes inverse problem. These are **local to the M4 European-option evidence path unless explicitly identified as cross-cutting**.
+
+| Convention | M4 decision | Scope / non-claim |
+| --- | --- | --- |
+| Raw vs normalized data | Preserve immutable raw option/underlying observations and construct separate normalized observations | Normalization never overwrites raw evidence. |
+| Market date | Required `datetime.date` because the supported M1 pricing vertical is date-valued | No general exchange-calendar or intraday valuation-time framework. |
+| Retrieval/observation timestamps | Retrieval timestamp must be timezone-aware; contract observation timestamp is optional but timezone-aware when present | Missing quote timestamps do not imply freshness. |
+| Provenance | Provider/source, market date, retrieval time, optional observation time, optional raw SHA-256, and license notes | Concrete evidence fields, not a universal provider adapter framework. |
+| Quote target | Positive, non-crossed bid/ask midpoint | `last` is retained raw where available but is not the first inference target. |
+| Missing/bad quote policy | Missing bid/ask, nonpositive bid/ask, crossed markets, mismatched underlying/date, unsupported exercise/settlement fail normalization | Bad raw observations may still exist as evidence. |
+| Exercise support | European only for the first inference consumer | No American-option inversion. |
+| Settlement support | Reject AM settlement under current date-only M1 expiry semantics | No silent AM/PM adjustment. |
+| Staleness | No staleness inference without source evidence sufficient to support it | Absence of a timestamp is preserved, not guessed. |
+| Implied-volatility problem | Solve the existing Black-Scholes forward map for annualized decimal `sigma` against one normalized observed target | Implied volatility is model-dependent inference, not observed/physical volatility. |
+| Volatility domain | Default `[0.0, 5.0]` annualized volatility decimals | Method/problem-local admissible interval, not an economic universal bound. |
+| Financial feasibility | Check discounted European price bounds before root search | A materially inconsistent quote does not receive a plausible-looking IV. |
+| Price-bound roundoff | Scale-aware `1e-12` relative tolerance for comparing an observed target to theoretical bounds | Local floating-point guard only; distinct from quote precision and root tolerance. |
+| Numerical inverse method | Deterministic bracketed bisection | No universal inverse-method hierarchy or optimizer framework. |
+| Bisection defaults | Price tolerance `1e-10`, volatility-bracket tolerance `1e-10`, max iterations `200` | Method-local convergence configuration. |
+| Numerical failures | Unbracketed admissible target and exhausted convergence budget are distinct failures | Financial inconsistency, domain choice, and numerical nonconvergence remain distinguishable. |
+| Conditioning | Reuse M2 analytic Vega at the inferred solution; retain `1/Vega` and half-spread first-order IV displacement | Conditioning evidence, not a solver-failure label. |
+| Moneyness coordinate | `log(K/F)` with `F = S exp((r-q)T)` using the same explicit rate/carry inputs as pricing | Rate/carry are not silently inferred from observations. |
+| Static quote diagnostics | Same-right strike monotonicity and discrete convexity only | Reports violations; does not repair/interpolate an arbitrage-free surface. |
+| Real SPX research inputs | Pinned raw public artifact plus explicit flat `r=0.045`, `q=0.017` assumptions for the committed study | These rates/carry are research assumptions, not observed or calibrated values. |
+| SPXW contract enrichment | Selected non-third-Friday expiries use separately sourced European/PM SPXW semantics because the raw CSV omits them | Enrichment is recorded explicitly rather than presented as a raw field. |
+
+Detailed formulas, failure semantics, conditioning, deterministic fixtures, and real-market evidence are in `docs/models/m4_market_evidence_and_implied_volatility.md`.
+
 ## Explicitly deferred finance conventions
 
 These decisions should be settled by the first milestones that create real consumers. Until then, do not spread a local choice across the codebase as if it were canonical.
 
 | Convention | Status | First expected pressure | Guidance until settled |
 | --- | --- | --- | --- |
-| General business-day/calendar framework | Deferred | M4 | M1 intentionally performs no business-day adjustment; do not generalize that into a universal calendar policy. |
-| General discount-factor/curve representation | Deferred | M4/M5 | M1 uses a flat money-market numeraire; M0A commits numeraire semantics, not a curve hierarchy. |
-| Discrete dividend/corporate-action representation | Deferred | M4/future instrument consumer | M1's continuous yield is local; do not reinterpret it as a discrete dividend schedule. M3 explicitly rejects nonzero continuous yield for hedge execution until cash-flow accounting is settled. |
-| Forward-market observation semantics | Deferred | M4 | M1 prices from modeled spot; observed spot/forward quote provenance belongs to market-data work. |
+| General business-day/calendar framework | Deferred | future calendar-sensitive consumer | M1/M4 intentionally use date-valued ACT/365F semantics; do not generalize this into a universal calendar policy. |
+| General discount-factor/curve representation | Deferred | M5/M6 | M1/M4 use a flat money-market numeraire for their supported evidence; M0A commits numeraire semantics, not a curve hierarchy. |
+| Discrete dividend/corporate-action representation | Deferred | future instrument/market-data consumer | M1's continuous yield is local; do not reinterpret it as a discrete dividend schedule. M3 explicitly rejects nonzero continuous yield for hedge execution until cash-flow accounting is settled. |
+| General forward-market observation semantics | Deferred | future forward/curve consumer | M4 observes spot and constructs a model forward from explicit `r/q`; that is not an observed forward quote. |
 | Array axis/order conventions for numerical kernels | Deferred | M5 | Define only when vectorized/compiled kernels create a shared boundary. |
-| Market timestamp timezone convention | Deferred | M4 | Must become explicit before real-market ingestion. |
-| Missing/bad quote policy | Deferred | M4 | Preserve raw observations/provenance; normalization/cleaning policy must be explicit and testable. |
-| Inference/calibration loss/objective convention | Deferred | M4/M6 | Must belong to the concrete inverse problem; do not hide it inside a generic optimizer. |
+| Generic market timestamp/calendar convention | Deferred | future intraday/multi-market consumer | M4 requires timezone-aware retrieval/optional observation timestamps locally but does not define exchange-session semantics. |
+| Generic quote cleaning policy | Deferred | second materially different market-data consumer | M4 commits only its European midpoint normalization; do not assume it fits every instrument/provider. |
+| Inference/calibration loss/objective convention | Deferred | M6 | M4 solves a scalar equality; calibration objectives must belong to the future concrete calibration problem. |
 | Inference weighting convention | Deferred | M6 | State how observations/targets are weighted and why. |
 | Parameter bounds/transforms | Deferred | M6 | Keep model-domain constraints distinct from optimizer mechanics. |
+| Arbitrage-free surface repair/interpolation | Deferred | future surface/calibration consumer | M4 reports narrow static violations only; it does not repair or interpolate a surface. |
 | Prediction probability semantics | Deferred | future prediction consumer | State conditioning information, horizon, target, and probability semantics explicitly. |
 | Risk horizon | Deferred | first risk consumer | Must be explicit; no project-wide default. |
 | Risk probability/scenario semantics | Deferred | first risk consumer | Distinguish historical/physical/model/stress/scenario interpretations. |
@@ -345,18 +382,21 @@ M2 extends the same discipline to independent numerical valuation and sensitivit
 
 M3 extends it to dynamic replication in `docs/models/m3_dynamic_delta_hedging.md`, including exact-transition GBM path semantics, the Delta-to-policy boundary, stock/cash self-financing identities, terminal error sign convention, transaction costs, misspecification, and distributional validation evidence.
 
+M4 extends it to observed-data normalization and Black-Scholes inversion in `docs/models/m4_market_evidence_and_implied_volatility.md`, including price bounds, numerical method/failure semantics, M2-Vega conditioning, strike/maturity coordinates, static quote diagnostics, the pinned real-market source, explicit study assumptions, and the empirical evidence artifact.
+
 ## Market-data provenance convention
 
-When real market data arrives, preserve as applicable and legally permitted:
+M4 establishes the first concrete production market-data provenance representation. Preserve as applicable and legally permitted:
 
 - provider/source;
-- as-of timestamp;
+- market/as-of date;
 - retrieval timestamp;
+- optional observation timestamp when the source preserves one;
 - raw artifact or content hash;
-- normalization/transformation version;
+- normalization/transformation version; and
 - licensing/redistribution notes.
 
-If raw data cannot be redistributed, prefer a reproducible retrieval/processing recipe plus deterministic synthetic or curated fixtures over committing restricted data.
+If raw data cannot be redistributed or licensing is unclear, prefer a reproducible acquisition/processing recipe plus a pinned hash and derived evidence. Core CI should use deterministic synthetic or legally distributable curated fixtures rather than depending on live services.
 
 ## Changing a committed convention
 

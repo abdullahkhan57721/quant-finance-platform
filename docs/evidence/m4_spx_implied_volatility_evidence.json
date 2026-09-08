@@ -1,0 +1,161 @@
+{
+  "evidence_kind": "derived Black-Scholes implied-volatility strike/maturity evidence",
+  "source": {
+    "repository": "IceCurrent/local_volatility_model",
+    "commit": "428531599bf3945f5d51691fdd21b1667eb14958",
+    "path": "data/data.csv",
+    "git_blob_sha1": "8d1db0f2710c4707555c8263f9b7f8f527974836",
+    "upstream_license_note": "No repository license file was present when M4 evidence was produced; raw rows are not redistributed here."
+  },
+  "market_snapshot": {
+    "quote_date": "2023-01-04",
+    "underlying": "SPX",
+    "observed_spot": 3853.39,
+    "selected_expiries": [
+      "2023-02-03",
+      "2023-04-28"
+    ],
+    "contract_semantics_note": "The selected non-third-Friday SPX expiries are interpreted as SPXW weekly contracts. Cboe specifies SPXW as European exercise and PM settled; the upstream CSV itself does not encode style or settlement columns."
+  },
+  "model_inputs": {
+    "continuously_compounded_rate": 0.045,
+    "continuous_dividend_yield": 0.017,
+    "time_basis": "ACT/365F",
+    "price_target": "bid/ask midpoint",
+    "otm_selection": "puts for K < model forward; calls for K >= model forward",
+    "note": "Flat rate/carry are explicit research assumptions, not inferred or observed quantities."
+  },
+  "slices": [
+    {
+      "expiry": "2023-02-03",
+      "days_to_expiry": 30.0,
+      "points": [
+        {
+          "strike": 3720.0,
+          "right": "put",
+          "log_forward_moneyness": -0.037530981928,
+          "annualized_implied_volatility": 0.230315263038,
+          "vega": 367.298111465861,
+          "local_volatility_shift_for_half_spread": 0.000680646026
+        },
+        {
+          "strike": 3800.0,
+          "right": "put",
+          "log_forward_moneyness": -0.016253583481,
+          "annualized_implied_volatility": 0.220762212996,
+          "vega": 422.174971401069,
+          "local_volatility_shift_for_half_spread": 0.002605554745
+        },
+        {
+          "strike": 3850.0,
+          "right": "put",
+          "log_forward_moneyness": -0.003181501914,
+          "annualized_implied_volatility": 0.214492740344,
+          "vega": 438.614532250333,
+          "local_volatility_shift_for_half_spread": 0.000797967177
+        },
+        {
+          "strike": 3870.0,
+          "right": "call",
+          "log_forward_moneyness": 0.001999856828,
+          "annualized_implied_volatility": 0.209316325619,
+          "vega": 440.106729403633,
+          "local_volatility_shift_for_half_spread": 0.000681652835
+        },
+        {
+          "strike": 3900.0,
+          "right": "call",
+          "log_forward_moneyness": 0.009721902922,
+          "annualized_implied_volatility": 0.206511411283,
+          "vega": 436.140100667848,
+          "local_volatility_shift_for_half_spread": 0.002866051524
+        },
+        {
+          "strike": 3970.0,
+          "right": "call",
+          "log_forward_moneyness": 0.027511444486,
+          "annualized_implied_volatility": 0.196228319381,
+          "vega": 395.759466446703,
+          "local_volatility_shift_for_half_spread": 0.000631696829
+        },
+        {
+          "strike": 4020.0,
+          "right": "call",
+          "log_forward_moneyness": 0.040027252418,
+          "annualized_implied_volatility": 0.190770906584,
+          "vega": 343.384635970668,
+          "local_volatility_shift_for_half_spread": 0.001019265172
+        }
+      ]
+    },
+    {
+      "expiry": "2023-04-28",
+      "days_to_expiry": 113.96,
+      "points": [
+        {
+          "strike": 3720.0,
+          "right": "put",
+          "log_forward_moneyness": -0.043971749052,
+          "annualized_implied_volatility": 0.231224804687,
+          "vega": 787.174674138685,
+          "local_volatility_shift_for_half_spread": 0.000635183037
+        },
+        {
+          "strike": 3800.0,
+          "right": "put",
+          "log_forward_moneyness": -0.022694350604,
+          "annualized_implied_volatility": 0.223681235911,
+          "vega": 829.358585637301,
+          "local_volatility_shift_for_half_spread": 0.00054258798
+        },
+        {
+          "strike": 3900.0,
+          "right": "call",
+          "log_forward_moneyness": 0.003281135799,
+          "annualized_implied_volatility": 0.214866346878,
+          "vega": 853.975671595706,
+          "local_volatility_shift_for_half_spread": 0.00064404645
+        },
+        {
+          "strike": 3950.0,
+          "right": "call",
+          "log_forward_moneyness": 0.016020161576,
+          "annualized_implied_volatility": 0.209757818695,
+          "vega": 851.831728640195,
+          "local_volatility_shift_for_half_spread": 0.000586970388
+        },
+        {
+          "strike": 4075.0,
+          "right": "call",
+          "log_forward_moneyness": 0.047175329356,
+          "annualized_implied_volatility": 0.196322125092,
+          "vega": 796.359430556647,
+          "local_volatility_shift_for_half_spread": 0.000565071477
+        },
+        {
+          "strike": 4110.0,
+          "right": "call",
+          "log_forward_moneyness": 0.055727611171,
+          "annualized_implied_volatility": 0.193347267542,
+          "vega": 768.011241281436,
+          "local_volatility_shift_for_half_spread": 0.002213509267
+        },
+        {
+          "strike": 4240.0,
+          "right": "call",
+          "log_forward_moneyness": 0.086867851907,
+          "annualized_implied_volatility": 0.182245070744,
+          "vega": 619.38656300988,
+          "local_volatility_shift_for_half_spread": 0.000565075223
+        }
+      ]
+    }
+  ],
+  "diagnostic_summary": {
+    "constant_volatility_contradicted": true,
+    "strike_structure": "Both expiries show materially decreasing implied volatility as strike/log-forward-moneyness rises.",
+    "maturity_structure": "At comparable strikes/moneyness, inferred volatility levels differ across the two expiries.",
+    "conditioning": "Vega and first-order half-spread volatility shifts are retained per point; quote width can materially change local IV uncertainty.",
+    "static_quote_quality": "Same-right midpoint slices were monotone in strike in the inspected rows but contained multiple discrete convexity violations, consistent with noisy/asynchronous quote evidence rather than an arbitrage-repaired surface."
+  }
+}

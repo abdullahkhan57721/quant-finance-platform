@@ -20,7 +20,9 @@ The first specialization is **Equity Derivatives & Volatility Modeling**.
 
 **M3 — Dynamic Hedging / Control is complete.** M3 adds exact-transition model-generated GBM paths, a Delta policy that consumes M2 sensitivity, explicit stock/cash self-financing accounting, replication-error evidence, rebalance-frequency and volatility-misspecification studies, and optional proportional transaction costs without creating a generic control/portfolio framework.
 
-**M4 — Market Evidence / Inverse Problems is active.** M3 and M4 preserve separate ownership of model-generated hedge evidence versus observed-market provenance and implied-volatility inference.
+**M4 — Market Evidence / Inverse Problems is complete.** M4 adds provenance-bearing raw option/underlying observations, explicit quote normalization, Black-Scholes implied-volatility inversion as the first concrete inverse problem, conditioning/static-quote diagnostics, deterministic CI fixtures, and pinned SPX empirical evidence showing strike skew and maturity dependence.
+
+**M5 — Heston Model and Independent Valuation is next.** It is motivated by the observed M4 failure of one constant Black-Scholes volatility to reconcile the market option set, while M3 remains the replication/model-misspecification baseline.
 
 See:
 
@@ -32,6 +34,8 @@ See:
 - [`docs/models/black_scholes.md`](docs/models/black_scholes.md) for M1 formula provenance and reference evidence;
 - [`docs/models/m2_numerical_methods_and_sensitivities.md`](docs/models/m2_numerical_methods_and_sensitivities.md) for M2 numerical methods, Greeks, uncertainty, and error taxonomy;
 - [`docs/models/m3_dynamic_delta_hedging.md`](docs/models/m3_dynamic_delta_hedging.md) for M3 path, policy, accounting, replication, and misspecification evidence;
+- [`docs/models/m4_market_evidence_and_implied_volatility.md`](docs/models/m4_market_evidence_and_implied_volatility.md) for M4 observation, normalization, inverse-problem, conditioning, and empirical-evidence semantics;
+- [`docs/evidence/m4_spx_implied_volatility_evidence.json`](docs/evidence/m4_spx_implied_volatility_evidence.json) for the pinned derived SPX evidence artifact;
 - [`docs/decisions/0002-mathematical-problem-architecture.md`](docs/decisions/0002-mathematical-problem-architecture.md) for the current mathematical-problem doctrine; and
 - [`docs/development/engineering_principles.md`](docs/development/engineering_principles.md) for engineering/collaboration rationale.
 
@@ -106,23 +110,7 @@ supported ValuationMethod
 ValuationResult
 ```
 
-M1 specializes it with:
-
-```text
-EquityState / EquityStateSpace
-+
-BlackScholesLaw + BlackScholesParameters
-+
-EuropeanOption → terminal CashFlowStream
-+
-FlatMoneyMarketNumeraire + PricingMeasureSemantics
-        ↓
-PricingProblem
-        +
-BlackScholesClosedForm
-        ↓
-ValuationResult(present_value)
-```
+M1 specializes it with `EquityState`, `BlackScholesLaw`, `BlackScholesParameters`, `EuropeanOption`, `FlatMoneyMarketNumeraire`, `PricingMeasureSemantics`, and `BlackScholesClosedForm`.
 
 The reference vertical uses calendar `datetime.date`, ACT/365F model time, modeled spot, a flat continuously compounded money-market rate, continuous proportional dividend/carry, annualized decimal volatility, explicit call/put rights, and non-negative finite spot/strike domains.
 
@@ -137,33 +125,7 @@ same M1 PricingProblem
         └── MonteCarloEuropeanOption
 ```
 
-### CRR/binomial
-
-`CoxRossRubinstein(steps)` has explicit configuration and two deliberately distinguished interpretations:
-
-```text
-fixed finite tree
-    = discrete-time complete-market model
-      when 0 < p < 1
-
-increasing steps
-    = numerical approximation toward
-      the continuous Black-Scholes limit
-```
-
-A valid Black-Scholes problem can therefore be unsupported by a particular coarse tree without becoming an invalid financial problem.
-
-### Monte Carlo
-
-`MonteCarloEuropeanOption(paths, seed)`:
-
-- owns explicit path-count and RNG-seed configuration;
-- creates fresh local RNG state for each application;
-- samples the exact terminal GBM distribution for the supported European payoff;
-- discounts through the same pricing problem's numeraire; and
-- returns a specific immutable `MonteCarloValuationResult` containing present value, estimator standard error, a normal-approximation 95% confidence interval, path count, and seed.
-
-The common `ValuationResult` remains narrow. Monte Carlo diagnostics are not optional fields added to every valuation result.
+`CoxRossRubinstein(steps)` distinguishes a fixed finite complete-market tree from increasing-step convergence toward the continuous Black-Scholes reference. `MonteCarloEuropeanOption(paths, seed)` owns explicit path-count/RNG configuration and returns method-specific sampling uncertainty on `MonteCarloValuationResult` without bloating the common valuation result.
 
 ## M2 — first concrete sensitivity family
 
@@ -181,30 +143,11 @@ supported sensitivity method
 BlackScholesSensitivityResult
 ```
 
-The first specialization supports:
-
-```text
-Delta = dV/dS
-Gamma = d²V/dS²
-Vega  = dV/dsigma
-Theta = dV/dt
-Rho   = dV/dr
-```
-
-M2 records the differentiation variable, derivative order, units, scaling, and sign convention explicitly. Vega and Rho are core per-`1.00` decimal sensitivities; Theta is passage of valuation time per ACT/365F model year.
-
-Methods:
-
-```text
-AnalyticBlackScholesSensitivity
-FiniteDifferenceBlackScholesSensitivity
-```
-
-Finite differences use explicit native-unit bumps rather than a project-wide magic epsilon.
+The first specialization supports Delta, Gamma, Vega, Theta, and Rho with explicit differentiation variable, derivative order, units, scaling, and sign conventions. Analytic and finite-difference methods are independently cross-validated with explicit native-unit bumps.
 
 ## M3 — dynamic hedging as the first control specialization
 
-M3 consumes the existing pricing and sensitivity behavior without redefining either:
+M3 consumes pricing and sensitivity without redefining either:
 
 ```text
 Black-Scholes pricing problem
@@ -222,18 +165,7 @@ DeltaHedgeResult
 ReplicationErrorSummary
 ```
 
-The path observation grid and hedge schedule are separate. Adjacent Black-Scholes transitions are sampled exactly, so M3 observation dates are not silently treated as Euler timesteps.
-
-For one short European option, the hedge starts with the hedging-model Black-Scholes present value, targets M2 Delta stock units at each explicit rebalance, and finances residual cash with the existing money-market numeraire. The path-level result records trades, cash, financing, optional proportional transaction costs, terminal payoff, terminal hedge value, and replication error separately.
-
-The local terminal sign convention is:
-
-```text
-replication error = hedge value - option payoff
-                 = hedged short-option terminal P&L
-```
-
-M3 evidence includes seeded reproducibility, accounting identities, no-lookahead behavior, 64-seed rebalance-frequency comparisons, explicit generating-versus-hedging volatility misspecification, and transaction-cost drag. Hedge execution currently requires zero continuous dividend yield rather than inventing a hidden dividend-cashflow integration convention.
+The path observation grid and hedge schedule are separate. For one short European option, the hedge records explicit stock trades, cash financing, optional proportional transaction costs, terminal payoff/value, and replication error. Evidence covers reproducibility, self-financing identities, no-lookahead behavior, rebalance-frequency effects, volatility misspecification, and transaction-cost drag.
 
 Protect:
 
@@ -244,40 +176,63 @@ path observation grid != hedge rebalance schedule
 replication error != model error by definition
 ```
 
+## M4 — observed market evidence and implied-volatility inference
+
+M4 creates the first production bridge from independently observed market data into the mathematical problem architecture:
+
+```text
+real market
+    ↓
+RawOptionQuote + RawUnderlyingObservation
+    + ObservationProvenance
+    ↓
+explicit normalization
+    ↓
+NormalizedOptionObservation
+    ↓
+BlackScholesImpliedVolatilityProblem
+    + BisectionImpliedVolatility
+    ↓
+ImpliedVolatilityResult
+    ↓
+strike / maturity / conditioning evidence
+```
+
+Raw observations retain source/timing/hash/licensing lineage and are not overwritten by normalized or modeled values. The first normalization policy uses a positive non-crossed bid/ask midpoint for supported European non-AM contracts and retains raw lineage plus a normalization version.
+
+The financial inverse problem owns the observed target, Black-Scholes forward map, volatility domain, financial feasibility, and failure interpretation. The bisection method owns only the root-search procedure. No-arbitrage price bounds are checked before solving; unbracketed domains and unresolved numerical solves have distinct failure semantics.
+
+M4 reuses M2 analytic Vega to expose local inverse conditioning. A numerically converged implied volatility can therefore still be flagged as sensitive to quote perturbations through inverse-Vega and half-spread diagnostics.
+
+### Market evidence
+
+Core CI uses a deterministic synthetic option fixture with deliberate strike and maturity structure. Separately, a pinned January 4, 2023 SPX research artifact derives implied volatility for approximately 30-day and 114-day expiries under explicit flat rate/carry and OTM quote-selection assumptions.
+
+Representative inferred values are:
+
+```text
+30-day slice:
+K=3720 put   ~23.03%
+K=3850 put   ~21.45%
+K=3900 call  ~20.65%
+K=4020 call  ~19.08%
+
+~114-day slice:
+K=3720 put   ~23.12%
+K=3900 call  ~21.49%
+K=4075 call  ~19.63%
+K=4240 call  ~18.22%
+```
+
+The systematic downside skew and maturity dependence contradict the one-constant-volatility structure as a cross-sectional description of these observed prices. Same-right midpoint slices also contain discrete convexity violations; M4 records those as data-quality evidence rather than silently repairing a surface.
+
+Implied volatility is a **model-dependent inferred parameter**, not a directly observed physical volatility.
+
 ## Validation evidence
 
 The platform does not rely on plausible-looking prices alone.
 
-M1 evidence includes:
-
-- a published Black-Scholes benchmark;
-- put-call parity;
-- discounted no-arbitrage bounds;
-- expiry and deterministic limiting behavior;
-- ACT/365F and continuous-compounding discrimination; and
-- explicit method-support boundaries.
-
-M2 adds:
-
-- CRR convergence toward the analytical reference;
-- finite-tree no-arbitrage support evidence;
-- seeded Monte Carlo reproducibility;
-- statistical consistency with the analytical reference;
-- approximate `O(n^-1/2)` Monte Carlo standard-error scaling;
-- analytic call/put Greek reference values;
-- analytic ↔ finite-difference cross-validation; and
-- a multi-bump study showing finite-difference truncation versus cancellation/floating-point degradation.
-
-M3 adds:
-
-- exact-transition GBM path reproducibility and deterministic zero-volatility behavior;
-- direct policy consumption of the M2 analytic Delta;
-- self-financing stock/cash identities and explicit cost accounting;
-- no-lookahead evidence;
-- distributional improvement from approximately monthly to weekly to daily rebalancing on a common path-observation setup;
-- volatility-misspecification evidence distinct from discrete-rebalancing error;
-- stochastic replicate-integrity checks; and
-- explicit rejection of unsupported dividend/carry hedge accounting.
+M1 establishes analytical benchmarks, put-call parity, bounds, limiting cases, and formula traceability. M2 adds independent valuation convergence, Monte Carlo uncertainty/scaling, and analytic ↔ finite-difference Greek validation. M3 adds dynamic-replication/accounting/no-lookahead/distributional misspecification evidence. M4 adds observation provenance, normalization rejection tests, known-volatility recovery, financial-feasibility and numerical-failure tests, low-Vega conditioning evidence, synthetic smile/term-structure regression evidence, static quote diagnostics, and reproducible derived SPX evidence.
 
 The project keeps distinct:
 
@@ -290,6 +245,9 @@ finite-difference cancellation / floating-point error
 discrete hedge-rebalancing error
 stochastic hedge-replicate variation
 transaction-cost effect
+observed quote / data-quality uncertainty
+inverse-problem conditioning
+root-solver failure
 ```
 
 ## Observations vs modeled quantities
@@ -299,18 +257,18 @@ The platform preserves:
 ```text
 real world
     ↓
-observations + provenance
+raw observations + provenance
     ↓
-normalization / cleaning / construction
+normalization / cleaning
     ↓
-problem-ready information
+problem-ready observed information
 
 separately from
 
 modeled state + stochastic law + parameters + probability semantics
 ```
 
-M1–M3 use valuation-ready/model-generated state. M3 simulated paths are not market observations. Real quote provenance and implied-volatility inference belong to M4 rather than being smuggled into pricing or control objects.
+M4 is the first production consumer of this distinction. `RawUnderlyingObservation` is not an `EquityState`; normalized option prices are not model prices; inferred volatility is not raw market data.
 
 ## v0.1 direction
 
@@ -324,10 +282,10 @@ independent valuation + sensitivity/Greeks               ← M2 complete
         ↓                          ↓
 dynamic hedging/control        market evidence /
 ← M3 complete                  implied-vol inference
-                               ← M4 active
+                               ← M4 complete
         └─────────────┬────────────┘
                       ↓
-Heston stochastic volatility
+Heston stochastic volatility                          ← M5 next
         ↓
 independent Heston valuation
         ↓
@@ -350,18 +308,16 @@ Key protected distinctions include:
 
 ```text
 financial state != market observation
+raw observation != normalized observation != modeled value
 state != stochastic law != parameters
 contract != cash-flow stream
 numeraire != pricing measure
 problem != solution method
-pricing problem != valuation method != result
-pricing problem != sensitivity problem != control problem
+pricing problem != sensitivity problem != control problem != inverse problem
 GBM stochastic law != Monte Carlo method != path simulation
 Delta sensitivity != hedge policy != realized hedge action
 inverse problem != optimizer / root finder
-sensitivity problem != differentiation method
-control problem != optimizer
-risk problem != risk-measure implementation
+implied volatility != observed volatility
 FinancialContract != Trade != Portfolio
 production library != research study != presentation
 ```
@@ -417,10 +373,11 @@ The repository intentionally still contains no merged production implementation 
 
 - generic stochastic-control, strategy, execution, trade, portfolio, VaR, or scenario frameworks;
 - physical-measure M3 forecasting semantics or nonzero-dividend hedge accounting;
-- live market-data ingestion or option-chain provenance structures until M4 merges;
-- implied-volatility inverse-problem structures until M4 merges;
+- generic/live market-data-provider infrastructure;
+- generic quote-cleaning, staleness, or arbitrage-free surface construction/repair infrastructure;
 - generic inverse/inference, prediction, risk, or validation frameworks;
 - Heston or Heston calibration;
+- discount/dividend curve inference from option chains;
 - generic experiment infrastructure; or
 - a C++ backend abstraction.
 

@@ -20,11 +20,11 @@ independent valuation methods + sensitivity              ← M2 complete
         ↓                               ↓
 delta-hedging / control             market evidence +
 experiments                          implied-vol inference
-← M3 complete                       ← M4 active
+← M3 complete                       ← M4 complete
         │                               │
         └───────────────┬───────────────┘
                         ↓
-Heston stochastic volatility
+Heston stochastic volatility                             ← M5 next
         ↓
 independent Heston valuation methods
         ↓
@@ -47,15 +47,7 @@ portfolio-quality release
 
 **Purpose:** Establish repository truth and quality gates without inventing finance abstractions.
 
-Implemented outputs:
-
-- source-layout Python package;
-- pytest, Ruff, Pyright;
-- GitHub Actions CI;
-- `AGENTS.md`;
-- current-state and roadmap docs;
-- architecture index and guardrails;
-- reproducibility/RNG and future Python/C++ policy.
+Implemented outputs include the source-layout package, pytest/Ruff/Pyright, GitHub Actions CI, repository operating rules, architecture/current-state/roadmap documentation, and reproducibility/native-backend guardrails.
 
 ---
 
@@ -65,7 +57,7 @@ Implemented outputs:
 
 **Question:** Can the platform encode the stable mathematical distinctions of quantitative finance directly enough that later workflows compose around well-defined questions, without turning those distinctions into universal software frameworks?
 
-M0A established the platform-wide taxonomy:
+M0A established the platform-wide taxonomy and the conceptual execution pattern:
 
 ```text
 financial / mathematical foundations
@@ -77,29 +69,11 @@ supported solution method
 specific immutable result / evidence
 ```
 
-and the conceptual execution pattern:
-
 ```text
 Problem + supported Method -> specific immutable Result
 ```
 
-The first production problem family is pricing:
-
-```text
-state / stochastic law / parameters
-+
-contract / cash flows
-+
-numeraire / pricing-measure semantics
-        ↓
-PricingProblem
-        +
-supported ValuationMethod
-        ↓
-ValuationResult
-```
-
-M0A also established the observation/model boundary and the rule that mathematical generality does not imply universal operational APIs.
+The first production problem family is pricing. M0A also established the observation/model boundary and the rule that mathematical generality does not imply universal operational APIs.
 
 ---
 
@@ -156,33 +130,7 @@ BlackScholesSensitivityProblem
 BlackScholesSensitivityResult
 ```
 
-Capabilities and evidence include:
-
-- explicit CRR step configuration and finite-tree no-arbitrage support semantics;
-- CRR convergence toward the Black-Scholes analytical reference;
-- explicit Monte Carlo path count and RNG seed ownership;
-- exact terminal GBM sampling for the supported European payoff;
-- immutable Monte Carlo present value, standard error, 95% normal-approximation confidence interval, path count, and seed;
-- approximate `O(n^-1/2)` Monte Carlo standard-error evidence;
-- analytic Delta, Gamma, Vega, Theta, and Rho;
-- explicit variable, derivative-order, sign, units, and scaling semantics;
-- central finite-difference cross-validation;
-- multi-bump evidence separating truncation from cancellation/floating-point degradation; and
-- dependency protection keeping pricing upstream of sensitivity.
-
-M2 made one minimal correction to the M0A valuation contract: `evaluate()` preserves a method's specific immutable `ValuationResult` subtype, allowing Monte Carlo uncertainty to remain method-specific instead of becoming optional fields on every valuation result.
-
-M2 does **not** create a universal sensitivity engine, compatibility registry, solver hierarchy, generic risk framework, or portfolio layer.
-
-Keep distinct:
-
-```text
-financial model error
-CRR discretization / approximation error
-Monte Carlo sampling error
-finite-difference truncation error
-finite-difference cancellation / floating-point error
-```
+Evidence includes CRR convergence/support semantics, seeded Monte Carlo uncertainty and convergence, analytic Greeks, finite-difference cross-validation, and bump-size studies. M2 does not create a universal sensitivity, solver, risk, or portfolio framework.
 
 ---
 
@@ -212,84 +160,91 @@ DeltaHedgeResult
 ReplicationErrorSummary
 ```
 
-Capabilities and evidence include:
-
-- exact adjacent-date GBM transitions with explicit observation dates and seed ownership;
-- explicit separation of path observation grid and hedge rebalance schedule;
-- `AnalyticDeltaHedgePolicy` consuming M2 Delta rather than duplicating sensitivity semantics;
-- one-short-option initial funding and terminal replication-error sign conventions;
-- explicit stock holdings, signed trades, trade notionals, cash financing, rebalance cash flows, transaction costs, terminal payoff, terminal hedge value, and hedged P&L;
-- frictionless self-financing identities and explicit wealth drag when proportional costs are enabled;
-- no-lookahead evidence;
-- 64-seed distributional evidence that approximately daily rebalancing improves RMSE/MAE relative to weekly, which improves relative to monthly, on a common daily path-observation setup;
-- generating volatility separate from hedging/pricing volatility, with explicit misspecification evidence;
-- aggregate error evidence with mean, median, standard deviation, MAE, RMSE, seeds, and study configuration;
-- integrity guards rejecting duplicate seeds, mixed hedge conditions, and different path grids; and
-- an explicit zero-continuous-dividend-yield hedge-execution boundary until dividend/carry cash-flow accounting is earned.
-
-M3 preserves:
-
-```text
-pricing problem != sensitivity problem != control / hedging problem
-Delta != hedge policy != realized hedge action
-financial model != path simulation != hedge execution
-path observation grid != hedge rebalance schedule
-replication error != model error by definition
-```
-
-M3 does **not** create a generic control framework, strategy hierarchy, portfolio/execution engine, physical-measure forecast API, VaR/scenario layer, or market-data dependency.
-
-The later Heston/model-risk comparison can consume this baseline without rewriting it: Heston path/model misspecification should become another controlled condition only after Heston exists on merged `main`.
+Evidence includes exact-path reproducibility, self-financing identities, no-lookahead behavior, rebalance-frequency comparisons, volatility misspecification, transaction-cost drag, and replicate-integrity checks. M3 deliberately remains narrower than a generic control, strategy, execution, portfolio, or physical-forecast framework.
 
 ---
 
 ## M4 — Market evidence / inverse problems
 
-**Status: active; PR #27.**
+**Status: complete.**
 
 **Question:** What does the observed option market do that constant-volatility Black-Scholes cannot represent, and can the first inverse quantity—implied volatility—be inferred with explicit observation semantics?
 
-Expected capabilities:
+Implemented composition:
 
-- provenance-aware option observations / chain ingestion for research;
-- deterministic curated fixtures/snapshots for CI and reproducibility;
-- explicit timestamp/timezone, quote selection, normalization, missing/bad-quote policy, and licensing/provenance semantics where real data requires them;
-- narrow implied-volatility inverse problem;
-- root-finding as a method separate from the inverse financial question;
-- strike/maturity smile/skew/surface evidence;
-- data-quality and appropriate static-arbitrage diagnostics.
+```text
+real option market
+        ↓
+RawOptionQuote + RawUnderlyingObservation
+        +
+ObservationProvenance
+        ↓
+explicit midpoint normalization
+        ↓
+NormalizedOptionObservation
+        ↓
+BlackScholesImpliedVolatilityProblem
+        +
+BisectionImpliedVolatility
+        ↓
+ImpliedVolatilityResult
+        ↓
+strike / maturity evidence + conditioning diagnostics
+```
+
+M4 establishes:
+
+- immutable raw option and underlying observations with provenance;
+- explicit raw-versus-normalized lifecycle and versioned midpoint policy;
+- rejection of missing/nonpositive/crossed quotes and unsupported contract semantics;
+- European option price-bound feasibility checks before numerical inversion;
+- a concrete Black-Scholes implied-volatility inverse problem separate from its numerical root finder;
+- deterministic bisection with explicit volatility domain, tolerances, and failure semantics;
+- M2-Vega conditioning evidence including local inverse-Vega and half-spread IV sensitivity;
+- deterministic synthetic strike/maturity fixtures for CI;
+- narrow monotonicity/convexity quote diagnostics without surface repair; and
+- a pinned SPX derived-evidence artifact with reproducible source provenance and explicit model assumptions.
 
 Protect:
 
 ```text
-observed quote != modeled state
+raw observation != normalized observation != modeled state
 observed price != model-implied value
-implied volatility != observed volatility
-inverse problem != root finder
+implied volatility != observed/physical volatility
+inverse financial problem != root-finding method != inverse result
 normalization != inference
+solver failure != poor inverse conditioning
 ```
 
-Scientific purpose:
+Empirical result: under the documented flat rate/carry and OTM quote-selection assumptions, the January 4, 2023 SPX evidence shows persistent downside strike skew in both an approximately 30-day and approximately 114-day expiry, plus maturity dependence. One constant Black-Scholes volatility cannot reconcile the observed option set.
 
-```text
-constant-volatility model assumption
-        ↓
-observed market contradiction
-        ↓
-smile / skew evidence
-        ↓
-motivation for richer volatility dynamics
-```
+The evidence also contains discrete convexity violations in same-right midpoint slices. M4 treats those as data-quality evidence rather than silently constructing an arbitrage-repaired surface.
 
-Core CI must not depend on live external APIs.
+Core CI remains independent of live external APIs. The empirical artifact records derived/model outputs and pinned source provenance without redistributing raw rows whose licensing is unclear.
+
+M4 does **not** create a generic provider framework, generic quote-cleaning/staleness framework, arbitrage-free volatility-surface framework, physical volatility forecast, Heston model, Heston calibration, or generic inverse engine.
 
 ---
 
 ## M5 — Heston model and independent valuation
 
-**Status: blocked on merged/verified M4 so the richer volatility model is motivated by both M3 replication evidence and M4 market evidence.**
+**Status: next; unblocked by merged/verified M3 and M4.**
 
 **Question:** Can a stochastic-volatility model represent behavior Black-Scholes structurally cannot, and can we value it by independent methods?
+
+M5 is now motivated by two different falsification pressures:
+
+```text
+M3:
+continuous frictionless replication assumptions
+        ↓
+discrete hedging / misspecification / transaction-cost evidence
+
+M4:
+one constant volatility scalar
+        ↓
+observed SPX strike skew + maturity dependence
+```
 
 Expected capabilities:
 
@@ -309,7 +264,7 @@ Heston stochastic law
 != Monte Carlo valuation method
 ```
 
-PDE valuation is optional future evidence, not a v0.1 requirement unless a real validation need justifies it.
+Do not fold calibration into M5 merely because M4 introduced an inverse problem. M6 owns Heston calibration.
 
 ---
 
@@ -328,7 +283,7 @@ objective + weighting + constraints
         ↓
 numerical optimization method
         ↓
-real volatility-surface calibration
+real volatility-structure calibration
         ↓
 residual diagnostics
 ```
@@ -354,15 +309,14 @@ Compare where data and methods support it:
 - in-sample fit;
 - out-of-sample pricing error;
 - hedging error, reusing the M3 control/accounting boundary where semantically valid;
-- parameter stability;
-- parameter identifiability;
+- parameter stability and identifiability;
 - sensitivity to inputs/parameters;
 - calibration instability;
 - model-price residuals;
-- computational cost;
+- computational cost; and
 - documented failure modes and assumptions.
 
-M7 creates direct pressure for concrete validation and potentially risk problem semantics. Keep them scoped to the model-comparison evidence unless multiple workflows demonstrate a reusable operational boundary.
+M7 should consume M4's observation/provenance semantics rather than introduce a parallel market-data lifecycle.
 
 ---
 
@@ -394,16 +348,7 @@ No native backend framework should precede the second real implementation.
 
 **Purpose:** Productize the coherent research story without adding another major model.
 
-Expected outputs:
-
-- one-command or clearly scripted reproducible flagship study;
-- polished README and architecture navigation;
-- market-data/provenance instructions;
-- validation and model-risk report(s);
-- high-quality plots/tables generated from committed result artifacts or reproducible runs;
-- performance evidence before/after native acceleration;
-- documented assumptions, limitations, and non-claims;
-- release tag.
+Expected outputs include a reproducible flagship study, polished navigation/docs, market-data/provenance instructions, validation/model-risk reports, high-quality plots/tables, measured performance evidence, documented assumptions/non-claims, and a release tag.
 
 A technically sophisticated reader should be able to answer:
 
@@ -415,7 +360,7 @@ without relying on plausible-looking prices alone.
 
 ### v0.2 — Modern research replication
 
-Review the then-current literature and select a small number of research models/methods based on a demonstrated limitation of the classical platform. Rough volatility is a promising direction, not a pre-committed paper/model.
+Review the then-current literature and select a small number of research models/methods based on demonstrated limitations of the classical platform. Rough volatility is a promising direction, not a pre-committed paper/model.
 
 ### Later specializations
 
@@ -433,28 +378,20 @@ The mathematical taxonomy can organize these later domains, but it does not just
 
 ## Parallelism guidance
 
-M0A, M1, M2, and M3 are complete. M4 remains active and owns a distinct observation/inference boundary:
+M0A through M4 are complete. Their production ownership boundaries are now settled:
 
 ```text
-M3 — merged quantitative ownership
-model-generated dynamic paths
-hedge actions / rebalance semantics
-replication / hedging evidence
-consumes pricing + sensitivity
-
-M4 — active ownership
-market observations / provenance
-normalization / quote policy
-implied-volatility inverse problem
-root-finding implementation for that inverse problem
-smile / skew evidence
-consumes pricing
+pricing
+    ↑
+sensitivity
+    ↑
+control / dynamic replication        observation / normalization
+                                      ↓
+                                inverse inference
 ```
 
-M4 should not redefine merged M2 pricing/sensitivity or M3 control contracts merely for convenience. If it discovers a real defect, coordinate the correction explicitly rather than broadening M4 ownership.
+M3 owns model-generated dynamic paths, hedge actions/accounting, and replication evidence. M4 owns external observations, provenance, normalization, implied-volatility inference, conditioning, and market-evidence diagnostics. Neither should redefine the other's contracts for convenience.
 
-UI2 may proceed against merged M2 behavior but should not speculatively expose M3/M4/Heston workflows merely because those milestones exist. A later UI milestone can consume M3 after the backend product question is clear.
-
-Shared current-state/roadmap/README/application-facing files should be reconciled when M4 merges because M3 has now updated their authoritative milestone status.
+M5 may now begin from merged M3/M4 truth. M6 remains downstream of a validated Heston valuation implementation. UI2 may proceed against merged M2 behavior while later UI work can consume M3/M4 only after the product semantics are deliberately designed.
 
 Do **not** begin a parallel C++ workstream before profiling creates a concrete native-acceleration task.
