@@ -91,8 +91,7 @@ def test_crr_converges_toward_black_scholes_reference() -> None:
     assert errors[-1] < 0.0013
     assert errors[-1] < errors[0] / 25.0
     assert all(
-        later < earlier
-        for earlier, later in zip(errors, errors[1:], strict=False)
+        later < earlier for earlier, later in zip(errors, errors[1:], strict=False)
     )
 
 
@@ -152,7 +151,9 @@ def test_monte_carlo_result_preserves_sampling_evidence_and_concrete_type() -> N
     )
 
 
-def test_monte_carlo_reference_is_consistent_with_reported_sampling_uncertainty() -> None:
+def test_monte_carlo_reference_is_consistent_with_reported_sampling_uncertainty() -> (
+    None
+):
     problem = make_problem()
     analytic = evaluate(problem, BlackScholesClosedForm()).present_value
     result = evaluate(problem, MonteCarloEuropeanOption(paths=50_000, seed=1729))
