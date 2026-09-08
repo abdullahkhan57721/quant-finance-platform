@@ -441,7 +441,8 @@ def _same_summary_condition(
         and first.problem.rebalance_dates == candidate.problem.rebalance_dates
         and first.problem.proportional_transaction_cost_rate
         == candidate.problem.proportional_transaction_cost_rate
-        and len(first.path.points) == len(candidate.path.points)
+        and first.path.simulation.observation_dates
+        == candidate.path.simulation.observation_dates
         and first.generating_annualized_volatility
         == candidate.generating_annualized_volatility
         and first.path.simulation.parameters.continuous_dividend_yield
@@ -462,6 +463,10 @@ def summarize_replication_errors(
     if len(completed) < 2:
         msg = "replication-error summary requires at least two stochastic replicates"
         raise ValueError(msg)
+    seeds = tuple(result.seed for result in completed)
+    if len(set(seeds)) != len(seeds):
+        msg = "replication-error summary requires distinct seeds"
+        raise ValueError(msg)
     first = completed[0]
     if any(not _same_summary_condition(first, result) for result in completed[1:]):
         msg = "replication-error summary requires one common hedge study condition"
@@ -470,7 +475,7 @@ def summarize_replication_errors(
     squared_errors = tuple(error * error for error in errors)
     return ReplicationErrorSummary(
         replicate_count=len(completed),
-        seeds=tuple(result.seed for result in completed),
+        seeds=seeds,
         rebalance_dates=first.problem.rebalance_dates,
         path_observation_count=len(first.path.points),
         generating_annualized_volatility=first.generating_annualized_volatility,
