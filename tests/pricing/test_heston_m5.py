@@ -118,7 +118,7 @@ def test_heston_state_refines_equity_state_and_parameters_are_immutable() -> Non
     assert state.instantaneous_variance == 0.04
     assert parameters.feller_condition_satisfied
     with pytest.raises(FrozenInstanceError):
-        setattr(state, "instantaneous_variance", 0.09)
+        state.instantaneous_variance = 0.09  # type: ignore
 
 
 @pytest.mark.parametrize(
