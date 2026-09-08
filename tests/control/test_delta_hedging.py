@@ -129,6 +129,7 @@ def _study_summary(
     generating_volatility: float = 0.20,
     hedging_volatility: float = 0.20,
     replicate_count: int = 64,
+    transaction_cost_rate: float = 0.0,
 ) -> ReplicationErrorSummary:
     results = tuple(
         _hedge_result(
@@ -136,6 +137,7 @@ def _study_summary(
             every_days=every_days,
             generating_volatility=generating_volatility,
             hedging_volatility=hedging_volatility,
+            transaction_cost_rate=transaction_cost_rate,
         )
         for seed in range(replicate_count)
     )
@@ -241,6 +243,19 @@ def test_transaction_cost_is_explicit_cash_outflow_not_hidden_pnl() -> None:
         assert step.portfolio_value_after_rebalance == pytest.approx(
             step.portfolio_value_before_rebalance - step.action.transaction_cost
         )
+
+
+def test_transaction_cost_distribution_has_explicit_cost_drag() -> None:
+    frictionless = _study_summary(every_days=7)
+    with_cost = _study_summary(
+        every_days=7,
+        transaction_cost_rate=0.001,
+    )
+
+    assert frictionless.proportional_transaction_cost_rate == 0.0
+    assert with_cost.proportional_transaction_cost_rate == 0.001
+    assert with_cost.mean_error < frictionless.mean_error
+    assert with_cost.root_mean_square_error > frictionless.root_mean_square_error
 
 
 def test_hedge_actions_do_not_look_ahead_on_the_realized_path() -> None:
