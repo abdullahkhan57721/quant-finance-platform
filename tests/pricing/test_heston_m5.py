@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+from dataclasses import FrozenInstanceError
 from datetime import date
 from math import exp, sqrt
+from typing import cast
 
 import pytest
 
@@ -115,33 +117,30 @@ def test_heston_state_refines_equity_state_and_parameters_are_immutable() -> Non
     assert state.spot == 100.0
     assert state.instantaneous_variance == 0.04
     assert parameters.feller_condition_satisfied
-    with pytest.raises(AttributeError):
-        state.instantaneous_variance = 0.09  # type: ignore[misc]
+    with pytest.raises(FrozenInstanceError):
+        setattr(state, "instantaneous_variance", 0.09)
 
 
 @pytest.mark.parametrize(
-    ("kwargs", "message"),
+    ("values", "message"),
     [
-        ({"mean_reversion_speed": 0.0}, "strictly positive"),
-        ({"long_run_variance": -0.01}, "non-negative"),
-        ({"volatility_of_variance": -0.01}, "non-negative"),
-        ({"correlation": 1.01}, "correlation must lie"),
+        ((0.0, 0.04, 0.3, -0.6), "strictly positive"),
+        ((2.0, -0.01, 0.3, -0.6), "non-negative"),
+        ((2.0, 0.04, -0.01, -0.6), "non-negative"),
+        ((2.0, 0.04, 0.3, 1.01), "correlation must lie"),
     ],
 )
 def test_heston_parameter_domain_is_explicit(
-    kwargs: dict[str, float],
+    values: tuple[float, float, float, float],
     message: str,
 ) -> None:
-    values = {
-        "mean_reversion_speed": 2.0,
-        "long_run_variance": 0.04,
-        "volatility_of_variance": 0.3,
-        "correlation": -0.6,
-    }
-    values.update(kwargs)
-
     with pytest.raises(ValueError, match=message):
-        HestonParameters(**values)
+        HestonParameters(
+            mean_reversion_speed=values[0],
+            long_run_variance=values[1],
+            volatility_of_variance=values[2],
+            correlation=values[3],
+        )
 
 
 def test_feller_violation_is_diagnostic_not_structural_rejection() -> None:
@@ -247,7 +246,7 @@ def test_heston_expiry_and_zero_spot_boundaries_are_deterministic() -> None:
     assert zero_spot_put.present_value == pytest.approx(100.0 * exp(-0.03))
 
 
-def test_heston_monte_carlo_is_reproducible_and_records_floor_pressure() -> None:
+def test_heston_monte_carlo_is_reproducible_and_records_boundary_pressure() -> None:
     problem = _heston_problem()
     method = HestonMonteCarloEuropeanOption(paths=1500, time_steps=32, seed=17)
 
@@ -256,7 +255,7 @@ def test_heston_monte_carlo_is_reproducible_and_records_floor_pressure() -> None
 
     assert first == second
     assert first.standard_error > 0.0
-    assert first.variance_floor_hits > 0
+    assert first.negative_variance_proposals > 0
     assert first.variance_scheme == "full_truncation_euler"
     assert first.time_steps == 32
 
@@ -282,7 +281,7 @@ def test_heston_monte_carlo_agrees_with_fourier_with_sampling_and_bias_allowance
     assert monte_carlo.present_value < monte_carlo.confidence_interval_95[1]
 
 
-def test_zero_vol_of_variance_monte_carlo_has_no_variance_floor_hits() -> None:
+def test_zero_vol_of_variance_monte_carlo_uses_exact_variance_boundary() -> None:
     problem = _heston_problem(
         initial_variance=0.04,
         long_run_variance=0.09,
@@ -295,17 +294,25 @@ def test_zero_vol_of_variance_monte_carlo_has_no_variance_floor_hits() -> None:
         HestonMonteCarloEuropeanOption(paths=5000, time_steps=4, seed=9),
     )
 
-    assert monte_carlo.variance_floor_hits == 0
+    assert monte_carlo.negative_variance_proposals == 0
+    assert monte_carlo.variance_scheme == "exact_deterministic_variance"
     assert abs(monte_carlo.present_value - analytic) <= 4.0 * monte_carlo.standard_error
 
 
 def test_heston_methods_reject_black_scholes_pricing_problem() -> None:
-    problem = _black_scholes_problem(right=OptionRight.CALL, volatility=0.2)
+    black_scholes_problem = _black_scholes_problem(
+        right=OptionRight.CALL,
+        volatility=0.2,
+    )
+    incompatible_problem = cast(
+        PricingProblem[date, HestonEquityState, HestonParameters],
+        black_scholes_problem,
+    )
 
     with pytest.raises(UnsupportedPricingProblem):
-        evaluate(problem, HestonFourierEuropeanOption())  # type: ignore[arg-type]
+        evaluate(incompatible_problem, HestonFourierEuropeanOption())
     with pytest.raises(UnsupportedPricingProblem):
         evaluate(
-            problem,
-            HestonMonteCarloEuropeanOption(paths=10, time_steps=2, seed=1),  # type: ignore[arg-type]
+            incompatible_problem,
+            HestonMonteCarloEuropeanOption(paths=10, time_steps=2, seed=1),
         )
