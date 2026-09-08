@@ -27,6 +27,8 @@ def test_presentation_consumes_authoritative_m1_result_and_contract_payoff() -> 
     assert inspector["Valuation method"].status == "Supported"
 
     evidence = {row.label: row for row in presentation.evidence_rows}
+    assert evidence["Put-call parity"].status == "Reference evidence"
+    assert "displayed parity residual" in evidence["Put-call parity"].detail
     assert evidence["Discounted no-arbitrage bounds"].status == "Pass"
     assert evidence["Authoritative valuation result"].value.startswith("PV = 10.45058")
 
