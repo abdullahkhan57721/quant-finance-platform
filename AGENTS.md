@@ -10,7 +10,9 @@ Two governing principles:
 
 > Don’t just implement quantitative models—show how to determine whether they are correct, stable, useful, and trustworthy.
 
-> Every increase in model or architectural complexity must earn its place through evidence, except for the narrow foundational pricing-semantic decision accepted by ADR 0001.
+> Foundational mathematical domain distinctions may be represented explicitly from the outset when their distinctness follows from the mathematics. Problem-specific software frameworks and cross-cutting operational abstractions must still earn their place through real behavior and evidence.
+
+ADR 0002 is the current architectural authority for this doctrine. ADR 0001 remains the historical record for the pricing-specific foundation that first motivated it.
 
 ## Source of truth
 
@@ -24,7 +26,7 @@ Before making consequential changes, orient in this order:
 4. `docs/architecture/index.md`;
 5. `docs/quantitative_conventions.md` when quantitative assumptions or units matter;
 6. `docs/development/engineering_principles.md` when workflow/design rationale matters;
-7. relevant ADRs under `docs/decisions/`, especially ADR 0001 for pricing architecture;
+7. relevant ADRs under `docs/decisions/`, especially ADR 0002 for current mathematical architecture and ADR 0001 for its pricing-specific history;
 8. the relevant GitHub Issue in full;
 9. the current implementation and tests;
 10. current open PRs, recovery checkpoint, and CI status.
@@ -104,9 +106,76 @@ different responsibility
 
 Do not create ordinary abstractions merely because future use can be imagined.
 
-### Foundational mathematical pricing exception
+### Foundational mathematical architecture
 
-ADR 0001 intentionally supersedes the ordinary extraction rule **only for the foundational asset-pricing semantics**. These responsibilities may be explicit before two implemented consumers because their distinctness follows from the mathematical pricing problem itself:
+ADR 0002 supersedes the pricing-only formulation of the foundational exception.
+
+Stable mathematical distinctions may be explicit from the outset when they are part of the domain question itself rather than speculative software reuse. The platform organizes quantitative work conceptually as:
+
+```text
+FINANCIAL / MATHEMATICAL FOUNDATIONS
+
+state / state space
+stochastic law
+model parameters
+probability semantics
+physical measure P
+pricing measure Q^N
+numeraire N
+market observations + provenance
+financial contracts
+cash flows
+quantitative conventions
+
+        ↓
+
+PROBLEM FAMILIES
+
+forward / pricing
+inverse / inference
+sensitivity
+prediction
+control / optimization
+risk
+validation
+
+        ↓
+
+SOLUTION METHODS
+
+analytic / tree / Monte Carlo / Fourier / finite difference
+root finding / optimization / filtering / regression / scenario methods / tests
+
+        ↓
+
+SPECIFIC IMMUTABLE RESULTS / EVIDENCE
+```
+
+This taxonomy is architectural. It does **not** require a universal runtime framework.
+
+The platform-wide conceptual execution pattern is:
+
+```text
+Problem
+   +
+supported Method
+   ↓
+specific immutable Result
+```
+
+Do not introduce universal `Problem`, `Method`, or `Result` base classes unless real consumers prove shared software behavior.
+
+The current production pricing specialization is:
+
+```math
+\mathfrak P_{\mathrm{price}}
+=
+(\mathcal X,\mathcal L_\theta,\mathcal C,N,\mathbb Q^N)
+```
+
+with theoretical valuation under the numeraire-associated pricing measure, while a concrete analytic/numerical method remains separate.
+
+The pricing core currently implements:
 
 ```text
 state / state space / path
@@ -116,50 +185,82 @@ financial contract
 cash-flow stream
 numeraire
 physical- and pricing-measure semantics
-pricing problem
-valuation method
-completed valuation result
+PricingProblem
+ValuationMethod
+ValuationResult
 ```
 
-The conceptual decomposition is:
+The inverse, sensitivity, prediction, control, risk, and validation families remain conceptual until their milestones create real behavior. Do not create empty production classes/packages merely to mirror the taxonomy.
 
-```math
-\mathfrak P = (\mathcal X,\mathcal L_\theta,\mathcal C,N,\mathbb Q^N)
-```
+### Protected conceptual distinctions
 
-with theoretical valuation under the numeraire-associated pricing measure, while a concrete analytic/numerical method remains separate.
-
-This is **not** permission to pre-generalize rates, market data, calibration, risk, validation, studies, portfolios, XVA, or native execution.
-
-Protect these conceptual distinctions:
+Protect at least:
 
 ```text
+financial state != market observation
 ModeledState != StochasticLaw
 StochasticLaw != model parameters
 FinancialContract != CashFlowStream
 Numeraire != PricingMeasureSemantics
 physical measure P != pricing measure Q^N
+problem != solution method
 PricingProblem != ValuationMethod
 ValuationMethod != ValuationResult
+inverse problem != optimizer / root finder
+sensitivity problem != differentiation method
+prediction problem != pricing problem
+control problem != optimizer
+risk problem != risk-measure implementation
+validation problem != validation method
 MarketSnapshot != MarketEnvironment
 FinancialContract != Trade != Portfolio
-StochasticLaw != CalibrationMethod
-StochasticLaw != RiskMeasure
-StochasticLaw != ValidationMethod
 financial model != numerical method
-calibration problem != numerical optimizer
 configuration/request != immutable result
 production library != research study != presentation
 Python financial semantics != accelerated numerical execution
 ```
 
-Do **not** introduce a universal `FinancialModel` abstraction.
+Do **not** introduce a universal `FinancialModel` abstraction or a god object that prices, calibrates, predicts, hedges, validates, and measures risk.
 
 Do not define every stochastic law universally through only `drift()` and `diffusion()`; future jump, path-dependent, rough, or non-Markovian models may not fit that ontology cleanly.
 
 Do not implement a generic measure-theory engine or assume an arbitrary `Measure` object can mechanically transform every model between P and Q. Dynamics/parameters under the relevant measure should remain explicit.
 
-Do not create speculative empty packages for future Heston, XVA, rates, market risk, rough volatility, or native backends.
+Do not create speculative empty packages for future Heston, inference, prediction, control, XVA, rates, market risk, rough volatility, or native backends.
+
+Mathematical generality does not imply universal operational APIs.
+
+## Observation and model boundary
+
+Observed data and modeled quantities must remain distinguishable.
+
+Real-world information flows conceptually as:
+
+```text
+real world
+    ↓
+observations + provenance
+    ↓
+normalization / cleaning / construction
+    ↓
+problem-ready information
+```
+
+Separately, modeled semantics are composed from:
+
+```text
+modeled state
++
+stochastic law
++
+parameter values
++
+probability semantics
+```
+
+A specific problem may combine problem-ready observed information with modeled semantics when required.
+
+Do not silently overwrite historical observations with model-generated values. Keep raw observation, normalization, inference/calibration, and model-implied quantity responsibilities separable.
 
 ## Dependency guidance
 
@@ -175,13 +276,31 @@ PricingProblem
 valuation methods/results
 ```
 
+Broader conceptual direction:
+
+```text
+observations/provenance ──→ normalization / problem-ready information
+
+modeled state / stochastic law / parameters / probability semantics
+financial contracts / cash flows / numeraires / conventions
+                         ↓
+                 specific Problem
+                         ↓
+                  supported Method
+                         ↓
+              specific immutable Result
+                         ↓
+          validation / research / presentation
+```
+
 - Financial contracts must not depend on valuation implementations.
 - `PricingProblem` must not depend on valuation implementations.
-- Stochastic-law structure must not own calibration orchestration.
+- Stochastic-law structure must not own calibration/inference orchestration.
 - Pricing methods may combine a supported pricing problem with numerical/analytic implementation details.
 - Structural validity and implementation capability are distinct; every method need not support every valid problem.
 - Market observations/environments must not depend on financial contracts.
-- Calibration, risk, and validation may consume valuation capabilities when required.
+- Inference/calibration, risk, sensitivity, control, prediction, and validation may consume valuation capabilities when their concrete problem requires them.
+- Validation may invoke other problem/method pairs to gather independent evidence; that does not merge their responsibilities.
 - Research/studies orchestrate public library APIs rather than hiding production logic in notebooks.
 - UI/presentation must not own core quantitative semantics.
 - Numerical infrastructure must not contain finance-domain policy.
@@ -196,17 +315,17 @@ Prefer immutable committed inputs/results where practical. Keep mutable optimize
 
 M0A foundational value objects and the `PricingProblem` / `ValuationResult` contracts are immutable. Concrete model-specific parameter objects should likewise be value-like where appropriate. Calibration later produces parameter values/evidence rather than mutating stochastic-law identity.
 
-Do not let UI/notebook state become a core quantitative API. Normalize external or interactive inputs into typed production-library inputs before valuation, calibration, risk, or validation logic consumes them.
+The broader Problem → Method → Result doctrine likewise treats completed result/evidence objects as committed outputs. Mutable request/configuration/solver state belongs outside those results.
 
-Structural validity and implementation capability are distinct. A financially meaningful pricing problem does not imply that every valuation method supports it.
+Do not let UI/notebook state become a core quantitative API. Normalize external or interactive inputs into typed production-library inputs before pricing, inference, sensitivity, prediction, control, risk, or validation logic consumes them.
 
 ## Quantitative conventions
 
 `docs/quantitative_conventions.md` is the authority for project-wide quantitative representation decisions.
 
-Do not silently choose or reinterpret day count, compounding, rate units, volatility units, dividend/carry representation, calendars, Greek units/signs, or similar conventions inside an implementation when the choice crosses a public boundary.
+Do not silently choose or reinterpret day count, compounding, rate units, volatility units, dividend/carry representation, calendars, Greek units/signs, probability semantics, horizons, loss definitions, confidence levels, or similar conventions inside an implementation when the choice crosses a public boundary.
 
-M0A commits structural pricing semantics and numeraire positivity, but it deliberately leaves M1-specific date/day-count/rate/carry/volatility conventions undecided until the concrete specialization requires them.
+M0A commits the mathematical responsibility taxonomy, pricing semantics, numeraire positivity, Problem → Method → Result separation, and observation/model distinction. It deliberately leaves M1-specific date/day-count/rate/carry/volatility conventions undecided until the concrete specialization requires them.
 
 If a convention is intentionally undecided, keep it explicit/local and update the convention register when a real consumer justifies a project-wide decision.
 
@@ -224,6 +343,8 @@ Correctness requires multiple forms of evidence where applicable:
 - model-risk/sensitivity analysis;
 - Python/C++ parity;
 - performance evidence.
+
+Validation is itself a mathematical problem family, but the production validation framework must remain concrete until real consumers justify shared behavior.
 
 Independent implementations agreeing with each other are useful evidence, but not sufficient by themselves if both could share the same conceptual error.
 
@@ -244,7 +365,7 @@ Formula implementations should be traceable to a source or derivation, notation 
 
 Profile before optimizing.
 
-Benchmark the layer actually being claimed: pricing kernel, Monte Carlo engine, calibration loop, portfolio/risk aggregation, and end-to-end research workflow are different workloads.
+Benchmark the layer actually being claimed: pricing kernel, Monte Carlo engine, inference/calibration loop, control solver, portfolio/risk aggregation, and end-to-end research workflow are different workloads.
 
 Prefer reproducible workloads and repeated-run medians. Hosted CI wall-clock timing is noisy; use structural evidence such as valuation counts, objective evaluations, paths, factorizations, or characteristic-function evaluations when it better captures the optimization.
 
@@ -254,7 +375,7 @@ Reject minor speedups that materially damage readability, auditability, or numer
 
 ## Python/C++ direction
 
-Python is the correctness/reference implementation and owns high-level financial semantics, research orchestration, validation, calibration workflows, and market-data handling.
+Python is the correctness/reference implementation and owns high-level financial semantics, research orchestration, validation, inference/calibration workflows, and market-data handling.
 
 C++ should be introduced only after profiling identifies a measured numerical hotspot worth accelerating. Do not create a fake backend abstraction before there are two real implementations.
 
@@ -292,7 +413,7 @@ Classical foundations come before frontier-model novelty.
 The intended v0.1 progression is:
 
 ```text
-mathematical pricing composition foundation
+mathematical problem architecture + pricing foundation
         ↓
 Black-Scholes theory + specialization
         ↓
@@ -300,23 +421,23 @@ independent valuation
         ↓
 numerical cross-validation
         ↓
-Greeks / replication
+Greeks / sensitivity + replication
         ↓
-delta-hedging experiments
+delta-hedging / control experiments
         ↓
-real option-market evidence
+real option-market observations
         ↓
-smile/skew and Black-Scholes deficiencies
+implied-volatility inference + smile/skew evidence
         ↓
 Heston
         ↓
 independent Heston valuation methods
         ↓
-calibration
+calibration / inverse problem
         ↓
 parameter recovery + stability
         ↓
-out-of-sample/model-risk comparison
+out-of-sample/model-risk validation
         ↓
 profile actual bottlenecks
         ↓
