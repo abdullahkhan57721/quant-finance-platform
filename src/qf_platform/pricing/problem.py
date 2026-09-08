@@ -41,7 +41,9 @@ class PricingProblem[TimeT, StateT, ParametersT]:
             msg = "pricing problems require pricing-measure, not physical-measure, semantics"
             raise TypeError(msg)
         if self.pricing_measure.numeraire is not self.numeraire:
-            msg = "pricing measure must be associated with the pricing problem numeraire"
+            msg = (
+                "pricing measure must be associated with the pricing problem numeraire"
+            )
             raise ValueError(msg)
         validated_numeraire_value(self.numeraire, self.current_state.time)
 
