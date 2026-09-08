@@ -1,0 +1,87 @@
+{
+  "evidence_kind": "M6 reference calibration reconstructed from M4 published derived SPX evidence",
+  "authority_note": "This committed reference does not replace scripts/m6_heston_calibration.py. The script is the authoritative raw-artifact replay path: raw local CSV -> M4 observations/provenance -> M4 midpoint normalization -> M6 market targets -> Heston calibration. This compact artifact is reconstructed from M4's already-published implied-volatility, Vega, and half-spread-IV-shift evidence so the calibration conclusion can be reviewed without redistributing raw source rows.",
+  "source_lineage": {
+    "m4_evidence": "docs/evidence/m4_spx_implied_volatility_evidence.json",
+    "repository": "IceCurrent/local_volatility_model",
+    "commit": "428531599bf3945f5d51691fdd21b1667eb14958",
+    "path": "data/data.csv",
+    "git_blob_sha1": "8d1db0f2710c4707555c8263f9b7f8f527974836",
+    "license_note": "No source-repository license file was identified for M4/M6 evidence. Raw rows are not redistributed."
+  },
+  "market_snapshot": {
+    "quote_date": "2023-01-04",
+    "underlying": "SPX",
+    "observed_spot": 3853.39,
+    "expiries": ["2023-02-03", "2023-04-28"],
+    "target_count": 14,
+    "selection": "same pinned M4 OTM-side contracts"
+  },
+  "calibration_problem": {
+    "target_space": "option price reconstructed consistently from M4 implied-volatility evidence",
+    "weighting": "bid_ask_half_spread",
+    "objective": "sum of squared (Heston model price - observed price) / observed half-spread",
+    "continuously_compounded_rate": 0.045,
+    "continuous_dividend_yield": 0.017,
+    "time_basis": "ACT/365F",
+    "unknown_coordinates": ["v0", "kappa", "theta", "xi", "rho"],
+    "fixed_coordinates": ["spot", "rate", "continuous_dividend_yield"],
+    "parameter_transform": null,
+    "feller_constraint_enforced": false,
+    "forward_method": "HestonFourierEuropeanOption",
+    "fourier_upper_bound": 100.0,
+    "fourier_intervals": 256,
+    "financial_bounds": {
+      "v0": [0.0001, 1.0],
+      "kappa": [0.05, 15.0],
+      "theta": [0.0001, 1.0],
+      "xi": [0.0001, 5.0],
+      "rho": [-0.999, 0.999]
+    }
+  },
+  "multiple_start_results": [
+    {
+      "initial_guess": [0.04, 2.0, 0.04, 0.5, -0.7],
+      "estimate": [0.04446682528995597, 3.2574605790260347, 0.0662244169927708, 0.6271475834275344, -0.7793725494253791],
+      "objective_value": 12.557496300536641,
+      "function_evaluations": 22
+    },
+    {
+      "initial_guess": [0.06, 1.0, 0.06, 0.8, -0.4],
+      "estimate": [0.044466829645169396, 3.2574951682764226, 0.06622419630606502, 0.6271480488914908, -0.7793735964788578],
+      "objective_value": 12.557496294581263,
+      "function_evaluations": 26
+    },
+    {
+      "initial_guess": [0.02, 5.0, 0.02, 0.3, -0.85],
+      "estimate": [0.0444668236448224, 3.2574277225393713, 0.06622464475623452, 0.6271477743895937, -0.7793710927374115],
+      "objective_value": 12.557496311978834,
+      "function_evaluations": 16
+    }
+  ],
+  "best_reference_result": {
+    "initial_variance": 0.044466829645169396,
+    "mean_reversion_speed": 3.2574951682764226,
+    "long_run_variance": 0.06622419630606502,
+    "volatility_of_variance": 0.6271480488914908,
+    "correlation": -0.7793735964788578,
+    "feller_discriminant": 0.03813532375158857,
+    "feller_condition_satisfied": true,
+    "objective_value": 12.557496294581263,
+    "max_absolute_standardized_residual": 1.7807557078435874,
+    "termination_status": 3,
+    "termination_message": "xtol termination condition satisfied",
+    "jacobian_rank": 5,
+    "singular_values_domain_scaled": [9338.22177451889, 2133.80959834023, 563.2542372480372, 74.56494976670845, 23.120377478609807],
+    "condition_number_domain_scaled": 403.8957315103656
+  },
+  "standardized_residuals_in_pinned_contract_order": [-0.02699291, -0.36881627, -1.78075571, 1.55791741, -0.06336414, 0.77243334, -1.09253594, 0.59482662, 0.28713091, -1.22726836, -0.95664224, 1.42437023, 0.21265512, -0.31076359],
+  "interpretation": {
+    "multiple_start_convergence_is_stable_for_this_sample": true,
+    "local_weighted_jacobian_is_full_rank": true,
+    "conditioning_is_nontrivial": true,
+    "optimizer_convergence_implies_model_validity": false,
+    "small_objective_implies_parameter_identifiability": false,
+    "m7_should_compare_heston_and_black_scholes_out_of_sample": true
+  }
+}
