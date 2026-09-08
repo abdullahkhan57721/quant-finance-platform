@@ -2,15 +2,13 @@
 
 from __future__ import annotations
 
+from collections.abc import Iterator
 from dataclasses import dataclass
 from math import isfinite
-from typing import Generic, Iterator, TypeVar
-
-TimeT = TypeVar("TimeT")
 
 
 @dataclass(frozen=True, slots=True)
-class CashFlow(Generic[TimeT]):
+class CashFlow[TimeT]:
     """One finite payment amount at a payment time."""
 
     payment_time: TimeT
@@ -25,10 +23,13 @@ class CashFlow(Generic[TimeT]):
 
 
 @dataclass(frozen=True, slots=True)
-class CashFlowStream(Generic[TimeT]):
+class CashFlowStream[TimeT]:
     """An immutable ordered collection of realized cash flows."""
 
     cash_flows: tuple[CashFlow[TimeT], ...]
+
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "cash_flows", tuple(self.cash_flows))
 
     def __iter__(self) -> Iterator[CashFlow[TimeT]]:
         return iter(self.cash_flows)

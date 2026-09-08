@@ -4,9 +4,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from math import isfinite
-from typing import Generic, Protocol, TypeVar
+from typing import Protocol, TypeVar
 
-TimeT = TypeVar("TimeT")
 TimeT_contra = TypeVar("TimeT_contra", contravariant=True)
 
 
@@ -17,7 +16,11 @@ class Numeraire(Protocol[TimeT_contra]):
         """Return the numeraire value at a supported time."""
 
 
-def validated_numeraire_value(numeraire: Numeraire[TimeT], time: TimeT, /) -> float:
+def validated_numeraire_value[TimeT](
+    numeraire: Numeraire[TimeT],
+    time: TimeT,
+    /,
+) -> float:
     """Return a positive finite numeraire value or reject invalid semantics."""
 
     value = float(numeraire.value_at(time))
@@ -43,7 +46,7 @@ class PhysicalMeasureSemantics:
 
 
 @dataclass(frozen=True, slots=True)
-class PricingMeasureSemantics(Generic[TimeT]):
+class PricingMeasureSemantics[TimeT]:
     """Numeraire-associated pricing-measure semantics Q^N.
 
     Under these semantics, appropriately modeled traded assets denominated by

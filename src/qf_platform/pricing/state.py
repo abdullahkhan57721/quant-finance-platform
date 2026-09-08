@@ -3,12 +3,10 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Generic, Protocol, TypeVar
+from typing import Protocol, TypeVar
 
-StateT = TypeVar("StateT")
 StateT_contra = TypeVar("StateT_contra", contravariant=True)
 StateT_co = TypeVar("StateT_co", covariant=True)
-TimeT = TypeVar("TimeT")
 TimeT_contra = TypeVar("TimeT_contra", contravariant=True)
 
 
@@ -27,7 +25,7 @@ class StatePath(Protocol[TimeT_contra, StateT_co]):
 
 
 @dataclass(frozen=True, slots=True)
-class ModeledState(Generic[TimeT, StateT]):
+class ModeledState[TimeT, StateT]:
     """Current modeled state and the state space whose semantics it uses.
 
     ``value`` may itself contain path/history information when a non-Markovian model

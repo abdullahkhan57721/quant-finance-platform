@@ -50,7 +50,7 @@ class ValuationMethod(Protocol[TimeT, StateT, ParametersT, PathT]):
         """Evaluate a problem already known to be supported by this method."""
 
 
-def evaluate(
+def evaluate[TimeT, StateT, ParametersT, PathT](
     problem: PricingProblem[TimeT, StateT, ParametersT, PathT],
     method: ValuationMethod[TimeT, StateT, ParametersT, PathT],
     /,

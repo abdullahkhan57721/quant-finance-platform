@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Generic, TypeVar
 
 from qf_platform.pricing.contracts import FinancialContract
 from qf_platform.pricing.measures import (
@@ -14,14 +13,9 @@ from qf_platform.pricing.measures import (
 from qf_platform.pricing.models import StochasticLaw
 from qf_platform.pricing.state import ModeledState
 
-ParametersT = TypeVar("ParametersT")
-PathT = TypeVar("PathT")
-StateT = TypeVar("StateT")
-TimeT = TypeVar("TimeT")
-
 
 @dataclass(frozen=True, slots=True)
-class PricingProblem(Generic[TimeT, StateT, ParametersT, PathT]):
+class PricingProblem[TimeT, StateT, ParametersT, PathT]:
     """Immutable statement of what theoretical financial value is being requested.
 
     ``stochastic_law`` and ``parameters`` are the dynamics supplied under
