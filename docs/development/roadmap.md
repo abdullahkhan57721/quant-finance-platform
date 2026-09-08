@@ -11,15 +11,11 @@ The project is not a feature checklist. Ordinary software abstractions must earn
 ## v0.1 research narrative
 
 ```text
-mathematical problem architecture + pricing foundation
+mathematical problem architecture + pricing foundation   ← M0A complete
         ↓
-Black-Scholes theory + first concrete specialization
+Black-Scholes theory + first concrete specialization     ← M1 complete
         ↓
-independent valuation methods
-        ↓
-numerical cross-validation
-        ↓
-Greeks / sensitivity + replication
+independent valuation methods + sensitivity              ← M2 next
         ↓
 delta-hedging / control experiments
         ↓
@@ -46,9 +42,11 @@ portfolio-quality release
 
 ## M0 — Engineering bootstrap
 
+**Status: complete.**
+
 **Purpose:** Establish repository truth and quality gates without inventing finance abstractions.
 
-Expected outputs:
+Implemented outputs:
 
 - source-layout Python package;
 - pytest, Ruff, Pyright;
@@ -63,6 +61,8 @@ Expected outputs:
 ---
 
 ## M0A — Mathematical Quant-Finance Architecture Foundation
+
+**Status: complete.**
 
 **Question:** Can the platform encode the stable mathematical distinctions of quantitative finance directly enough that later workflows compose around well-defined questions, without turning those distinctions into universal software frameworks?
 
@@ -117,7 +117,7 @@ This pattern is architectural. M0A does **not** introduce universal `Problem`, `
 
 ### Implemented pricing foundation
 
-The first production specialization is:
+The first production problem family is:
 
 ```text
 state space / modeled state / state path
@@ -137,7 +137,7 @@ supported ValuationMethod
 immutable ValuationResult
 ```
 
-Expected/implemented pricing capabilities:
+Implemented pricing capabilities include:
 
 - generic state-space, modeled-state, and path semantics that do not require finite-dimensional or Markov structure;
 - stochastic-law responsibility without a universal drift/diffusion ontology;
@@ -148,8 +148,8 @@ Expected/implemented pricing capabilities:
 - distinct physical- and pricing-measure semantics, with Q associated to its numeraire and no generic change-of-measure engine;
 - immutable compositional `PricingProblem`;
 - valuation-method compatibility separate from structural validity;
-- narrow immutable present-value result;
-- one tiny deterministic composition fixture proving the architecture without implementing M1.
+- narrow immutable present-value result; and
+- one tiny deterministic composition fixture proving the architecture without implementing M1 inside the foundation itself.
 
 ### Observation/model boundary
 
@@ -187,57 +187,74 @@ does not imply
 universal operational APIs.
 ```
 
-The inverse, sensitivity, prediction, control, risk, and validation families are therefore documented now but receive production abstractions only when their milestones create real behavior.
+The inverse, sensitivity, prediction, control, risk, and validation families are therefore documented but receive production abstractions only when their milestones create real behavior.
 
 ---
 
 ## M1 — European options and Black-Scholes reference vertical
 
+**Status: complete.**
+
 **Question:** Can the platform specialize the M0A pricing semantics to represent and analytically value its first concrete financial instrument correctly?
 
-Approximate composition:
+Implemented composition:
 
 ```text
-Equity state / path
+EquityState / EquityStateSpace
 +
-GBM / Black-Scholes stochastic law
+BlackScholesLaw + BlackScholesParameters
 +
-Black-Scholes parameters
+EuropeanOption → terminal CashFlowStream
 +
-European call/put contract
-+
-money-market numeraire
-+
-risk-neutral pricing semantics
+FlatMoneyMarketNumeraire + PricingMeasureSemantics
         ↓
 PricingProblem
         +
-Black-Scholes closed-form ValuationMethod
+BlackScholesClosedForm
         ↓
-ValuationResult
+ValuationResult(present_value)
         ↓
 theoretical validation evidence
 ```
 
-Expected capabilities:
+Implemented capabilities:
 
 - European call/put terminal cash-flow semantics;
-- valuation-ready equity state with explicit date/year-fraction treatment;
-- concrete money-market/risk-free discounting semantics and explicit dividend/carry treatment without creating a general rates framework;
-- GBM / Black-Scholes stochastic-law structure and separate parameter values under the relevant pricing measure;
-- analytic closed-form valuation as a compatible valuation method;
+- valuation-ready modeled equity spot state;
+- explicit calendar valuation/expiry dates and Actual/365 Fixed year fractions;
+- concrete flat money-market numeraire with continuously compounded annualized decimal rates, including negative rates;
+- explicit continuous proportional dividend/carry yield;
+- GBM / Black-Scholes stochastic-law identity separated from immutable parameter values;
+- annualized decimal volatility semantics;
+- analytic Black-Scholes closed-form valuation as a compatible M0A valuation method;
 - put-call parity;
-- arbitrage bounds;
-- known limiting/sanity cases and independently justified benchmark values;
-- formula traceability.
+- discounted no-arbitrage bounds;
+- expiry, zero-volatility, zero-spot, and zero-strike limiting cases;
+- independently published benchmark values;
+- convention-discriminating tests for Actual/365 Fixed and continuous compounding; and
+- formula traceability in `docs/models/black_scholes.md`.
 
-Architectural goal: make every M1-specific choice a specialization of M0A. Do not create a competing isolated Black-Scholes API, a universal `FinancialModel`, or unrelated market/rates abstractions.
+Architecturally, M1 keeps:
 
-M1 uses the pricing problem family only. It must not instantiate generic inverse, sensitivity, prediction, control, risk, or validation frameworks merely because M0A names those families conceptually.
+```text
+state
+!= stochastic law
+!= parameters
+!= contract
+!= cash flows
+!= numeraire
+!= pricing measure
+!= valuation method
+!= valuation result
+```
+
+The risk-free rate is not duplicated in `BlackScholesParameters`; risk-free discounting is obtained from the pricing problem's numeraire. M1 does not create a competing Black-Scholes API, universal `FinancialModel`, general rates framework, market-data container, sensitivity framework, or trade/portfolio layer.
 
 ---
 
 ## M2 — Independent valuation and sensitivity/Greeks
+
+**Status: next.**
 
 **Question:** Can independent methods reproduce the analytical reference and can local sensitivities be established independently for the right reasons?
 
@@ -245,6 +262,7 @@ Expected capabilities:
 
 - CRR/binomial valuation as another valuation method over the supported Black-Scholes problem family;
 - Monte Carlo valuation with explicit RNG ownership;
+- estimator variance/standard error and appropriate uncertainty reporting;
 - analytic Greeks;
 - bump-and-revalue/finite-difference Greeks;
 - convergence studies;
@@ -258,9 +276,19 @@ Black-Scholes analytic ↔ Monte Carlo
 analytic Greeks ↔ numerical Greeks
 ```
 
-M2 is the first likely production pressure for the **sensitivity** family. Start concrete: do not create a universal `SensitivityProblem` or giant Greek/result framework unless the actual consumers establish shared behavior.
+M2 is the first production pressure for the **sensitivity** family. Start concrete: do not create a universal `SensitivityProblem` or giant Greek/result framework unless the actual consumers establish shared behavior.
 
-M2 should also let the second real valuation consumers pressure-test the M0A pricing method/problem boundaries.
+M2 should also let the second and third real valuation methods pressure-test the M0A pricing method/problem boundaries.
+
+Keep distinct:
+
+```text
+financial model error
+numerical discretization error
+Monte Carlo sampling error
+finite-difference truncation/cancellation error
+floating-point error
+```
 
 ---
 
@@ -496,9 +524,11 @@ The mathematical taxonomy can organize these later domains, but it does not just
 
 ## Parallelism guidance
 
-M0A must settle before revised M1 because it defines M1's composition contracts and current architectural doctrine.
+M0A must settle before revised M1 because it defines M1's composition contracts and architectural doctrine. M0A and M1 are now complete.
 
-M1 and the early numerical validation milestones remain intentionally mostly sequential because each supplies evidence and consumers for the next.
+M2 is intentionally next because its independent valuation methods and first sensitivity consumers pressure-test the shared contracts established by M0A/M1.
+
+M3 may run in parallel with M4 only after M2 has stabilized the pricing/sensitivity contracts and the branches have explicit ownership boundaries.
 
 Reasonable parallel work once shared contracts stabilize includes:
 
