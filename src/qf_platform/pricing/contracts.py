@@ -17,3 +17,4 @@ class FinancialContract[TimeT, StateT](Protocol):
         /,
     ) -> CashFlowStream[TimeT]:
         """Return the realized contractual cash-flow stream for ``path``."""
+        ...
