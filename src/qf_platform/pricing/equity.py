@@ -5,6 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import date
 from enum import StrEnum
+from typing import cast
 
 from qf_platform._validation import calendar_date, nonnegative_finite_real
 from qf_platform.pricing.cashflows import CashFlow, CashFlowStream
@@ -34,7 +35,7 @@ class EquityState:
 class EquityStateSpace:
     """Non-negative finite spot state space used by the M1 equity law."""
 
-    def contains(self, value: EquityState, /) -> bool:
+    def contains(self, value: object, /) -> bool:
         return isinstance(value, EquityState)
 
 
@@ -43,6 +44,13 @@ class OptionRight(StrEnum):
 
     CALL = "call"
     PUT = "put"
+
+
+def _require_option_right(value: object) -> OptionRight:
+    if not isinstance(value, OptionRight):
+        msg = "right must be an OptionRight"
+        raise TypeError(msg)
+    return value
 
 
 @dataclass(frozen=True, slots=True)
@@ -64,9 +72,11 @@ class EuropeanOption:
             "strike",
             nonnegative_finite_real(self.strike, name="strike"),
         )
-        if not isinstance(self.right, OptionRight):
-            msg = "right must be an OptionRight"
-            raise TypeError(msg)
+        object.__setattr__(
+            self,
+            "right",
+            _require_option_right(cast(object, self.right)),
+        )
 
     def cash_flows(
         self,
