@@ -12,12 +12,17 @@ from qf_platform._validation import calendar_date, finite_real
 from qf_platform.pricing.black_scholes import BlackScholesLaw, BlackScholesParameters
 from qf_platform.pricing.dates import actual_365_fixed_year_fraction
 from qf_platform.pricing.equity import EquityState, EquityStateSpace, EuropeanOption
-from qf_platform.pricing.measures import PricingMeasureSemantics, validated_numeraire_value
+from qf_platform.pricing.measures import (
+    PricingMeasureSemantics,
+    validated_numeraire_value,
+)
 from qf_platform.pricing.numeraire import FlatMoneyMarketNumeraire
 from qf_platform.pricing.problem import PricingProblem
 from qf_platform.pricing.state import ModeledState
 
-type BlackScholesPricingProblem = PricingProblem[date, EquityState, BlackScholesParameters]
+type BlackScholesPricingProblem = PricingProblem[
+    date, EquityState, BlackScholesParameters
+]
 
 
 def _require_integer_seed(seed: object) -> int:
@@ -27,7 +32,9 @@ def _require_integer_seed(seed: object) -> int:
     return seed
 
 
-def _strictly_increasing_dates(values: tuple[date, ...], *, name: str) -> tuple[date, ...]:
+def _strictly_increasing_dates(
+    values: tuple[date, ...], *, name: str
+) -> tuple[date, ...]:
     dates = tuple(calendar_date(value, name=name) for value in values)
     if not dates:
         msg = f"{name} must not be empty"
@@ -64,7 +71,9 @@ class EquityPathPoint:
     spot: float
 
     def __post_init__(self) -> None:
-        object.__setattr__(self, "time", calendar_date(self.time, name="path-point time"))
+        object.__setattr__(
+            self, "time", calendar_date(self.time, name="path-point time")
+        )
         spot = finite_real(self.spot, name="path-point spot")
         if spot <= 0.0:
             msg = "path-point spot must be positive"
