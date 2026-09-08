@@ -85,7 +85,7 @@ class BlackScholesSensitivityProblem:
     sensitivity: BlackScholesSensitivity
 
     def __post_init__(self) -> None:
-        if not isinstance(self.sensitivity, BlackScholesSensitivity):
+        if not isinstance(cast(object, self.sensitivity), BlackScholesSensitivity):
             msg = "sensitivity must be a BlackScholesSensitivity"
             raise TypeError(msg)
         if not _is_m1_black_scholes_problem(self.pricing_problem):
@@ -101,7 +101,7 @@ class BlackScholesSensitivityResult:
     value: float
 
     def __post_init__(self) -> None:
-        if not isinstance(self.sensitivity, BlackScholesSensitivity):
+        if not isinstance(cast(object, self.sensitivity), BlackScholesSensitivity):
             msg = "sensitivity must be a BlackScholesSensitivity"
             raise TypeError(msg)
         object.__setattr__(
