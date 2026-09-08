@@ -6,7 +6,7 @@ This document is the authoritative register for project quantitative representat
 
 A convention may be **committed**, **explicitly deferred**, or **local to a specific API/study**. What is not allowed is a consequential convention remaining implicit across a public boundary.
 
-M0A commits the structural mathematics of the platform-wide problem taxonomy and the implemented pricing core. M1 now makes the first concrete equity-option conventions explicit without promoting every Black-Scholes choice into a universal rates, market-data, or instrument convention.
+M0A commits the structural mathematics of the platform-wide problem taxonomy and the implemented pricing core. M1 makes the first concrete equity-option conventions explicit. M2 now resolves the first concrete numerical-valuation and sensitivity conventions without promoting Black-Scholes-specific choices into universal solver, risk, portfolio, or market-data policy.
 
 ADR 0002 is the current authority for the mathematical problem architecture. ADR 0001 remains the historical pricing-specific decision record.
 
@@ -171,7 +171,9 @@ Completed results should be narrow and truthful to the problem/method execution 
 
 The foundational completed pricing result uses **present value** terminology. `ValuationResult.present_value` is a finite scalar.
 
-Greeks/sensitivities, Monte Carlo diagnostics/confidence intervals, inference/calibration outputs, control policies, risk outputs, hedging evidence, validation evidence, and benchmark metadata are not optional fields on `ValuationResult`. They receive specific result/evidence structures when consumers arrive.
+M2 proves one small extension of that result boundary: a concrete valuation method may return a specific immutable subtype when the method genuinely produces additional evidence. `MonteCarloValuationResult` therefore retains `present_value` while adding Monte Carlo sampling uncertainty, path count, and seed. Those fields do not become optional members of every `ValuationResult`.
+
+Greeks/sensitivities, inference/calibration outputs, control policies, risk outputs, hedging evidence, validation evidence, and benchmark metadata remain separate specific result/evidence structures rather than optional fields on generic valuation output.
 
 ### Volatility values use explicit decimal/annualization semantics
 
@@ -205,6 +207,8 @@ Production stochastic APIs must not depend on ambient global RNG state.
 
 Use explicitly owned/configured RNG state. Record seed/RNG information in reproducible studies when applicable.
 
+M2's Monte Carlo valuation method exercises this rule concretely: the method owns an explicit integer seed and creates a fresh local `random.Random(seed)` for each application. The seed is retained in the immutable Monte Carlo result. This gives repeatability within the committed Python implementation without promising identical random streams across future backends.
+
 Equal integer seeds across Python/C++ are **not** a contract for identical random streams. Use shared pre-generated random inputs when strict kernel parity is required.
 
 ### Reproducible core tests do not depend on live market services
@@ -231,10 +235,36 @@ M1 resolves the conventions needed by the first concrete pricing specialization.
 | Option right | `OptionRight.CALL` / `OptionRight.PUT` | No general instrument taxonomy. |
 | Spot domain | Finite, non-negative; zero admitted as a degenerate boundary | Negative equity spot is invalid. |
 | Strike domain | Finite, non-negative; zero admitted as a degenerate boundary | No strike schedule/quote convention. |
-| Present-value output | Existing `ValuationResult.present_value` | Greeks/diagnostics do not become optional fields on this result. |
+| Present-value output | Existing `ValuationResult.present_value` | Method-specific evidence uses specific results rather than giant optional-field output. |
 | Analytical tolerance | `2e-13` absolute for the ~100-unit deterministic benchmark/parity checks | Local to the floating-point analytical evidence; not a project-wide tolerance. |
 
 The detailed formula, notation mapping, pricing-measure assumptions, limits, and evidence map are in `docs/models/black_scholes.md`.
+
+## M2 local numerical-valuation and sensitivity conventions
+
+M2 resolves the conventions needed by the first independent numerical valuation methods and the first production sensitivity specialization. These decisions are **local to the M1/M2 Black-Scholes European-option family unless explicitly identified above as cross-cutting**.
+
+| Convention | M2 decision | Scope / non-claim |
+| --- | --- | --- |
+| CRR configuration | `steps` is an explicit positive integer | No universal tree/grid configuration abstraction. |
+| CRR finite-model support | For non-degenerate steps, require `d < exp((r-q)dt) < u`, equivalently `0 < p < 1` | A valid Black-Scholes problem may be unsupported by a particular coarse CRR configuration. |
+| CRR interpretation | Fixed `steps` is a discrete-time complete-market model; increasing `steps` is also studied as convergence toward Black-Scholes | Do not silently identify the finite tree with the continuous model. |
+| Monte Carlo path count | Explicit integer `paths >= 2` | Minimum supports sample-variance / standard-error estimation; no global default path budget. |
+| Monte Carlo RNG | Explicit integer seed; fresh local Python `random.Random(seed)` on each method application | Reproducible in the committed Python implementation; no cross-language stream-identity promise. |
+| Monte Carlo state simulation | Exact terminal GBM sampling for the supported European terminal-payoff problem | No generic path simulator or time-discretized SDE engine is introduced. |
+| Monte Carlo uncertainty | Sample standard error of discounted payoff mean | Sampling uncertainty, not deterministic valuation error. |
+| Monte Carlo confidence interval | Normal-approximation 95% interval `estimate ± 1.959963984540054 * SE` | Local reporting convention for this result, not a project-wide confidence-level default. |
+| Delta | `dV/dS` | First order; PV units per spot unit. |
+| Gamma | `d²V/dS²` | Second order; PV units per spot-unit squared. |
+| Vega | `dV/dsigma` for annualized decimal volatility | Reported per `1.00` volatility decimal, not per 1 percentage point. |
+| Theta | `dV/dt` as valuation time advances with expiry and other differentiation inputs fixed | Reported per ACT/365F model year; standard passage-of-time sign convention, not per day. |
+| Rho | `dV/dr` for the continuously compounded annualized decimal money-market rate | Reported per `1.00` rate decimal, not per 1 percentage point. |
+| Analytic Greek support | Positive differentiable interior `T>0`, `S>0`, `K>0`, `sigma>0` | Boundary prices remain valid without promising smooth finite Greeks. |
+| Finite-difference scheme | Central first differences for Delta/Vega/Theta/Rho; central second difference for Gamma | Concrete Black-Scholes bump-and-revalue method, not a universal differentiation engine. |
+| Finite-difference bump units | Spot, volatility, and rate bumps use their native core units; Theta uses an explicit positive integer calendar-day bump | No project-wide epsilon; method support rejects domain-crossing central bumps. |
+| Bump selection | Evidence studies multiple bump sizes and distinguishes truncation from cancellation/floating-point error | No single bump is canonically correct for all problems/scales. |
+
+Detailed numerical formulas, error taxonomy, and executable evidence are in `docs/models/m2_numerical_methods_and_sensitivities.md`.
 
 ## Explicitly deferred finance conventions
 
@@ -246,11 +276,7 @@ These decisions should be settled by the first milestones that create real consu
 | General discount-factor/curve representation | Deferred | M4/M5 | M1 uses a flat money-market numeraire; M0A commits numeraire semantics, not a curve hierarchy. |
 | Discrete dividend/corporate-action representation | Deferred | M4/future instrument consumer | M1's continuous yield is local; do not reinterpret it as a discrete dividend schedule. |
 | Forward-market observation semantics | Deferred | M4 | M1 prices from modeled spot; observed spot/forward quote provenance belongs to market-data work. |
-| Sensitivity/Greek differentiation variable | Deferred | M2 | Record exactly what variable/parameter/state is perturbed or differentiated. |
-| Greek sign conventions | Deferred | M2 | Record each Greek's differentiation variable and sign convention. |
-| Greek scaling/units | Deferred | M2 | Make per-unit vs per-1%-point conventions explicit; avoid unexplained presentation scaling in core results. |
-| Monte Carlo confidence level/reporting | Deferred | M2 | Encode explicitly in result/study configuration rather than assuming one global reporting level. |
-| Array axis/order conventions for numerical kernels | Deferred | M2/M5 | Define only when vectorized/compiled kernels create a shared boundary. |
+| Array axis/order conventions for numerical kernels | Deferred | M5 | Define only when vectorized/compiled kernels create a shared boundary. |
 | Hedging/control objective and admissible-action semantics | Deferred | M3 | The first control-like workflow must state objective, actions, constraints, and timing explicitly. |
 | Market timestamp timezone convention | Deferred | M4 | Must become explicit before real-market ingestion. |
 | Missing/bad quote policy | Deferred | M4 | Preserve raw observations/provenance; normalization/cleaning policy must be explicit and testable. |
@@ -290,6 +316,8 @@ Important mathematical implementations should document or link enough informatio
 - tests that provide independent evidence.
 
 M1 is the first production valuation implementation to exercise this convention fully; `docs/models/black_scholes.md` maps the Black-Scholes-Merton references and notation to the M0A composition, formulas, assumptions, limits, benchmark, tolerance rationale, and tests.
+
+M2 extends the same discipline to independent numerical valuation and sensitivities in `docs/models/m2_numerical_methods_and_sensitivities.md`, including method interpretation, stochastic ownership, uncertainty, derivative variables/units/sign conventions, numerical error mechanisms, and the executable evidence map.
 
 ## Market-data provenance convention
 

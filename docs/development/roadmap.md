@@ -15,15 +15,15 @@ mathematical problem architecture + pricing foundation   ← M0A complete
         ↓
 Black-Scholes theory + first concrete specialization     ← M1 complete
         ↓
-independent valuation methods + sensitivity              ← M2 next
-        ↓
-delta-hedging / control experiments
-        ↓
-real option-market observations
-        ↓
-implied-volatility inference + smile/skew evidence
-        ↓
-Heston
+independent valuation methods + sensitivity              ← M2 complete
+        ├───────────────────────────────┐
+        ↓                               ↓
+delta-hedging / control             market evidence +
+experiments                          implied-vol inference
+        │                               │
+        └───────────────┬───────────────┘
+                        ↓
+Heston stochastic volatility
         ↓
 independent Heston valuation methods
         ↓
@@ -56,8 +56,6 @@ Implemented outputs:
 - architecture index and guardrails;
 - reproducibility/RNG and future Python/C++ policy.
 
-**Historical non-goal:** M0 itself added no Black-Scholes or finance-domain code.
-
 ---
 
 ## M0A — Mathematical Quant-Finance Architecture Foundation
@@ -66,128 +64,41 @@ Implemented outputs:
 
 **Question:** Can the platform encode the stable mathematical distinctions of quantitative finance directly enough that later workflows compose around well-defined questions, without turning those distinctions into universal software frameworks?
 
-### Mathematical taxonomy
+M0A established the platform-wide taxonomy:
 
 ```text
-FINANCIAL / MATHEMATICAL FOUNDATIONS
-
-state / state space
-stochastic law
-model parameters
-probability semantics
-physical measure P
-pricing measure Q^N
-numeraire N
-market observations + provenance
-financial contracts
-cash flows
-quantitative conventions
-
+financial / mathematical foundations
         ↓
-
-PROBLEM FAMILIES
-
-forward / pricing
-inverse / inference
-sensitivity
-prediction
-control / optimization
-risk
-validation
-
+problem family
         ↓
-
-SOLUTION METHODS
-
-analytic / tree / Monte Carlo / Fourier / finite difference
-root finding / optimization / filtering / regression / scenario methods / tests
-
+supported solution method
         ↓
-
-SPECIFIC IMMUTABLE RESULTS / EVIDENCE
+specific immutable result / evidence
 ```
 
-Platform-wide conceptual pattern:
+and the conceptual execution pattern:
 
 ```text
 Problem + supported Method -> specific immutable Result
 ```
 
-This pattern is architectural. M0A does **not** introduce universal `Problem`, `Method`, or `Result` base classes.
-
-### Implemented pricing foundation
-
-The first production problem family is:
+The first production problem family is pricing:
 
 ```text
-state space / modeled state / state path
+state / stochastic law / parameters
 +
-stochastic law + separate parameter values
+contract / cash flows
 +
-financial contract → contingent cash-flow stream
-+
-numeraire
-+
-numeraire-associated pricing-measure semantics
+numeraire / pricing-measure semantics
         ↓
 PricingProblem
         +
 supported ValuationMethod
         ↓
-immutable ValuationResult
+ValuationResult
 ```
 
-Implemented pricing capabilities include:
-
-- generic state-space, modeled-state, and path semantics that do not require finite-dimensional or Markov structure;
-- stochastic-law responsibility without a universal drift/diffusion ontology;
-- model-specific immutable/value-like parameter objects kept separate from law structure;
-- immutable cash flows and cash-flow streams;
-- contract semantics that map paths to cash flows and own no valuation/inference/market-data/portfolio behavior;
-- strictly-positive numeraire access;
-- distinct physical- and pricing-measure semantics, with Q associated to its numeraire and no generic change-of-measure engine;
-- immutable compositional `PricingProblem`;
-- valuation-method compatibility separate from structural validity;
-- narrow immutable present-value result; and
-- one tiny deterministic composition fixture proving the architecture without implementing M1 inside the foundation itself.
-
-### Observation/model boundary
-
-M0A establishes:
-
-```text
-real world
-    ↓
-observations + provenance
-    ↓
-normalization / cleaning / construction
-    ↓
-problem-ready information
-
-separately:
-
-modeled state + stochastic law + parameters + probability semantics
-```
-
-Observed information must remain distinguishable from modeled or model-implied quantities.
-
-### Scope rule
-
-ADR 0002 is the current authority:
-
-```text
-Foundational mathematical domain distinctions
-may be represented explicitly from the outset.
-
-Problem-specific software frameworks
-should remain narrow and evidence-driven.
-
-Mathematical generality
-does not imply
-universal operational APIs.
-```
-
-The inverse, sensitivity, prediction, control, risk, and validation families are therefore documented but receive production abstractions only when their milestones create real behavior.
+M0A also established the observation/model boundary and the rule that mathematical generality does not imply universal operational APIs.
 
 ---
 
@@ -213,132 +124,153 @@ PricingProblem
 BlackScholesClosedForm
         ↓
 ValuationResult(present_value)
-        ↓
-theoretical validation evidence
 ```
 
-Implemented capabilities:
-
-- European call/put terminal cash-flow semantics;
-- valuation-ready modeled equity spot state;
-- explicit calendar valuation/expiry dates and Actual/365 Fixed year fractions;
-- concrete flat money-market numeraire with continuously compounded annualized decimal rates, including negative rates;
-- explicit continuous proportional dividend/carry yield;
-- GBM / Black-Scholes stochastic-law identity separated from immutable parameter values;
-- annualized decimal volatility semantics;
-- analytic Black-Scholes closed-form valuation as a compatible M0A valuation method;
-- put-call parity;
-- discounted no-arbitrage bounds;
-- expiry, zero-volatility, zero-spot, and zero-strike limiting cases;
-- independently published benchmark values;
-- convention-discriminating tests for Actual/365 Fixed and continuous compounding; and
-- formula traceability in `docs/models/black_scholes.md`.
-
-Architecturally, M1 keeps:
-
-```text
-state
-!= stochastic law
-!= parameters
-!= contract
-!= cash flows
-!= numeraire
-!= pricing measure
-!= valuation method
-!= valuation result
-```
-
-The risk-free rate is not duplicated in `BlackScholesParameters`; risk-free discounting is obtained from the pricing problem's numeraire. M1 does not create a competing Black-Scholes API, universal `FinancialModel`, general rates framework, market-data container, sensitivity framework, or trade/portfolio layer.
+M1 committed explicit calendar/date, ACT/365F, continuously compounded money-market rate, continuous dividend/carry, annualized decimal volatility, call/put, and present-value semantics, with benchmark, parity, bounds, limiting-case, and formula-traceability evidence.
 
 ---
 
 ## M2 — Independent valuation and sensitivity/Greeks
 
-**Status: next.**
+**Status: complete.**
 
-**Question:** Can independent methods reproduce the analytical reference and can local sensitivities be established independently for the right reasons?
+**Question:** Can independent methods reproduce the analytical reference, and can local sensitivities be established independently for the right reasons?
 
-Expected capabilities:
-
-- CRR/binomial valuation as another valuation method over the supported Black-Scholes problem family;
-- Monte Carlo valuation with explicit RNG ownership;
-- estimator variance/standard error and appropriate uncertainty reporting;
-- analytic Greeks;
-- bump-and-revalue/finite-difference Greeks;
-- convergence studies;
-- cross-method validation.
-
-Evidence:
+Implemented valuation plurality:
 
 ```text
-Black-Scholes analytic ↔ binomial
-Black-Scholes analytic ↔ Monte Carlo
-analytic Greeks ↔ numerical Greeks
+same M1 PricingProblem
+        ├── BlackScholesClosedForm
+        ├── CoxRossRubinstein
+        └── MonteCarloEuropeanOption
 ```
 
-M2 is the first production pressure for the **sensitivity** family. Start concrete: do not create a universal `SensitivityProblem` or giant Greek/result framework unless the actual consumers establish shared behavior.
+Implemented sensitivity specialization:
 
-M2 should also let the second and third real valuation methods pressure-test the M0A pricing method/problem boundaries.
+```text
+BlackScholesSensitivityProblem
+        ├── AnalyticBlackScholesSensitivity
+        └── FiniteDifferenceBlackScholesSensitivity
+        ↓
+BlackScholesSensitivityResult
+```
+
+Capabilities and evidence include:
+
+- explicit CRR step configuration and finite-tree no-arbitrage support semantics;
+- CRR convergence toward the Black-Scholes analytical reference;
+- explicit Monte Carlo path count and RNG seed ownership;
+- exact terminal GBM sampling for the supported European payoff;
+- immutable Monte Carlo present value, standard error, 95% normal-approximation confidence interval, path count, and seed;
+- approximate `O(n^-1/2)` Monte Carlo standard-error evidence;
+- analytic Delta, Gamma, Vega, Theta, and Rho;
+- explicit variable, derivative-order, sign, units, and scaling semantics;
+- central finite-difference cross-validation;
+- multi-bump evidence separating truncation from cancellation/floating-point degradation; and
+- dependency protection keeping pricing upstream of sensitivity.
+
+M2 made one minimal correction to the M0A valuation contract: `evaluate()` preserves a method's specific immutable `ValuationResult` subtype, allowing Monte Carlo uncertainty to remain method-specific instead of becoming optional fields on every valuation result.
+
+M2 does **not** create a universal sensitivity engine, compatibility registry, solver hierarchy, generic risk framework, or portfolio layer.
 
 Keep distinct:
 
 ```text
 financial model error
-numerical discretization error
+CRR discretization / approximation error
 Monte Carlo sampling error
-finite-difference truncation/cancellation error
-floating-point error
+finite-difference truncation error
+finite-difference cancellation / floating-point error
 ```
 
 ---
 
-## M3 — Black-Scholes as a falsifiable model
+## M3 — Dynamic hedging / control
 
-**Question:** Does the replication logic behind Black-Scholes work, and how does it fail as assumptions are weakened?
+**Status: next; may run in parallel with M4.**
 
-Primary study: **delta hedging / replication error**.
+**Question:** Does the replication logic behind Black-Scholes work dynamically, and how does replication degrade when implementation/model assumptions are weakened?
 
-Expected experiments:
+Primary study: **discrete delta hedging / replication error**.
+
+Expected pressure:
+
+```text
+modeled path / dynamics
++
+contract liability
++
+hedge action rule
++
+rebalance schedule
++
+financing / cash account
++
+objective / terminal replication error
+        ↓
+concrete control / hedging question
+```
+
+Expected experiments include:
 
 - idealized Black-Scholes/GBM world;
 - discrete rebalancing frequency;
 - volatility misspecification;
 - transaction-cost sensitivity where justified;
-- stochastic-volatility misspecification when later model support makes comparison meaningful;
-- delta-hedged P&L and terminal replication error.
+- delta-hedged P&L / terminal replication error;
+- later stochastic-volatility misspecification once richer model support exists.
 
-M3 creates local pressure for **control/optimization** semantics because a hedge policy is an action rule, and for **validation** because replication error is evidence about a model claim. Keep those responsibilities concrete to the hedging study unless repeated consumers justify shared frameworks.
+M3 may consume merged M2 pricing and sensitivity capabilities, especially Delta, but must preserve:
 
-This milestone may also introduce narrow risk/P&L evidence. It does **not** justify a generic portfolio/VaR/scenario engine.
+```text
+pricing problem != sensitivity problem != control problem
+hedge policy != Greek
+replication evidence != theoretical price
+```
+
+Do not create a generic portfolio/VaR/scenario engine from this first control consumer.
 
 ---
 
-## M4 — Real option-market evidence
+## M4 — Market evidence / inverse problems
 
-**Question:** What does the observed option market do that constant-volatility Black-Scholes cannot represent?
+**Status: next; may run in parallel with M3.**
+
+**Question:** What does the observed option market do that constant-volatility Black-Scholes cannot represent, and can the first inverse quantity—implied volatility—be inferred with explicit observation semantics?
 
 Expected capabilities:
 
-- provenance-aware option-chain ingestion for research;
-- deterministic fixtures/snapshots for CI and reproducibility;
-- quote normalization and validation;
-- implied-volatility inversion;
-- strike/maturity smile/skew/surface analysis;
+- provenance-aware option observations / chain ingestion for research;
+- deterministic curated fixtures/snapshots for CI and reproducibility;
+- explicit timestamp/timezone, quote selection, normalization, missing/bad-quote policy, and licensing/provenance semantics where real data requires them;
+- narrow implied-volatility inverse problem;
+- root-finding as a method separate from the inverse financial question;
+- strike/maturity smile/skew/surface evidence;
 - data-quality and appropriate static-arbitrage diagnostics.
 
-M4 is the first major production pressure for the **observation/provenance boundary** and for a narrow **inverse/inference** problem through implied-volatility inversion.
+Protect:
+
+```text
+observed quote != modeled state
+observed price != model-implied value
+implied volatility != observed volatility
+inverse problem != root finder
+normalization != inference
+```
 
 Scientific purpose:
 
 ```text
-model assumption
-    ↓
-empirical contradiction
-    ↓
+constant-volatility model assumption
+        ↓
+observed market contradiction
+        ↓
+smile / skew evidence
+        ↓
 motivation for richer volatility dynamics
 ```
 
-Do not make core tests depend on live external APIs.
+Core CI must not depend on live external APIs.
 
 ---
 
@@ -396,15 +328,7 @@ observations != inferred parameters
 stochastic law != calibrated parameter values
 ```
 
-M6 is the first substantial consumer that may earn concrete `InverseProblem`-like production semantics. Do not assume the eventual boundary before synthetic and real calibration workflows reveal what information the problem and result actually need.
-
-Expected evidence:
-
-- synthetic parameter recovery;
-- residual analysis;
-- multiple starts / optimization robustness as justified;
-- parameter stability;
-- identifiability concerns where observed.
+Expected evidence includes synthetic parameter recovery, residual analysis, multiple starts/optimizer robustness where justified, parameter stability, and identifiability concerns where observed.
 
 ---
 
@@ -425,9 +349,7 @@ Compare where data and methods support it:
 - computational cost;
 - documented failure modes and assumptions.
 
-M7 creates direct pressure for concrete **validation** and potentially **risk** problem semantics. Keep them scoped to the model-comparison evidence unless multiple workflows demonstrate a reusable operational boundary.
-
-Narrow spot/volatility/parameter shocks may be used when they answer the model-validation question. Do not generalize them into a universal market-risk engine without additional consumers.
+M7 creates direct pressure for concrete validation and potentially risk problem semantics. Keep them scoped to the model-comparison evidence unless multiple workflows demonstrate a reusable operational boundary.
 
 ---
 
@@ -480,33 +402,7 @@ without relying on plausible-looking prices alone.
 
 ### v0.2 — Modern research replication
 
-Review the then-current literature and select a small number of research models/methods based on a demonstrated limitation of the classical platform.
-
-Rough volatility is a promising first direction, not a pre-committed paper/model.
-
-For a chosen paper/model:
-
-```text
-read paper
-    ↓
-identify problem and assumptions
-    ↓
-derive/understand mathematics
-    ↓
-implement within existing architecture
-    ↓
-reproduce meaningful published result
-    ↓
-independently validate
-    ↓
-compare with established baseline
-    ↓
-measure computational cost
-    ↓
-analyze limitations/model risk
-    ↓
-document conclusion
-```
+Review the then-current literature and select a small number of research models/methods based on a demonstrated limitation of the classical platform. Rough volatility is a promising direction, not a pre-committed paper/model.
 
 ### Later specializations
 
@@ -524,16 +420,22 @@ The mathematical taxonomy can organize these later domains, but it does not just
 
 ## Parallelism guidance
 
-M0A must settle before revised M1 because it defines M1's composition contracts and architectural doctrine. M0A and M1 are now complete.
+M0A, M1, and M2 are complete. M2 has stabilized the pricing/sensitivity contracts enough for M3 and M4 to proceed in parallel with explicit ownership boundaries:
 
-M2 is intentionally next because its independent valuation methods and first sensitivity consumers pressure-test the shared contracts established by M0A/M1.
+```text
+M3
+owns dynamic hedging / control studies
+consumes pricing + sensitivity
+must not own market observations / implied-vol inference
 
-M3 may run in parallel with M4 only after M2 has stabilized the pricing/sensitivity contracts and the branches have explicit ownership boundaries.
+M4
+owns market observations / provenance + implied-vol inference
+consumes pricing
+must not own dynamic hedging / control
+```
 
-Reasonable parallel work once shared contracts stabilize includes:
+Neither branch should redefine merged M2 pricing/sensitivity contracts merely for convenience. If either discovers a real defect in those contracts, coordinate the correction explicitly rather than letting parallel branches diverge.
 
-- documentation/report presentation alongside validated implementation;
-- market-data provenance/fixture preparation alongside later Black-Scholes validation studies;
-- Heston validation-study preparation alongside stable Heston valuation code.
+Shared current-state/roadmap/README/application-facing files should be coordinated to avoid documentation or UI conflicts.
 
 Do **not** begin a parallel C++ workstream before profiling creates a concrete native-acceleration task.
