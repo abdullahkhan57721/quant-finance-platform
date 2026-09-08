@@ -9,6 +9,7 @@ from qf_platform.application.ui3_hedging import (
     HedgeWorkbenchAnalysis,
     HedgeWorkbenchRequest,
 )
+from qf_platform.control import DeltaHedgeStep
 from qf_platform.presentation.black_scholes import PresentationRow
 from qf_platform.presentation.plotting import PlotData, PlotPoint, PlotSeries
 
@@ -29,7 +30,7 @@ class HedgeStepRow:
 
 @dataclass(frozen=True, slots=True)
 class HedgeFrequencyRow:
-    """Aggregate terminal-error evidence for one rebalance cadence."""
+    """Aggregate terminal-error evidence for one explicit rebalance cadence."""
 
     cadence: str
     replicates: str
@@ -281,7 +282,7 @@ def _aggregate_rows(
     )
 
 
-def _step_row(step) -> HedgeStepRow:
+def _step_row(step: DeltaHedgeStep) -> HedgeStepRow:
     action = step.action
     return HedgeStepRow(
         time=step.time.isoformat(),
