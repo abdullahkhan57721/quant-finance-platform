@@ -18,7 +18,9 @@ The first specialization is **Equity Derivatives & Volatility Modeling**.
 
 **M2 — Independent Valuation and Sensitivity/Greeks is complete.** M2 adds CRR/binomial and Monte Carlo valuation over the same M1 financial problem, explicit Monte Carlo sampling uncertainty, and the first concrete sensitivity Problem → Method → Result family with analytic and finite-difference Greeks.
 
-The next finance milestones are **M3 — Dynamic Hedging / Control** and **M4 — Market Evidence / Inverse Problems**. Their ownership boundaries are stable enough to proceed in parallel.
+**M3 — Dynamic Hedging / Control is complete.** M3 adds exact-transition model-generated GBM paths, a Delta policy that consumes M2 sensitivity, explicit stock/cash self-financing accounting, replication-error evidence, rebalance-frequency and volatility-misspecification studies, and optional proportional transaction costs without creating a generic control/portfolio framework.
+
+**M4 — Market Evidence / Inverse Problems is active.** M3 and M4 preserve separate ownership of model-generated hedge evidence versus observed-market provenance and implied-volatility inference.
 
 See:
 
@@ -29,6 +31,7 @@ See:
 - [`docs/quantitative_conventions.md`](docs/quantitative_conventions.md) for committed, local, and deferred quantitative conventions;
 - [`docs/models/black_scholes.md`](docs/models/black_scholes.md) for M1 formula provenance and reference evidence;
 - [`docs/models/m2_numerical_methods_and_sensitivities.md`](docs/models/m2_numerical_methods_and_sensitivities.md) for M2 numerical methods, Greeks, uncertainty, and error taxonomy;
+- [`docs/models/m3_dynamic_delta_hedging.md`](docs/models/m3_dynamic_delta_hedging.md) for M3 path, policy, accounting, replication, and misspecification evidence;
 - [`docs/decisions/0002-mathematical-problem-architecture.md`](docs/decisions/0002-mathematical-problem-architecture.md) for the current mathematical-problem doctrine; and
 - [`docs/development/engineering_principles.md`](docs/development/engineering_principles.md) for engineering/collaboration rationale.
 
@@ -199,6 +202,48 @@ FiniteDifferenceBlackScholesSensitivity
 
 Finite differences use explicit native-unit bumps rather than a project-wide magic epsilon.
 
+## M3 — dynamic hedging as the first control specialization
+
+M3 consumes the existing pricing and sensitivity behavior without redefining either:
+
+```text
+Black-Scholes pricing problem
+        +
+exact-transition pricing-measure GBM path
+        +
+explicit rebalance schedule
+        +
+M2 analytic Delta as hedge policy input
+        +
+stock / money-market cash accounting
+        ↓
+DeltaHedgeResult
+        ↓
+ReplicationErrorSummary
+```
+
+The path observation grid and hedge schedule are separate. Adjacent Black-Scholes transitions are sampled exactly, so M3 observation dates are not silently treated as Euler timesteps.
+
+For one short European option, the hedge starts with the hedging-model Black-Scholes present value, targets M2 Delta stock units at each explicit rebalance, and finances residual cash with the existing money-market numeraire. The path-level result records trades, cash, financing, optional proportional transaction costs, terminal payoff, terminal hedge value, and replication error separately.
+
+The local terminal sign convention is:
+
+```text
+replication error = hedge value - option payoff
+                 = hedged short-option terminal P&L
+```
+
+M3 evidence includes seeded reproducibility, accounting identities, no-lookahead behavior, 64-seed rebalance-frequency comparisons, explicit generating-versus-hedging volatility misspecification, and transaction-cost drag. Hedge execution currently requires zero continuous dividend yield rather than inventing a hidden dividend-cashflow integration convention.
+
+Protect:
+
+```text
+Delta != hedge policy != realized hedge action
+financial model != path generation != hedge execution
+path observation grid != hedge rebalance schedule
+replication error != model error by definition
+```
+
 ## Validation evidence
 
 The platform does not rely on plausible-looking prices alone.
@@ -223,14 +268,28 @@ M2 adds:
 - analytic ↔ finite-difference cross-validation; and
 - a multi-bump study showing finite-difference truncation versus cancellation/floating-point degradation.
 
+M3 adds:
+
+- exact-transition GBM path reproducibility and deterministic zero-volatility behavior;
+- direct policy consumption of the M2 analytic Delta;
+- self-financing stock/cash identities and explicit cost accounting;
+- no-lookahead evidence;
+- distributional improvement from approximately monthly to weekly to daily rebalancing on a common path-observation setup;
+- volatility-misspecification evidence distinct from discrete-rebalancing error;
+- stochastic replicate-integrity checks; and
+- explicit rejection of unsupported dividend/carry hedge accounting.
+
 The project keeps distinct:
 
 ```text
-financial model error
+financial model / misspecification effect
 numerical discretization / approximation error
-Monte Carlo sampling error
+Monte Carlo valuation sampling error
 finite-difference truncation error
 finite-difference cancellation / floating-point error
+discrete hedge-rebalancing error
+stochastic hedge-replicate variation
+transaction-cost effect
 ```
 
 ## Observations vs modeled quantities
@@ -251,7 +310,7 @@ separately from
 modeled state + stochastic law + parameters + probability semantics
 ```
 
-M1/M2 use valuation-ready modeled state. Real quote provenance and implied-volatility inference belong to M4 rather than being smuggled into pricing objects.
+M1–M3 use valuation-ready/model-generated state. M3 simulated paths are not market observations. Real quote provenance and implied-volatility inference belong to M4 rather than being smuggled into pricing or control objects.
 
 ## v0.1 direction
 
@@ -264,7 +323,8 @@ independent valuation + sensitivity/Greeks               ← M2 complete
         ├──────────────────────────┐
         ↓                          ↓
 dynamic hedging/control        market evidence /
-                               implied-vol inference
+← M3 complete                  implied-vol inference
+                               ← M4 active
         └─────────────┬────────────┘
                       ↓
 Heston stochastic volatility
@@ -295,8 +355,9 @@ contract != cash-flow stream
 numeraire != pricing measure
 problem != solution method
 pricing problem != valuation method != result
-pricing problem != sensitivity problem
-GBM stochastic law != Monte Carlo method
+pricing problem != sensitivity problem != control problem
+GBM stochastic law != Monte Carlo method != path simulation
+Delta sensitivity != hedge policy != realized hedge action
 inverse problem != optimizer / root finder
 sensitivity problem != differentiation method
 control problem != optimizer
@@ -321,7 +382,7 @@ universal operational APIs.
 
 ## Python/C++ direction
 
-Python owns reference financial semantics, research orchestration, inference/calibration, validation, and market-data workflows.
+Python owns reference financial semantics, research/control orchestration, inference/calibration, validation, and market-data workflows.
 
 C++ will be introduced only after profiling identifies numerical hotspots worth accelerating. Python reference implementations remain the correctness authority, with numerical/statistical parity evidence across any future native boundary.
 
@@ -354,11 +415,11 @@ The current gate runs Ruff linting, Ruff format checking, strict Pyright, and py
 
 The repository intentionally still contains no merged production implementation of:
 
-- dynamic hedging/control studies;
-- live market-data ingestion or option-chain provenance structures;
-- implied-volatility inverse-problem structures;
-- generic inverse/inference, prediction, control, risk, or validation frameworks;
-- trade/portfolio/VaR/XVA infrastructure;
+- generic stochastic-control, strategy, execution, trade, portfolio, VaR, or scenario frameworks;
+- physical-measure M3 forecasting semantics or nonzero-dividend hedge accounting;
+- live market-data ingestion or option-chain provenance structures until M4 merges;
+- implied-volatility inverse-problem structures until M4 merges;
+- generic inverse/inference, prediction, risk, or validation frameworks;
 - Heston or Heston calibration;
 - generic experiment infrastructure; or
 - a C++ backend abstraction.

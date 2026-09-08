@@ -20,6 +20,7 @@ independent valuation methods + sensitivity              ← M2 complete
         ↓                               ↓
 delta-hedging / control             market evidence +
 experiments                          implied-vol inference
+← M3 complete                       ← M4 active
         │                               │
         └───────────────┬───────────────┘
                         ↓
@@ -187,54 +188,64 @@ finite-difference cancellation / floating-point error
 
 ## M3 — Dynamic hedging / control
 
-**Status: next; may run in parallel with M4.**
+**Status: complete.**
 
 **Question:** Does the replication logic behind Black-Scholes work dynamically, and how does replication degrade when implementation/model assumptions are weakened?
 
-Primary study: **discrete delta hedging / replication error**.
-
-Expected pressure:
+Implemented concrete composition:
 
 ```text
-modeled path / dynamics
+Black-Scholes pricing problem
 +
-contract liability
+exact-transition pricing-measure GBM path
 +
-hedge action rule
+explicit rebalance schedule
 +
-rebalance schedule
+M2 analytic Delta consumed as hedge policy
 +
-financing / cash account
+stock + money-market cash accounting
 +
-objective / terminal replication error
+optional proportional stock-trade cost
         ↓
-concrete control / hedging question
+DeltaHedgeResult
+        ↓
+ReplicationErrorSummary
 ```
 
-Expected experiments include:
+Capabilities and evidence include:
 
-- idealized Black-Scholes/GBM world;
-- discrete rebalancing frequency;
-- volatility misspecification;
-- transaction-cost sensitivity where justified;
-- delta-hedged P&L / terminal replication error;
-- later stochastic-volatility misspecification once richer model support exists.
+- exact adjacent-date GBM transitions with explicit observation dates and seed ownership;
+- explicit separation of path observation grid and hedge rebalance schedule;
+- `AnalyticDeltaHedgePolicy` consuming M2 Delta rather than duplicating sensitivity semantics;
+- one-short-option initial funding and terminal replication-error sign conventions;
+- explicit stock holdings, signed trades, trade notionals, cash financing, rebalance cash flows, transaction costs, terminal payoff, terminal hedge value, and hedged P&L;
+- frictionless self-financing identities and explicit wealth drag when proportional costs are enabled;
+- no-lookahead evidence;
+- 64-seed distributional evidence that approximately daily rebalancing improves RMSE/MAE relative to weekly, which improves relative to monthly, on a common daily path-observation setup;
+- generating volatility separate from hedging/pricing volatility, with explicit misspecification evidence;
+- aggregate error evidence with mean, median, standard deviation, MAE, RMSE, seeds, and study configuration;
+- integrity guards rejecting duplicate seeds, mixed hedge conditions, and different path grids; and
+- an explicit zero-continuous-dividend-yield hedge-execution boundary until dividend/carry cash-flow accounting is earned.
 
-M3 may consume merged M2 pricing and sensitivity capabilities, especially Delta, but must preserve:
+M3 preserves:
 
 ```text
-pricing problem != sensitivity problem != control problem
-hedge policy != Greek
-replication evidence != theoretical price
+pricing problem != sensitivity problem != control / hedging problem
+Delta != hedge policy != realized hedge action
+financial model != path simulation != hedge execution
+path observation grid != hedge rebalance schedule
+replication error != model error by definition
 ```
 
-Do not create a generic portfolio/VaR/scenario engine from this first control consumer.
+M3 does **not** create a generic control framework, strategy hierarchy, portfolio/execution engine, physical-measure forecast API, VaR/scenario layer, or market-data dependency.
+
+The later Heston/model-risk comparison can consume this baseline without rewriting it: Heston path/model misspecification should become another controlled condition only after Heston exists on merged `main`.
 
 ---
 
 ## M4 — Market evidence / inverse problems
 
-**Status: next; may run in parallel with M3.**
+**Status: active; PR #27.**
 
 **Question:** What does the observed option market do that constant-volatility Black-Scholes cannot represent, and can the first inverse quantity—implied volatility—be inferred with explicit observation semantics?
 
@@ -275,6 +286,8 @@ Core CI must not depend on live external APIs.
 ---
 
 ## M5 — Heston model and independent valuation
+
+**Status: blocked on merged/verified M4 so the richer volatility model is motivated by both M3 replication evidence and M4 market evidence.**
 
 **Question:** Can a stochastic-volatility model represent behavior Black-Scholes structurally cannot, and can we value it by independent methods?
 
@@ -340,7 +353,7 @@ Compare where data and methods support it:
 
 - in-sample fit;
 - out-of-sample pricing error;
-- hedging error;
+- hedging error, reusing the M3 control/accounting boundary where semantically valid;
 - parameter stability;
 - parameter identifiability;
 - sensitivity to inputs/parameters;
@@ -420,22 +433,28 @@ The mathematical taxonomy can organize these later domains, but it does not just
 
 ## Parallelism guidance
 
-M0A, M1, and M2 are complete. M2 has stabilized the pricing/sensitivity contracts enough for M3 and M4 to proceed in parallel with explicit ownership boundaries:
+M0A, M1, M2, and M3 are complete. M4 remains active and owns a distinct observation/inference boundary:
 
 ```text
-M3
-owns dynamic hedging / control studies
+M3 — merged quantitative ownership
+model-generated dynamic paths
+hedge actions / rebalance semantics
+replication / hedging evidence
 consumes pricing + sensitivity
-must not own market observations / implied-vol inference
 
-M4
-owns market observations / provenance + implied-vol inference
+M4 — active ownership
+market observations / provenance
+normalization / quote policy
+implied-volatility inverse problem
+root-finding implementation for that inverse problem
+smile / skew evidence
 consumes pricing
-must not own dynamic hedging / control
 ```
 
-Neither branch should redefine merged M2 pricing/sensitivity contracts merely for convenience. If either discovers a real defect in those contracts, coordinate the correction explicitly rather than letting parallel branches diverge.
+M4 should not redefine merged M2 pricing/sensitivity or M3 control contracts merely for convenience. If it discovers a real defect, coordinate the correction explicitly rather than broadening M4 ownership.
 
-Shared current-state/roadmap/README/application-facing files should be coordinated to avoid documentation or UI conflicts.
+UI2 may proceed against merged M2 behavior but should not speculatively expose M3/M4/Heston workflows merely because those milestones exist. A later UI milestone can consume M3 after the backend product question is clear.
+
+Shared current-state/roadmap/README/application-facing files should be reconciled when M4 merges because M3 has now updated their authoritative milestone status.
 
 Do **not** begin a parallel C++ workstream before profiling creates a concrete native-acceleration task.
