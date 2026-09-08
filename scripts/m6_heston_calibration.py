@@ -42,7 +42,6 @@ from qf_platform.market_data import (
 from qf_platform.pricing import (
     FlatMoneyMarketNumeraire,
     HestonFourierEuropeanOption,
-    HestonParameters,
     OptionRight,
     PricingMeasureSemantics,
 )
@@ -241,7 +240,11 @@ def _market_targets(
     return tuple(targets), next(iter(spots))
 
 
-def _coordinates(values: tuple[float, float, float, float, float], *, q: float) -> HestonCalibrationCoordinates:
+def _coordinates(
+    values: tuple[float, float, float, float, float],
+    *,
+    q: float,
+) -> HestonCalibrationCoordinates:
     return HestonCalibrationCoordinates.from_vector(
         values,
         continuous_dividend_yield=q,
