@@ -4,38 +4,38 @@
 
 Build a professional quantitative-finance research and model-validation platform whose first specialization is **equity derivatives and volatility modeling**.
 
-The project should demonstrate quantitative-finance knowledge, mathematical modeling, numerical methods, reproducible research, calibration, pricing, risk reasoning, model validation, empirical analysis, performance engineering, testing, typing, documentation, CI, Python, and modern C++.
+The project should demonstrate quantitative-finance knowledge, mathematical modeling, numerical methods, reproducible research, calibration/inference, pricing, sensitivity, risk reasoning, model validation, empirical analysis, performance engineering, testing, typing, documentation, CI, Python, and modern C++.
 
-The project is not a feature checklist. Each increase in model or architectural complexity must be justified by evidence, except for the narrow foundational asset-pricing semantic decomposition accepted by ADR 0001.
+The project is not a feature checklist. Ordinary software abstractions must earn their place through concrete consumers and evidence. ADR 0002 permits stable **mathematical domain distinctions** to be represented explicitly from the outset, but does not authorize speculative universal operational frameworks.
 
 ## v0.1 research narrative
 
 ```text
-mathematical asset-pricing composition foundation
+mathematical problem architecture + pricing foundation
         ↓
 Black-Scholes theory + first concrete specialization
         ↓
-independent implementation
+independent valuation methods
         ↓
 numerical cross-validation
         ↓
-Greeks / replication
+Greeks / sensitivity + replication
         ↓
-delta-hedging experiments
+delta-hedging / control experiments
         ↓
-real option-market evidence
+real option-market observations
         ↓
-observe smile/skew + BS deficiencies
+implied-volatility inference + smile/skew evidence
         ↓
 Heston
         ↓
 independent Heston valuation methods
         ↓
-calibration
+calibration / inverse problem
         ↓
 parameter recovery + stability
         ↓
-out-of-sample/model-risk comparison
+out-of-sample/model-risk validation
         ↓
 profile actual bottlenecks
         ↓
@@ -62,18 +62,67 @@ Expected outputs:
 
 ---
 
-## M0A — Mathematical pricing composition foundation
+## M0A — Mathematical Quant-Finance Architecture Foundation
 
-**Question:** Can the platform represent the stable mathematical responsibilities of arbitrage-free asset pricing explicitly, without turning them into a universal finance framework?
+**Question:** Can the platform encode the stable mathematical distinctions of quantitative finance directly enough that later workflows compose around well-defined questions, without turning those distinctions into universal software frameworks?
 
-Conceptual decomposition:
+### Mathematical taxonomy
 
 ```text
-state space / modeled state
-+
+FINANCIAL / MATHEMATICAL FOUNDATIONS
+
+state / state space
 stochastic law
+model parameters
+probability semantics
+physical measure P
+pricing measure Q^N
+numeraire N
+market observations + provenance
+financial contracts
+cash flows
+quantitative conventions
+
+        ↓
+
+PROBLEM FAMILIES
+
+forward / pricing
+inverse / inference
+sensitivity
+prediction
+control / optimization
+risk
+validation
+
+        ↓
+
+SOLUTION METHODS
+
+analytic / tree / Monte Carlo / Fourier / finite difference
+root finding / optimization / filtering / regression / scenario methods / tests
+
+        ↓
+
+SPECIFIC IMMUTABLE RESULTS / EVIDENCE
+```
+
+Platform-wide conceptual pattern:
+
+```text
+Problem + supported Method -> specific immutable Result
+```
+
+This pattern is architectural. M0A does **not** introduce universal `Problem`, `Method`, or `Result` base classes.
+
+### Implemented pricing foundation
+
+The first production specialization is:
+
+```text
+state space / modeled state / state path
 +
-model parameter values
+stochastic law + separate parameter values
 +
 financial contract → contingent cash-flow stream
 +
@@ -88,13 +137,13 @@ supported ValuationMethod
 immutable ValuationResult
 ```
 
-Expected capabilities:
+Expected/implemented pricing capabilities:
 
 - generic state-space, modeled-state, and path semantics that do not require finite-dimensional or Markov structure;
 - stochastic-law responsibility without a universal drift/diffusion ontology;
 - model-specific immutable/value-like parameter objects kept separate from law structure;
 - immutable cash flows and cash-flow streams;
-- contract semantics that map paths to cash flows and own no valuation/calibration/market-data/portfolio behavior;
+- contract semantics that map paths to cash flows and own no valuation/inference/market-data/portfolio behavior;
 - strictly-positive numeraire access;
 - distinct physical- and pricing-measure semantics, with Q associated to its numeraire and no generic change-of-measure engine;
 - immutable compositional `PricingProblem`;
@@ -102,7 +151,43 @@ Expected capabilities:
 - narrow immutable present-value result;
 - one tiny deterministic composition fixture proving the architecture without implementing M1.
 
-Architectural rule: ADR 0001 supersedes the ordinary two-consumer extraction discipline **only** for this foundational pricing-semantic core. All unrelated application abstractions remain evidence-driven.
+### Observation/model boundary
+
+M0A establishes:
+
+```text
+real world
+    ↓
+observations + provenance
+    ↓
+normalization / cleaning / construction
+    ↓
+problem-ready information
+
+separately:
+
+modeled state + stochastic law + parameters + probability semantics
+```
+
+Observed information must remain distinguishable from modeled or model-implied quantities.
+
+### Scope rule
+
+ADR 0002 is the current authority:
+
+```text
+Foundational mathematical domain distinctions
+may be represented explicitly from the outset.
+
+Problem-specific software frameworks
+should remain narrow and evidence-driven.
+
+Mathematical generality
+does not imply
+universal operational APIs.
+```
+
+The inverse, sensitivity, prediction, control, risk, and validation families are therefore documented now but receive production abstractions only when their milestones create real behavior.
 
 ---
 
@@ -148,11 +233,13 @@ Expected capabilities:
 
 Architectural goal: make every M1-specific choice a specialization of M0A. Do not create a competing isolated Black-Scholes API, a universal `FinancialModel`, or unrelated market/rates abstractions.
 
+M1 uses the pricing problem family only. It must not instantiate generic inverse, sensitivity, prediction, control, risk, or validation frameworks merely because M0A names those families conceptually.
+
 ---
 
-## M2 — Independent valuation and Greeks
+## M2 — Independent valuation and sensitivity/Greeks
 
-**Question:** Can independent methods reproduce the analytical reference and converge for the right reasons?
+**Question:** Can independent methods reproduce the analytical reference and can local sensitivities be established independently for the right reasons?
 
 Expected capabilities:
 
@@ -171,7 +258,9 @@ Black-Scholes analytic ↔ Monte Carlo
 analytic Greeks ↔ numerical Greeks
 ```
 
-M2 should let the second real valuation consumers pressure-test the M0A method/problem boundaries. Do not generalize Greek/result/statistics structures beyond what the actual consumers require.
+M2 is the first likely production pressure for the **sensitivity** family. Start concrete: do not create a universal `SensitivityProblem` or giant Greek/result framework unless the actual consumers establish shared behavior.
+
+M2 should also let the second real valuation consumers pressure-test the M0A pricing method/problem boundaries.
 
 ---
 
@@ -190,7 +279,9 @@ Expected experiments:
 - stochastic-volatility misspecification when later model support makes comparison meaningful;
 - delta-hedged P&L and terminal replication error.
 
-This milestone introduces risk and P&L evidence locally to the equity-volatility research question. It does **not** justify a generic portfolio/VaR/scenario framework.
+M3 creates local pressure for **control/optimization** semantics because a hedge policy is an action rule, and for **validation** because replication error is evidence about a model claim. Keep those responsibilities concrete to the hedging study unless repeated consumers justify shared frameworks.
+
+This milestone may also introduce narrow risk/P&L evidence. It does **not** justify a generic portfolio/VaR/scenario engine.
 
 ---
 
@@ -206,6 +297,8 @@ Expected capabilities:
 - implied-volatility inversion;
 - strike/maturity smile/skew/surface analysis;
 - data-quality and appropriate static-arbitrage diagnostics.
+
+M4 is the first major production pressure for the **observation/provenance boundary** and for a narrow **inverse/inference** problem through implied-volatility inversion.
 
 Scientific purpose:
 
@@ -247,7 +340,7 @@ PDE valuation is optional future evidence, not a v0.1 requirement unless a real 
 
 ---
 
-## M6 — Calibration
+## M6 — Calibration / inverse problem
 
 **Question:** Can Heston parameters be inferred from known and observed targets, and how trustworthy is that inference?
 
@@ -256,9 +349,11 @@ Progression:
 ```text
 synthetic parameter recovery
         ↓
-calibration objective
+calibration / inverse problem
         ↓
-numerical optimization
+objective + weighting + constraints
+        ↓
+numerical optimization method
         ↓
 real volatility-surface calibration
         ↓
@@ -268,9 +363,12 @@ residual diagnostics
 Protect:
 
 ```text
-calibration problem != numerical optimizer
+inverse / calibration problem != numerical optimizer
+observations != inferred parameters
 stochastic law != calibrated parameter values
 ```
+
+M6 is the first substantial consumer that may earn concrete `InverseProblem`-like production semantics. Do not assume the eventual boundary before synthetic and real calibration workflows reveal what information the problem and result actually need.
 
 Expected evidence:
 
@@ -298,6 +396,8 @@ Compare where data and methods support it:
 - model-price residuals;
 - computational cost;
 - documented failure modes and assumptions.
+
+M7 creates direct pressure for concrete **validation** and potentially **risk** problem semantics. Keep them scoped to the model-comparison evidence unless multiple workflows demonstrate a reusable operational boundary.
 
 Narrow spot/volatility/parameter shocks may be used when they answer the model-validation question. Do not generalize them into a universal market-risk engine without additional consumers.
 
@@ -392,11 +492,13 @@ Quant Finance Platform
 └── Portfolio Market Risk
 ```
 
-Do not implement these future specializations prematurely.
+The mathematical taxonomy can organize these later domains, but it does not justify implementing their operational infrastructure prematurely.
 
 ## Parallelism guidance
 
-M0A must settle before revised M1 because it defines M1's composition contracts. M1 and the early numerical validation milestones remain intentionally mostly sequential because each supplies evidence and consumers for the next.
+M0A must settle before revised M1 because it defines M1's composition contracts and current architectural doctrine.
+
+M1 and the early numerical validation milestones remain intentionally mostly sequential because each supplies evidence and consumers for the next.
 
 Reasonable parallel work once shared contracts stabilize includes:
 
