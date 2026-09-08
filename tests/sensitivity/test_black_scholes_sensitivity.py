@@ -216,7 +216,7 @@ def test_analytic_sensitivities_reject_nondifferentiable_pricing_boundaries() ->
 
     assert not method.supports(zero_volatility)
     assert not method.supports(at_expiry)
-    with pytest.raises(UnsupportedSensitivityProblem, match="interior"):
+    with pytest.raises(UnsupportedSensitivityProblem, match="does not support"):
         evaluate_sensitivity(zero_volatility, method)
 
 
