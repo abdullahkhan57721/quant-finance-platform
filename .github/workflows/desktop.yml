@@ -66,13 +66,20 @@ jobs:
           python -m ruff check src/qf_platform/desktop tests/desktop
           python -m pyright --project pyrightconfig-desktop.json
 
-      - name: Native and frontend-neutral tests
+      # Keep QML-engine creation/teardown out of the same interpreter process as
+      # threaded controller tests. PySide6/Qt native object lifecycles can otherwise
+      # contaminate later worker-thread tests even when every individual test is valid.
+      - name: Native controller and frontend-neutral tests
         run: |
           python -m pytest -q \
             tests/desktop \
+            --ignore=tests/desktop/test_qml_smoke.py \
             tests/application \
             tests/presentation \
             tests/architecture/test_desktop_dependency_boundary.py
+
+      - name: QML engine load smoke
+        run: python -m pytest -q tests/desktop/test_qml_smoke.py
 
       - name: Source launch smoke
         run: python -m qf_platform.desktop.main --smoke-test
