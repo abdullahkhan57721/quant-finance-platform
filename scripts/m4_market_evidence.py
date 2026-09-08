@@ -212,8 +212,12 @@ def _diagnostics_payload(
         "right": diagnostics.right.value,
         "strikes_checked": len(diagnostics.strikes),
         "passes_checked_conditions": diagnostics.passes,
-        "monotonicity_violations": [list(pair) for pair in diagnostics.monotonicity_violations],
-        "convexity_violations": [list(triple) for triple in diagnostics.convexity_violations],
+        "monotonicity_violations": [
+            list(pair) for pair in diagnostics.monotonicity_violations
+        ],
+        "convexity_violations": [
+            list(triple) for triple in diagnostics.convexity_violations
+        ],
     }
 
 
@@ -347,7 +351,9 @@ def derive_evidence(args: argparse.Namespace) -> dict[str, object]:
             "quote_date": args.quote_date.isoformat(),
             "underlying": "SPX",
             "observed_spot_values": sorted(observed_spots),
-            "selected_expiries": [expiry.isoformat() for expiry in sorted(selected_expiries)],
+            "selected_expiries": [
+                expiry.isoformat() for expiry in sorted(selected_expiries)
+            ],
             "contract_semantics_source": _CONTRACT_SEMANTICS_SOURCE,
             "contract_semantics_enrichment": "SPXW European exercise; PM settlement",
         },
