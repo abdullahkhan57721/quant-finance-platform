@@ -16,15 +16,28 @@ Describe affected formulas, assumptions, units/conventions, stochastic semantics
 
 If none, say so.
 
+## Validation cadence checklist
+
+Follow `docs/development/validation_cadence.md`. During draft work, leave unfinished items unchecked. Mark genuinely inapplicable items N/A with a reason in the relevant section below.
+
+- [ ] Ran `./scripts/fix` after the final coherent Python changes, or N/A is justified.
+- [ ] Ran focused behavioral and quantitative/numerical checks appropriate to the change, or N/A is justified.
+- [ ] `./scripts/check_all` passed at the exact candidate head.
+- [ ] Full required CI passed on that same candidate head.
+- [ ] Ticket-specific quantitative/numerical and manual evidence below is complete or explicitly N/A.
+- [ ] Exact candidate head is recorded below; `main` / base freshness was re-checked when concurrent work could affect assumptions.
+- [ ] After squash merge, merged `main` was verified. Leave this unchecked until merge actually occurs.
+
 ## Verification
 
-List the exact checks run at the reviewed head.
+List the exact checks run at the reviewed head and record that head explicitly.
 
 ```text
+Candidate head:
 ./scripts/check_all
 ```
 
-Add model-specific financial/numerical validation when relevant.
+Add focused and model-specific financial/numerical validation when relevant.
 
 ## Manual verification
 
@@ -49,6 +62,10 @@ If this PR makes a performance claim, include:
 - readability/auditability tradeoffs.
 
 If performance is not in scope, state that no performance claim is made.
+
+## Validation-cadence / CI-policy impact
+
+Did this PR fire a revisit trigger in `docs/development/validation_cadence.md`, such as materially changing gate cost or creating a distinct validation cost tier? If yes, include evidence and link the follow-up Issue/policy change. If no, say no trigger fired; do not redesign CI speculatively.
 
 ## Documentation impact
 
