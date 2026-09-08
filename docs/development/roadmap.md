@@ -314,6 +314,16 @@ M5 does **not** calibrate Heston parameters, fit the M4 SPX evidence, implement 
 
 ---
 
+## UI3 — Dynamic hedging, market evidence, and inverse-problem Workbench
+
+**Status: complete.**
+
+UI3 consumes merged M3/M4 contracts downstream of the quantitative core. The native home now exposes three mathematically distinct questions—valuation/sensitivity, dynamic hedging/control, and market evidence/implied volatility—without introducing a universal workflow schema. The M3 workspace preserves selected-path versus replicate evidence and paired-condition comparisons; the M4 workspace preserves raw versus normalized versus inferred quantities, provenance, solver evidence versus conditioning, discrete smile/skew evidence, and non-redistributed derived SPX evidence.
+
+UI3 intentionally does not expose the merged M5 Heston model. UI4 should begin from actual merged M5 forward-pricing contracts and may include calibration only after M6 itself is merged and validated.
+
+---
+
 ## M6 — Heston calibration / inverse problem
 
 **Status: next; unblocked by merged/verified M4 and M5.**

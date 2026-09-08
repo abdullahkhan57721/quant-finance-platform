@@ -20,9 +20,11 @@
 
 **UI2 — M2 Valuation Comparison, Convergence, Uncertainty & Greeks Workbench is complete.** UI2 extends the existing Black-Scholes Study over the actual merged M2 pricing and sensitivity contracts without adding UI-owned finance semantics or a generic desktop framework.
 
+**UI3 — Dynamic Hedging, Market Evidence & Inverse-Problem Workbench is complete.** UI3 adds separate native M3 control and M4 observed-market/inference workflows, a three-question workflow home, paired hedge-comparison evidence, raw/normalized/inferred observation inspection, provenance, conditioning, discrete smile/skew evidence, and route-specific mathematical inspectors without adding UI-owned finance semantics or a generic workflow framework.
+
 ADR 0002 remains the platform-wide mathematical architecture authority. M2 pressure-tested the M0A/M1 pricing boundary with independent numerical methods and established the first concrete production sensitivity family. M3 established the first concrete control/dynamic-replication family. M4 established the first production observed-market boundary and the first concrete inverse-problem specialization. M5 now proves that the same pricing architecture can host a materially richer two-factor stochastic law and two independent valuation methods without collapsing state, model parameters, valuation algorithms, or future calibration into one abstraction. ADR 0003 remains the native PySide6 + Qt Quick/QML authority; UI2 deepens that downstream architecture without changing the quantitative contracts.
 
-The next finance-model milestone is **M6 — Heston Calibration / Inverse Problem**. It should consume the validated M5 Heston forward-pricing capability and M4 observation/inference discipline while keeping calibration targets/objectives separate from numerical optimization. The next desktop milestone should still be chosen from actual merged M3/M4/M5 product pressure rather than pre-building generic hedge, market-data, stochastic-volatility, or calibration UI frameworks.
+The next finance-model milestone is **M6 — Heston Calibration / Inverse Problem**. It should consume the validated M5 Heston forward-pricing capability and M4 observation/inference discipline while keeping calibration targets/objectives separate from numerical optimization. The next desktop milestone is **UI4**, scoped from the actual merged M5/M6 contracts: M5 forward Heston valuation can be surfaced now, while any calibration UI must wait for merged M6 rather than speculate about its API.
 
 ## What exists
 
