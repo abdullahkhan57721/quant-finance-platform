@@ -2,11 +2,11 @@
 
 ## Purpose
 
-This document is the authoritative register for project-wide quantitative representation conventions.
+This document is the authoritative register for project quantitative representation conventions.
 
 A convention may be **committed**, **explicitly deferred**, or **local to a specific API/study**. What is not allowed is a consequential convention remaining implicit across a public boundary.
 
-M0A commits the structural mathematics of the platform-wide problem taxonomy and the implemented pricing core. Detailed equity-option conventions are still deliberately deferred to M1.
+M0A commits the structural mathematics of the platform-wide problem taxonomy and the implemented pricing core. M1 now makes the first concrete equity-option conventions explicit without promoting every Black-Scholes choice into a universal rates, market-data, or instrument convention.
 
 ADR 0002 is the current authority for the mathematical problem architecture. ADR 0001 remains the historical pricing-specific decision record.
 
@@ -14,7 +14,7 @@ ADR 0002 is the current authority for the mathematical problem architecture. ADR
 
 - **Committed** — project-wide rule; public implementations should follow it unless superseded by a deliberate repository decision.
 - **Deferred** — not yet fixed project-wide; the first real consumer should make the decision explicit and update this document if the choice becomes shared.
-- **Local** — intentionally specific to one method/study; encode it in that API/config/result rather than promoting it globally.
+- **Local** — intentionally specific to one method/study/specialization; encode it in that API/config/result rather than promoting it globally.
 
 ## Committed cross-cutting conventions
 
@@ -153,7 +153,7 @@ At every supported access used by pricing code, a numeraire value must be finite
 N_t > 0.
 ```
 
-Concrete rates/discounting representations remain deferred to their consumers. The foundational pricing API must not silently spread naked scalar-rate assumptions where numeraire semantics are the relevant mathematical boundary.
+Concrete rates/discounting representations remain consumer-specific. The foundational pricing API must not silently spread naked scalar-rate assumptions where numeraire semantics are the relevant mathematical boundary.
 
 ### Physical vs pricing measure
 
@@ -172,6 +172,16 @@ Completed results should be narrow and truthful to the problem/method execution 
 The foundational completed pricing result uses **present value** terminology. `ValuationResult.present_value` is a finite scalar.
 
 Greeks/sensitivities, Monte Carlo diagnostics/confidence intervals, inference/calibration outputs, control policies, risk outputs, hedging evidence, validation evidence, and benchmark metadata are not optional fields on `ValuationResult`. They receive specific result/evidence structures when consumers arrive.
+
+### Volatility values use explicit decimal/annualization semantics
+
+When a public API names a quantity **annualized volatility**, it is represented as a decimal annualized standard deviation unless that API explicitly documents a different quantity. For example:
+
+```text
+annualized_volatility = 0.20
+```
+
+means 20% annualized volatility, not 0.20% and not 20 percentage points. Variance, instantaneous variance, volatility-of-volatility, and model-specific variance-state quantities remain distinct concepts and should be named accordingly.
 
 ### No hidden project-wide numerical tolerance
 
@@ -201,24 +211,41 @@ Equal integer seeds across Python/C++ are **not** a contract for identical rando
 
 Live data can support research and manual workflows, but core CI tests should use deterministic fixtures, synthetic data, or curated snapshots whose provenance/licensing permits repository use.
 
+## M1 local equity-option / Black-Scholes conventions
+
+M1 resolves the conventions needed by the first concrete pricing specialization. These are **local to the M1 Black-Scholes/European-option family unless explicitly identified above as committed cross-cutting rules**.
+
+| Convention | M1 decision | Scope / non-claim |
+| --- | --- | --- |
+| Contract expiry representation | `datetime.date` calendar date | No time-of-day or universal contract-time hierarchy. |
+| Valuation date representation | `PricingProblem.valuation_time` is a `datetime.date` for this specialization | Other future problem families may use other time representations. |
+| Year-fraction API | `actual_365_fixed_year_fraction(start, end)` | Concrete helper, not a generic day-count framework. |
+| Day-count convention | Actual/365 Fixed: actual calendar days divided by exactly 365 | Leap days count as days; denominator remains 365. |
+| Business-day/calendar handling | No business-day adjustment in M1 | General calendar handling remains deferred until a real consumer such as M4 requires it. |
+| Interest-rate representation | `FlatMoneyMarketNumeraire(reference_date, continuously_compounded_rate)` | The pricing core still depends on numeraire semantics, not a universal scalar-rate field. |
+| Compounding convention | Continuously compounded annualized decimal rate | Negative finite rates are allowed. |
+| Discounting representation | Risk-free discount from valuation to expiry is the numeraire ratio `N_V / N_E` | No general discount-curve/yield-curve hierarchy. |
+| Dividend/carry representation | Finite continuously compounded proportional annualized yield `q` in `BlackScholesParameters` | No discrete cash-dividend schedule. |
+| Spot vs forward | `EquityState.spot` is modeled spot | M1 closed form is a spot-input specialization; future market-data workflows may also observe forwards. |
+| Volatility | `BlackScholesParameters.annualized_volatility` follows the committed decimal annualized-volatility rule | Non-negative finite values; zero is an admitted deterministic boundary. |
+| Option right | `OptionRight.CALL` / `OptionRight.PUT` | No general instrument taxonomy. |
+| Spot domain | Finite, non-negative; zero admitted as a degenerate boundary | Negative equity spot is invalid. |
+| Strike domain | Finite, non-negative; zero admitted as a degenerate boundary | No strike schedule/quote convention. |
+| Present-value output | Existing `ValuationResult.present_value` | Greeks/diagnostics do not become optional fields on this result. |
+| Analytical tolerance | `2e-13` absolute for the ~100-unit deterministic benchmark/parity checks | Local to the floating-point analytical evidence; not a project-wide tolerance. |
+
+The detailed formula, notation mapping, pricing-measure assumptions, limits, and evidence map are in `docs/models/black_scholes.md`.
+
 ## Explicitly deferred finance conventions
 
 These decisions should be settled by the first milestones that create real consumers. Until then, do not spread a local choice across the codebase as if it were canonical.
 
 | Convention | Status | First expected pressure | Guidance until settled |
 | --- | --- | --- | --- |
-| Contract expiry representation | Deferred | M1 European option | Prefer explicit semantics; M0A's generic time type does not choose dates vs year fractions. |
-| Valuation date representation | Deferred | M1 | `PricingProblem.valuation_time` comes from the modeled state, but the concrete time type remains M1-specific. |
-| Year-fraction API | Deferred | M1 | Do not pass anonymous maturity floats across broad public APIs before deciding whether/how dates are converted. |
-| Day-count convention | Deferred | M1 | Must be explicit if calendar dates are converted to year fractions. |
-| Business-day/calendar handling | Deferred | M1/M4 | Do not invent a full calendar framework until concrete contract/data needs justify it. |
-| Interest-rate representation | Deferred | M1 | Specialize the numeraire/discounting semantics explicitly; do not silently make scalar `r` the permanent pricing-core boundary. |
-| Compounding convention | Deferred | M1 | State explicitly wherever concrete rates are accepted. |
-| Discount-factor/curve representation | Deferred | M1 | M0A commits numeraire semantics, not a general curve hierarchy. |
-| Dividend/carry representation | Deferred | M1 | Do not silently choose continuous yield vs discrete cash dividends as a universal assumption. |
-| Spot vs forward input semantics | Deferred | M1/M4 | Name and document explicitly; do not make them interchangeable. |
-| Volatility representation/units | Deferred | M1/M2 | Public APIs must make decimal/percentage and annualization semantics unambiguous once introduced. |
-| Option type/right encoding | Deferred | M1 | Exact enum/type naming belongs to the first instrument specialization. |
+| General business-day/calendar framework | Deferred | M4 | M1 intentionally performs no business-day adjustment; do not generalize that into a universal calendar policy. |
+| General discount-factor/curve representation | Deferred | M4/M5 | M1 uses a flat money-market numeraire; M0A commits numeraire semantics, not a curve hierarchy. |
+| Discrete dividend/corporate-action representation | Deferred | M4/future instrument consumer | M1's continuous yield is local; do not reinterpret it as a discrete dividend schedule. |
+| Forward-market observation semantics | Deferred | M4 | M1 prices from modeled spot; observed spot/forward quote provenance belongs to market-data work. |
 | Sensitivity/Greek differentiation variable | Deferred | M2 | Record exactly what variable/parameter/state is perturbed or differentiated. |
 | Greek sign conventions | Deferred | M2 | Record each Greek's differentiation variable and sign convention. |
 | Greek scaling/units | Deferred | M2 | Make per-unit vs per-1%-point conventions explicit; avoid unexplained presentation scaling in core results. |
@@ -236,7 +263,7 @@ These decisions should be settled by the first milestones that create real consu
 | Risk loss/exposure definition | Deferred | first risk consumer | Must be explicit before a risk measure is meaningful. |
 | Validation criterion/tolerance semantics | Deferred | each validation consumer | State what is being validated, reference evidence, and error/statistical rationale. |
 
-## Decision rules for M1 and later
+## Decision rules for later milestones
 
 When a milestone encounters a deferred convention:
 
@@ -245,14 +272,14 @@ When a milestone encounters a deferred convention:
 3. Decide whether the convention is local or project-wide.
 4. Encode the convention in types/configuration/documentation so it cannot be silently reinterpreted.
 5. Add tests that distinguish the chosen semantics from plausible wrong interpretations.
-6. Update this register if the choice becomes project-wide.
+6. Update this register if the choice becomes project-wide or a durable local convention.
 7. Use an ADR only when the decision is durable, consequential, and not obvious from code plus this document.
 
-Do not force a global convention merely to make this table complete.
+Do not force a global convention merely to make this register complete.
 
 ## Formula traceability convention
 
-Once mathematical model code exists, important formula implementations should document or link enough information to recover:
+Important mathematical implementations should document or link enough information to recover:
 
 - the source/reference or project derivation;
 - notation mapping from the source into code;
@@ -262,7 +289,7 @@ Once mathematical model code exists, important formula implementations should do
 - limiting cases or identities used for validation;
 - tests that provide independent evidence.
 
-M0A contains mathematical semantic contracts but no production pricing formula. M1 is the first milestone expected to apply full formula traceability to a valuation implementation.
+M1 is the first production valuation implementation to exercise this convention fully; `docs/models/black_scholes.md` maps the Black-Scholes-Merton references and notation to the M0A composition, formulas, assumptions, limits, benchmark, tolerance rationale, and tests.
 
 ## Market-data provenance convention
 

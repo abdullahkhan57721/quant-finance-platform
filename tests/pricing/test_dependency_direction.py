@@ -2,10 +2,14 @@ import ast
 from pathlib import Path
 
 LOW_LEVEL_MODULES = (
+    "black_scholes.py",
     "cashflows.py",
     "contracts.py",
+    "dates.py",
+    "equity.py",
     "measures.py",
     "models.py",
+    "numeraire.py",
     "state.py",
 )
 
@@ -28,6 +32,8 @@ def test_foundational_dependency_direction_keeps_valuation_downstream() -> None:
         imports = imported_modules(package / filename)
         assert "qf_platform.pricing.problem" not in imports
         assert "qf_platform.pricing.valuation" not in imports
+        assert "qf_platform.pricing.black_scholes_valuation" not in imports
 
     problem_imports = imported_modules(package / "problem.py")
     assert "qf_platform.pricing.valuation" not in problem_imports
+    assert "qf_platform.pricing.black_scholes_valuation" not in problem_imports

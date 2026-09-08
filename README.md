@@ -12,7 +12,9 @@ The first specialization is **Equity Derivatives & Volatility Modeling**.
 
 **M0 — Engineering Bootstrap is complete.**
 
-**M0A — Mathematical Quant-Finance Architecture Foundation** establishes the platform-wide mathematical problem taxonomy and the first production pricing-domain architecture. The next concrete milestone is **M1 — European Options & Black-Scholes Reference Vertical**, implemented as a specialization of M0A.
+**M0A — Mathematical Quant-Finance Architecture Foundation is complete.**
+
+**M1 — European Options & Black-Scholes Reference Vertical is complete.** M1 is the first concrete financial specialization of the M0A pricing architecture. The next milestone is **M2 — Independent Valuation and Sensitivity/Greeks**.
 
 See:
 
@@ -20,9 +22,10 @@ See:
 - [`docs/development/current_state.md`](docs/development/current_state.md) for current project truth;
 - [`docs/development/roadmap.md`](docs/development/roadmap.md) for milestone sequencing;
 - [`docs/architecture/index.md`](docs/architecture/index.md) for architecture and validation policy;
-- [`docs/quantitative_conventions.md`](docs/quantitative_conventions.md) for committed and deferred quantitative conventions;
-- [`docs/decisions/0002-mathematical-problem-architecture.md`](docs/decisions/0002-mathematical-problem-architecture.md) for the current M0A architectural doctrine;
-- [`docs/decisions/0001-foundational-pricing-composition.md`](docs/decisions/0001-foundational-pricing-composition.md) for the historical pricing-foundation decision;
+- [`docs/quantitative_conventions.md`](docs/quantitative_conventions.md) for committed, local, and deferred quantitative conventions;
+- [`docs/models/black_scholes.md`](docs/models/black_scholes.md) for M1 formula provenance, notation, assumptions, limits, and executable evidence;
+- [`docs/decisions/0002-mathematical-problem-architecture.md`](docs/decisions/0002-mathematical-problem-architecture.md) for the current mathematical-problem doctrine;
+- [`docs/decisions/0001-foundational-pricing-composition.md`](docs/decisions/0001-foundational-pricing-composition.md) for the historical pricing-foundation decision; and
 - [`docs/development/engineering_principles.md`](docs/development/engineering_principles.md) for engineering/collaboration rationale.
 
 ## Mathematical problem architecture
@@ -106,9 +109,80 @@ The conceptual starting point is:
 
 while the numerical/analytic method remains separate from the financial pricing problem.
 
+## M1 — first concrete specialization
+
+M1 specializes that architecture as:
+
+```text
+EquityState / EquityStateSpace
++
+BlackScholesLaw + BlackScholesParameters
++
+EuropeanOption → terminal CashFlowStream
++
+FlatMoneyMarketNumeraire + PricingMeasureSemantics
+        ↓
+PricingProblem
+        +
+BlackScholesClosedForm
+        ↓
+ValuationResult(present_value)
+```
+
+The responsibility split is deliberate:
+
+```text
+state
+!= stochastic law
+!= model parameter values
+!= contract
+!= cash flows
+!= numeraire
+!= pricing-measure semantics
+!= valuation method
+!= valuation result
+```
+
+`BlackScholesClosedForm` is therefore a valuation method for a supported pricing problem; it is not the stochastic law itself.
+
+### M1 quantitative semantics
+
+The first reference vertical uses:
+
+- calendar `datetime.date` valuation/expiry semantics;
+- Actual/365 Fixed model time;
+- explicit modeled spot rather than forward input;
+- a flat money-market numeraire with a finite continuously compounded annualized decimal rate;
+- continuous proportional dividend/carry yield;
+- annualized decimal volatility (`0.20` means 20%);
+- explicit European call/put terminal cash flows;
+- non-negative finite spot/strike domains with zero admitted as a degenerate boundary; and
+- `ValuationResult.present_value` as the completed analytical pricing output.
+
+The risk-free rate is not duplicated inside `BlackScholesParameters`: discounting is obtained from the numeraire already owned by the `PricingProblem`.
+
+### M1 validation evidence
+
+M1 does not rely on plausible-looking prices alone. Its tests establish:
+
+- a published Black-Scholes benchmark;
+- put-call parity;
+- discounted no-arbitrage bounds;
+- expiry/intrinsic behavior;
+- zero-volatility deterministic valuation;
+- zero-spot and zero-strike limits;
+- Actual/365 Fixed leap-day semantics;
+- continuous-compounding discrimination;
+- continuous dividend/carry direction;
+- negative-rate support;
+- domain/immutability constraints; and
+- explicit unsupported-problem rejection through the valuation-method support boundary.
+
+See [`docs/models/black_scholes.md`](docs/models/black_scholes.md) for formula traceability and tolerance rationale.
+
 ## Observations vs modeled quantities
 
-M0A also establishes this boundary:
+The platform preserves this boundary:
 
 ```text
 real world
@@ -124,46 +198,16 @@ separately:
 modeled state + stochastic law + parameters + probability semantics
 ```
 
-Observed information must remain distinguishable from modeled and model-implied quantities.
-
-## Next specialization: M1
-
-M1 should approximately compose:
-
-```text
-Equity state / path
-+
-GBM / Black-Scholes stochastic law
-+
-Black-Scholes parameters
-+
-European call/put contract
-+
-money-market numeraire
-+
-risk-neutral pricing semantics
-        ↓
-PricingProblem
-        +
-Black-Scholes closed-form ValuationMethod
-        ↓
-ValuationResult
-        ↓
-parity + bounds + limiting cases + benchmark evidence
-```
-
-M1 still owns the concrete date/year-fraction, day-count, rate/compounding, dividend/carry, spot, volatility, option-right, and formula-traceability decisions.
-
-M1 does not need to implement generic inference, sensitivity, prediction, control, risk, or validation frameworks merely because M0A names those mathematical families.
+M1's `EquityState.spot` is valuation-ready modeled state, not a provenance-bearing observed quote. Real market observations remain a later market-data concern.
 
 ## v0.1 direction
 
 ```text
-mathematical problem architecture + pricing foundation
+mathematical problem architecture + pricing foundation   ← M0A complete
         ↓
-Black-Scholes reference specialization
+Black-Scholes reference specialization                   ← M1 complete
         ↓
-independent valuation + sensitivity/Greeks
+independent valuation + sensitivity/Greeks               ← M2 next
         ↓
 delta-hedging / control experiments
         ↓
@@ -190,27 +234,6 @@ portfolio-quality release
 
 The project deliberately does **not** begin as a checklist of pricing, VaR, XVA, rates, and portfolio features. Later specializations should emerge only after the equity-volatility foundation is mature and real consumers justify new operational abstractions.
 
-## Validation theme
-
-The platform is expected to accumulate multiple independent forms of evidence:
-
-- software/type/invariant correctness;
-- no-arbitrage identities and bounds;
-- known analytical/limiting cases;
-- independent pricing methods;
-- numerical convergence and stability;
-- statistical Monte Carlo error analysis;
-- analytic vs numerical sensitivities/Greeks;
-- delta-hedging/replication error;
-- implied-volatility and real-market diagnostics;
-- synthetic parameter recovery;
-- calibration residuals and stability;
-- out-of-sample/model-risk analysis;
-- Python/C++ parity;
-- profiling, runtime, memory, and scaling evidence.
-
-Plausible-looking prices are not sufficient validation.
-
 ## Architecture philosophy
 
 The project prefers mathematically meaningful composition over god objects and speculative universal frameworks.
@@ -230,7 +253,6 @@ prediction problem != pricing problem
 control problem != optimizer
 risk problem != risk-measure implementation
 validation problem != validation method
-MarketSnapshot != MarketEnvironment
 FinancialContract != Trade != Portfolio
 production library != research study != presentation
 ```
@@ -278,20 +300,20 @@ Apply supported Ruff fixes and formatting with:
 ./scripts/fix
 ```
 
-The current `main` gate runs Ruff linting, Ruff format checking, strict Pyright, and pytest. GitHub Actions invokes the same `scripts/check_all` entry point so local and hosted checks remain aligned.
+The current gate runs Ruff linting, Ruff format checking, strict Pyright, and pytest. GitHub Actions invokes the same `scripts/check_all` entry point so local and hosted checks remain aligned.
 
 ## Current non-goals
 
 The repository intentionally still contains no merged production implementation of:
 
-- European option specialization or Black-Scholes pricing;
 - CRR/binomial or Monte Carlo valuation;
-- Greeks/sensitivity framework or delta hedging;
+- Greeks/sensitivity production structures;
+- delta-hedging/control studies;
 - live market-data ingestion or implied-volatility surfaces;
-- generic inverse/inference, prediction, control, risk, or validation framework;
-- trade/portfolio/VaR/XVA framework;
-- Heston;
-- generic experiment engine;
-- C++ backend abstraction.
+- generic inverse/inference, prediction, control, risk, or validation frameworks;
+- trade/portfolio/VaR/XVA infrastructure;
+- Heston or calibration;
+- generic experiment infrastructure; or
+- a C++ backend abstraction.
 
-Those capabilities should specialize or consume the M0A architecture only when their milestones provide real quantitative pressure.
+Those capabilities should specialize or consume the existing mathematical architecture only when their milestones provide real quantitative pressure.
