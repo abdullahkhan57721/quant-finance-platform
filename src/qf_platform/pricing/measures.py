@@ -12,6 +12,7 @@ class Numeraire[TimeT](Protocol):
 
     def value_at(self, time: TimeT, /) -> float:
         """Return the numeraire value at a supported time."""
+        ...
 
 
 def validated_numeraire_value[TimeT](
