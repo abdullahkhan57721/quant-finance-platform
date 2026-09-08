@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from math import exp, isfinite
 
 from qf_platform._validation import finite_real, nonnegative_finite_real
 from qf_platform.pricing.equity import EquityState
@@ -113,6 +114,30 @@ class HestonParameters:
         """Return whether the classical Heston/CIR Feller inequality is satisfied."""
 
         return self.feller_discriminant >= 0.0
+
+
+def integrated_deterministic_heston_variance(
+    initial_variance: float,
+    parameters: HestonParameters,
+    year_fraction: float,
+    /,
+) -> float:
+    """Return integrated variance when ``xi == 0`` makes variance deterministic.
+
+    For ``dv = kappa(theta-v) dt`` the deterministic path is
+    ``v(t)=theta+(v0-theta)exp(-kappa*t)``. Its integral is the variance entering the
+    terminal log-spot distribution and therefore the Black-Scholes-equivalent limit.
+    """
+
+    initial = nonnegative_finite_real(initial_variance, name="initial_variance")
+    horizon = nonnegative_finite_real(year_fraction, name="year_fraction")
+    kappa = parameters.mean_reversion_speed
+    theta = parameters.long_run_variance
+    value = theta * horizon + (initial - theta) * (1.0 - exp(-kappa * horizon)) / kappa
+    if not isfinite(value) or value < 0.0:
+        msg = "integrated deterministic Heston variance must be non-negative and finite"
+        raise ValueError(msg)
+    return value
 
 
 @dataclass(frozen=True, slots=True)
