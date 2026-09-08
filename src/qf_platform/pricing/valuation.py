@@ -4,14 +4,9 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from math import isfinite
-from typing import Protocol, TypeVar
+from typing import Protocol
 
 from qf_platform.pricing.problem import PricingProblem
-
-ParametersT = TypeVar("ParametersT")
-PathT = TypeVar("PathT")
-StateT = TypeVar("StateT")
-TimeT = TypeVar("TimeT")
 
 
 @dataclass(frozen=True, slots=True)
@@ -32,27 +27,27 @@ class UnsupportedPricingProblem(ValueError):
     """Raised when a valuation method does not implement a pricing problem."""
 
 
-class ValuationMethod(Protocol[TimeT, StateT, ParametersT, PathT]):
+class ValuationMethod[TimeT, StateT, ParametersT](Protocol):
     """Algorithmic valuation responsibility, separate from financial-model semantics."""
 
     def supports(
         self,
-        problem: PricingProblem[TimeT, StateT, ParametersT, PathT],
+        problem: PricingProblem[TimeT, StateT, ParametersT],
         /,
     ) -> bool:
         """Return whether this implementation supports the supplied problem."""
 
     def apply(
         self,
-        problem: PricingProblem[TimeT, StateT, ParametersT, PathT],
+        problem: PricingProblem[TimeT, StateT, ParametersT],
         /,
     ) -> ValuationResult:
         """Evaluate a problem already known to be supported by this method."""
 
 
-def evaluate[TimeT, StateT, ParametersT, PathT](
-    problem: PricingProblem[TimeT, StateT, ParametersT, PathT],
-    method: ValuationMethod[TimeT, StateT, ParametersT, PathT],
+def evaluate[TimeT, StateT, ParametersT](
+    problem: PricingProblem[TimeT, StateT, ParametersT],
+    method: ValuationMethod[TimeT, StateT, ParametersT],
     /,
 ) -> ValuationResult:
     """Evaluate ``problem`` only after explicit implementation-capability checking."""

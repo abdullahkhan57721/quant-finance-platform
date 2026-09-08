@@ -15,7 +15,7 @@ from qf_platform.pricing.state import ModeledState
 
 
 @dataclass(frozen=True, slots=True)
-class PricingProblem[TimeT, StateT, ParametersT, PathT]:
+class PricingProblem[TimeT, StateT, ParametersT]:
     """Immutable statement of what theoretical financial value is being requested.
 
     ``stochastic_law`` and ``parameters`` are the dynamics supplied under
@@ -26,7 +26,7 @@ class PricingProblem[TimeT, StateT, ParametersT, PathT]:
     current_state: ModeledState[TimeT, StateT]
     stochastic_law: StochasticLaw[StateT, ParametersT]
     parameters: ParametersT
-    contract: FinancialContract[PathT, TimeT]
+    contract: FinancialContract[TimeT, StateT]
     numeraire: Numeraire[TimeT]
     pricing_measure: PricingMeasureSemantics[TimeT]
 

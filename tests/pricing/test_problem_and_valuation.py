@@ -19,7 +19,6 @@ from tests.pricing._fixtures import (
     FixedPaymentValuation,
     LinearNumeraire,
     RejectingValuation,
-    ScalarPath,
     ScalarStateSpace,
     make_problem,
 )
@@ -44,12 +43,7 @@ def test_pricing_problem_rejects_law_parameter_mismatch() -> None:
     pricing_measure = PricingMeasureSemantics(name="Q^N", numeraire=numeraire)
 
     with pytest.raises(TypeError, match="parameters are incompatible"):
-        PricingProblem[
-            float,
-            float,
-            DeterministicParameters,
-            ScalarPath,
-        ](
+        PricingProblem[float, float, DeterministicParameters](
             current_state=ModeledState(0.0, 1.0, state_space),
             stochastic_law=DeterministicLaw(state_space),
             parameters=DeterministicParameters(-1.0),
@@ -66,12 +60,7 @@ def test_pricing_problem_rejects_numeraire_measure_mismatch() -> None:
     pricing_measure = PricingMeasureSemantics(name="Q^N", numeraire=other_numeraire)
 
     with pytest.raises(ValueError, match="associated"):
-        PricingProblem[
-            float,
-            float,
-            DeterministicParameters,
-            ScalarPath,
-        ](
+        PricingProblem[float, float, DeterministicParameters](
             current_state=ModeledState(0.0, 1.0, state_space),
             stochastic_law=DeterministicLaw(state_space),
             parameters=DeterministicParameters(1.0),
@@ -87,12 +76,7 @@ def test_pricing_problem_rejects_physical_measure_semantics_at_runtime() -> None
     physical = cast(PricingMeasureSemantics[float], PhysicalMeasureSemantics())
 
     with pytest.raises(TypeError, match="pricing-measure"):
-        PricingProblem[
-            float,
-            float,
-            DeterministicParameters,
-            ScalarPath,
-        ](
+        PricingProblem[float, float, DeterministicParameters](
             current_state=ModeledState(0.0, 1.0, state_space),
             stochastic_law=DeterministicLaw(state_space),
             parameters=DeterministicParameters(1.0),

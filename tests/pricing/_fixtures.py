@@ -9,6 +9,7 @@ from qf_platform.pricing import (
     ModeledState,
     PricingMeasureSemantics,
     PricingProblem,
+    StatePath,
     ValuationResult,
     validated_numeraire_value,
 )
@@ -49,7 +50,11 @@ class FixedPaymentContract:
     payment_time: float
     amount: float
 
-    def cash_flows(self, path: ScalarPath, /) -> CashFlowStream[float]:
+    def cash_flows(
+        self,
+        path: StatePath[float, float],
+        /,
+    ) -> CashFlowStream[float]:
         del path
         return CashFlowStream((CashFlow(self.payment_time, self.amount),))
 
@@ -67,24 +72,14 @@ class LinearNumeraire:
 class FixedPaymentValuation:
     def supports(
         self,
-        problem: PricingProblem[
-            float,
-            float,
-            DeterministicParameters,
-            ScalarPath,
-        ],
+        problem: PricingProblem[float, float, DeterministicParameters],
         /,
     ) -> bool:
         return isinstance(problem.contract, FixedPaymentContract)
 
     def apply(
         self,
-        problem: PricingProblem[
-            float,
-            float,
-            DeterministicParameters,
-            ScalarPath,
-        ],
+        problem: PricingProblem[float, float, DeterministicParameters],
         /,
     ) -> ValuationResult:
         contract = cast(FixedPaymentContract, problem.contract)
@@ -102,12 +97,7 @@ class RejectingValuation:
 
     def supports(
         self,
-        problem: PricingProblem[
-            float,
-            float,
-            DeterministicParameters,
-            ScalarPath,
-        ],
+        problem: PricingProblem[float, float, DeterministicParameters],
         /,
     ) -> bool:
         del problem
@@ -115,24 +105,14 @@ class RejectingValuation:
 
     def apply(
         self,
-        problem: PricingProblem[
-            float,
-            float,
-            DeterministicParameters,
-            ScalarPath,
-        ],
+        problem: PricingProblem[float, float, DeterministicParameters],
         /,
     ) -> ValuationResult:
         del problem
         raise AssertionError("unsupported valuation method must not be applied")
 
 
-def make_problem() -> PricingProblem[
-    float,
-    float,
-    DeterministicParameters,
-    ScalarPath,
-]:
+def make_problem() -> PricingProblem[float, float, DeterministicParameters]:
     state_space = ScalarStateSpace()
     law = DeterministicLaw(state_space)
     parameters = DeterministicParameters(level=1.0)

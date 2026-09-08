@@ -2,16 +2,18 @@
 
 from __future__ import annotations
 
-from typing import Protocol, TypeVar
+from typing import Protocol
 
 from qf_platform.pricing.cashflows import CashFlowStream
-
-PathT_contra = TypeVar("PathT_contra", contravariant=True)
-TimeT = TypeVar("TimeT")
+from qf_platform.pricing.state import StatePath
 
 
-class FinancialContract(Protocol[PathT_contra, TimeT]):
+class FinancialContract[TimeT, StateT](Protocol):
     """Contingent cash-flow semantics for a modeled financial-state path."""
 
-    def cash_flows(self, path: PathT_contra, /) -> CashFlowStream[TimeT]:
+    def cash_flows(
+        self,
+        path: StatePath[TimeT, StateT],
+        /,
+    ) -> CashFlowStream[TimeT]:
         """Return the realized contractual cash-flow stream for ``path``."""

@@ -4,15 +4,13 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from math import isfinite
-from typing import Protocol, TypeVar
-
-TimeT_contra = TypeVar("TimeT_contra", contravariant=True)
+from typing import Protocol
 
 
-class Numeraire(Protocol[TimeT_contra]):
+class Numeraire[TimeT](Protocol):
     """Strictly-positive value process used to denominate financial values."""
 
-    def value_at(self, time: TimeT_contra, /) -> float:
+    def value_at(self, time: TimeT, /) -> float:
         """Return the numeraire value at a supported time."""
 
 
