@@ -24,6 +24,7 @@ The repository establishes:
 - pytest, Ruff, and strict Pyright configuration;
 - GitHub Actions CI invoking the canonical local quality gate;
 - `scripts/fix` and `scripts/check_all` as local quality entry points;
+- an evidence-based validation cadence in `docs/development/validation_cadence.md`;
 - repository ignore rules and repository-native collaboration guidance;
 - the validation-first M0–M9 research roadmap;
 - architecture, quantitative-convention, provenance, reproducibility/RNG, validation, and future Python/C++ guardrails;
@@ -173,6 +174,26 @@ pytest
 ```
 
 Issue #7 separately tracks a cognitive-complexity guard. Coverage thresholds, Import Linter contracts beyond focused architectural tests, strict docs builds, quantitative contract suites, benchmark/profile infrastructure, and release smoke checks should still be added only when concrete code gives them meaningful enforcement targets.
+
+The current complete gate is also still cheap enough that the repository deliberately does **not** have a second fast/checkpoint command or a draft-fast/final-full CI split. The current development cadence is:
+
+```text
+coherent implementation batch
+        ↓
+./scripts/fix
+        ↓
+focused behavioral / quantitative validation
+        ↓
+./scripts/check_all at a meaningful checkpoint
+        ↓
+full CI for pushed candidates
+        ↓
+ticket-specific final quantitative/manual evidence
+        ↓
+exact-head review → squash merge → verify main
+```
+
+`scripts/fix` should be used proactively before broader validation and before CI-triggering pushes after coherent Python changes. CI is confirmation of a checkpoint, not the normal formatting/debug loop. See `docs/development/validation_cadence.md` for the measured rationale, quality-gate classification, and future revisit triggers.
 
 ## Deliberately absent
 
