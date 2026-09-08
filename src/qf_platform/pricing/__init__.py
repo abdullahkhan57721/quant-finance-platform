@@ -22,6 +22,10 @@ from qf_platform.pricing.heston_fourier import (
     HestonFourierEuropeanOption,
     HestonFourierValuationResult,
 )
+from qf_platform.pricing.heston_monte_carlo import (
+    HestonMonteCarloEuropeanOption,
+    HestonMonteCarloValuationResult,
+)
 from qf_platform.pricing.measures import (
     Numeraire,
     PhysicalMeasureSemantics,
@@ -59,6 +63,8 @@ __all__ = [
     "HestonFourierEuropeanOption",
     "HestonFourierValuationResult",
     "HestonLaw",
+    "HestonMonteCarloEuropeanOption",
+    "HestonMonteCarloValuationResult",
     "HestonParameters",
     "HestonStateSpace",
     "ModeledState",
