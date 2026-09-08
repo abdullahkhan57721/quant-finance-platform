@@ -14,6 +14,12 @@ from qf_platform.pricing.models import StochasticLaw
 from qf_platform.pricing.state import ModeledState
 
 
+def _require_pricing_measure(value: object) -> None:
+    if not isinstance(value, PricingMeasureSemantics):
+        msg = "pricing problems require pricing-measure, not physical-measure, semantics"
+        raise TypeError(msg)
+
+
 @dataclass(frozen=True, slots=True)
 class PricingProblem[TimeT, StateT, ParametersT]:
     """Immutable statement of what theoretical financial value is being requested.
@@ -37,9 +43,7 @@ class PricingProblem[TimeT, StateT, ParametersT]:
         if not self.stochastic_law.accepts_parameters(self.parameters):
             msg = "parameters are incompatible with the stochastic law"
             raise TypeError(msg)
-        if not isinstance(self.pricing_measure, PricingMeasureSemantics):
-            msg = "pricing problems require pricing-measure, not physical-measure, semantics"
-            raise TypeError(msg)
+        _require_pricing_measure(self.pricing_measure)
         if self.pricing_measure.numeraire is not self.numeraire:
             msg = (
                 "pricing measure must be associated with the pricing problem numeraire"
