@@ -76,9 +76,7 @@ class BlackScholesClosedForm:
         contract = problem.contract
         return (
             isinstance(problem.current_state.state_space, EquityStateSpace)
-            and isinstance(problem.current_state.value, EquityState)
             and isinstance(problem.stochastic_law, BlackScholesLaw)
-            and isinstance(problem.parameters, BlackScholesParameters)
             and isinstance(contract, EuropeanOption)
             and isinstance(problem.numeraire, FlatMoneyMarketNumeraire)
             and contract.expiry >= problem.valuation_time
