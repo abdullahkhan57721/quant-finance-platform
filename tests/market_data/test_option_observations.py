@@ -116,7 +116,12 @@ def test_midpoint_normalization_retains_raw_lineage() -> None:
         (
             _quote(settlement_time=OptionSettlementTime.AM),
             _underlying(),
-            "AM-settled contracts",
+            "requires explicit PM settlement",
+        ),
+        (
+            _quote(settlement_time=None),
+            _underlying(),
+            "requires explicit PM settlement",
         ),
         (
             _quote(underlying_id="OTHER"),
