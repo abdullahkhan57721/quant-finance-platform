@@ -57,8 +57,12 @@ _LICENSE_NOTES = (
     "a local SHA-256 and derived/model evidence."
 )
 _PINNED_CONTRACTS: dict[date, frozenset[float]] = {
-    date(2023, 2, 3): frozenset({3720.0, 3800.0, 3850.0, 3870.0, 3900.0, 3970.0, 4020.0}),
-    date(2023, 4, 28): frozenset({3720.0, 3800.0, 3900.0, 3950.0, 4075.0, 4110.0, 4240.0}),
+    date(2023, 2, 3): frozenset(
+        {3720.0, 3800.0, 3850.0, 3870.0, 3900.0, 3970.0, 4020.0}
+    ),
+    date(2023, 4, 28): frozenset(
+        {3720.0, 3800.0, 3900.0, 3950.0, 4075.0, 4110.0, 4240.0}
+    ),
 }
 
 
@@ -196,7 +200,10 @@ def _market_targets(
                 continue
             if quote_date != valuation_date:
                 continue
-            if expiry not in _PINNED_CONTRACTS or strike not in _PINNED_CONTRACTS[expiry]:
+            if (
+                expiry not in _PINNED_CONTRACTS
+                or strike not in _PINNED_CONTRACTS[expiry]
+            ):
                 continue
             if (expiry, strike) in selected_keys:
                 continue
@@ -223,7 +230,9 @@ def _market_targets(
                 ):
                     continue
                 targets.append(
-                    HestonPriceCalibrationTarget.from_normalized_observation(observation)
+                    HestonPriceCalibrationTarget.from_normalized_observation(
+                        observation
+                    )
                 )
                 spots.add(observation.spot)
                 selected_keys.add((expiry, strike))
@@ -231,7 +240,9 @@ def _market_targets(
 
     expected_count = sum(len(strikes) for strikes in _PINNED_CONTRACTS.values())
     if len(targets) != expected_count:
-        msg = f"expected {expected_count} pinned normalized targets, found {len(targets)}"
+        msg = (
+            f"expected {expected_count} pinned normalized targets, found {len(targets)}"
+        )
         raise ValueError(msg)
     if len(spots) != 1:
         msg = "pinned SPX calibration requires exactly one observed underlying level"
