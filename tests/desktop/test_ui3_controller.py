@@ -11,6 +11,12 @@ pytest.importorskip("PySide6")
 from PySide6.QtGui import QGuiApplication
 
 from qf_platform.desktop.controller import WorkbenchController
+from qf_platform.desktop.models import (
+    HedgeFrequencyModel,
+    HedgeStepModel,
+    MarketObservationModel,
+    PresentationRowModel,
+)
 
 _app_instance: QGuiApplication | None = None
 
@@ -58,10 +64,13 @@ def test_ui3_hedge_worker_exposes_path_and_aggregate_models() -> None:
     _finish(controller)
 
     assert controller.hedgeAnalysisReady
-    assert controller.hedgeStepModel.rowCount() > 0
-    assert controller.hedgeFrequencyModel.rowCount() >= 4
+    assert cast(HedgeStepModel, controller.hedgeStepModel).rowCount() > 0
+    assert cast(HedgeFrequencyModel, controller.hedgeFrequencyModel).rowCount() >= 4
     controller.selectHedgeStep(0)
-    assert controller.hedgeSelectedStepModel.rowCount() >= 7
+    assert cast(
+        PresentationRowModel,
+        controller.hedgeSelectedStepModel,
+    ).rowCount() >= 7
 
     underlying = json.loads(cast(str, controller.hedgeUnderlyingPlotJson))
     assert underlying["series"][0]["key"] == "spot"
@@ -76,12 +85,12 @@ def test_ui3_market_worker_exposes_observation_inverse_and_empirical_evidence() 
     _finish(controller)
 
     assert controller.marketAnalysisReady
-    assert controller.marketObservationModel.rowCount() == 10
-    assert controller.marketDiagnosticModel.rowCount() == 4
+    assert cast(MarketObservationModel, controller.marketObservationModel).rowCount() == 10
+    assert cast(PresentationRowModel, controller.marketDiagnosticModel).rowCount() == 4
     controller.selectMarketObservation(0)
-    assert controller.marketProvenanceModel.rowCount() >= 7
-    assert controller.marketInverseModel.rowCount() >= 7
-    assert controller.marketInspectorModel.rowCount() == 6
+    assert cast(PresentationRowModel, controller.marketProvenanceModel).rowCount() >= 7
+    assert cast(PresentationRowModel, controller.marketInverseModel).rowCount() >= 7
+    assert cast(PresentationRowModel, controller.marketInspectorModel).rowCount() == 6
 
     synthetic = json.loads(cast(str, controller.syntheticSmilePlotJson))
     empirical = json.loads(cast(str, controller.empiricalSmilePlotJson))
