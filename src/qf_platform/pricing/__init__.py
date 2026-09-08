@@ -4,6 +4,7 @@ from qf_platform.pricing.black_scholes import BlackScholesLaw, BlackScholesParam
 from qf_platform.pricing.black_scholes_valuation import BlackScholesClosedForm
 from qf_platform.pricing.cashflows import CashFlow, CashFlowStream
 from qf_platform.pricing.contracts import FinancialContract
+from qf_platform.pricing.crr import CoxRossRubinstein
 from qf_platform.pricing.dates import actual_365_fixed_year_fraction
 from qf_platform.pricing.equity import (
     EquityState,
@@ -18,6 +19,10 @@ from qf_platform.pricing.measures import (
     validated_numeraire_value,
 )
 from qf_platform.pricing.models import StochasticLaw
+from qf_platform.pricing.monte_carlo import (
+    MonteCarloEuropeanOption,
+    MonteCarloValuationResult,
+)
 from qf_platform.pricing.numeraire import FlatMoneyMarketNumeraire
 from qf_platform.pricing.problem import PricingProblem
 from qf_platform.pricing.state import ModeledState, StatePath, StateSpace
@@ -34,12 +39,15 @@ __all__ = [
     "BlackScholesParameters",
     "CashFlow",
     "CashFlowStream",
+    "CoxRossRubinstein",
     "EquityState",
     "EquityStateSpace",
     "EuropeanOption",
     "FinancialContract",
     "FlatMoneyMarketNumeraire",
     "ModeledState",
+    "MonteCarloEuropeanOption",
+    "MonteCarloValuationResult",
     "Numeraire",
     "OptionRight",
     "PhysicalMeasureSemantics",
