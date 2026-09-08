@@ -103,9 +103,7 @@ class WorkbenchController(QObject):
 
     @Property(bool, notify=compositionChanged)
     def methodSupported(self) -> bool:  # noqa: N802
-        return (
-            self._composition is not None and self._composition.method_supported
-        )
+        return self._composition is not None and self._composition.method_supported
 
     @Property(bool, notify=runningChanged)
     def running(self) -> bool:
