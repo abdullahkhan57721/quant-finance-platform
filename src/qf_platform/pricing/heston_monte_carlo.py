@@ -304,9 +304,7 @@ class HestonMonteCarloEuropeanOption:
                 )
                 sqrt_variance = sqrt(variance)
                 log_spot += (
-                    rate
-                    - parameters.continuous_dividend_yield
-                    - 0.5 * variance
+                    rate - parameters.continuous_dividend_yield - 0.5 * variance
                 ) * step + sqrt_variance * sqrt_step * spot_shock
                 next_raw_variance = raw_variance + (
                     parameters.mean_reversion_speed
