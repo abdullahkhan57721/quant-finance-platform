@@ -1,1 +1,1 @@
-"""Optional native PySide6 / Qt Quick frontend for the Quant Research Workbench."""
+"""Optional native PySide6 / Qt Quick boundary for the Quant Research Workbench."""
