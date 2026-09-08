@@ -19,6 +19,7 @@ The repository establishes:
 - a `src/`-layout Python package;
 - pytest, Ruff, and strict Pyright configuration;
 - GitHub Actions CI invoking the canonical `./scripts/check_all` quality gate;
+- an evidence-based validation cadence in `docs/development/validation_cadence.md`;
 - repository-native Issue → branch → early PR → CI → exact-head → squash-merge workflow;
 - architecture, quantitative-convention, engineering, provenance, reproducibility/RNG, validation, and future Python/C++ guidance;
 - ADR 0002 for the mathematical problem architecture and ADR 0001 for the historical pricing-composition decision;
@@ -222,7 +223,27 @@ strict Pyright
 pytest
 ```
 
-Issue #7 separately tracks a cognitive-complexity guard. Coverage thresholds, broader import-linter contracts, strict docs builds, benchmark/profile infrastructure, and release smoke checks should still be added only when concrete code gives them meaningful enforcement targets.
+The complete gate is still cheap enough that the repository deliberately does **not** have a second fast/checkpoint command or a draft-fast/final-full CI split. The current development cadence is:
+
+```text
+coherent implementation batch
+        ↓
+./scripts/fix
+        ↓
+focused behavioral / quantitative validation
+        ↓
+./scripts/check_all at a meaningful checkpoint
+        ↓
+full CI for pushed candidates
+        ↓
+ticket-specific final quantitative/manual evidence
+        ↓
+exact-head review → squash merge → verify main
+```
+
+`scripts/fix` should be used proactively before broader validation and before CI-triggering pushes after coherent Python changes. CI is confirmation of a checkpoint, not the normal formatting/debug loop. See `docs/development/validation_cadence.md` for the measured rationale, quality-gate classification, and future revisit triggers.
+
+Coverage thresholds, broader import-linter contracts, strict docs builds, benchmark/profile infrastructure, and release smoke checks should still be added only when concrete code gives them meaningful enforcement targets.
 
 ## Deliberately absent
 
