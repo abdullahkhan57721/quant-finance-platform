@@ -234,4 +234,4 @@ A discrepancy between two methods is therefore not automatically evidence of fin
 - the truncation-to-cancellation bump-size tradeoff; and
 - method support boundaries for non-differentiable or bump-invalid cases.
 
-`tests/sensitivity/test_dependency_direction.py` prevents the pricing package from depending back on sensitivity.
+`tests/sensitivity/test_sensitivity_dependency_direction.py` prevents the pricing package from depending back on sensitivity.
