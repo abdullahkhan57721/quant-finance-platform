@@ -120,7 +120,9 @@ class MonteCarloEuropeanOption:
         /,
     ) -> MonteCarloValuationResult:
         if not self.supports(problem):
-            msg = "MonteCarloEuropeanOption does not support the supplied pricing problem"
+            msg = (
+                "MonteCarloEuropeanOption does not support the supplied pricing problem"
+            )
             raise UnsupportedPricingProblem(msg)
 
         contract = cast(EuropeanOption, problem.contract)
