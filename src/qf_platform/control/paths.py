@@ -208,9 +208,8 @@ def simulate_black_scholes_path(
         year_fraction = actual_365_fixed_year_fraction(earlier, later)
         shock = rng.gauss(0.0, 1.0)
         exponent = (
-            (rate - dividend_yield - 0.5 * volatility * volatility) * year_fraction
-            + volatility * sqrt(year_fraction) * shock
-        )
+            rate - dividend_yield - 0.5 * volatility * volatility
+        ) * year_fraction + volatility * sqrt(year_fraction) * shock
         try:
             spot *= exp(exponent)
         except OverflowError as exc:
