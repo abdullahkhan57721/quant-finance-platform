@@ -16,9 +16,11 @@
 
 **UI1 — Native Quant Research Workbench Architecture & Black-Scholes Vertical Slice is complete and establishes the current desktop architecture.**
 
-ADR 0002 remains the platform-wide mathematical architecture authority. M2 pressure-tested the M0A/M1 pricing boundary with independent numerical methods and established the first concrete production sensitivity family. M3 established the first concrete control/dynamic-replication family. M4 now establishes the first production observed-market boundary and the first concrete inverse-problem specialization without creating generic market-data, volatility-surface, or inverse-problem frameworks. UI1 adds ADR 0003 for the downstream native PySide6 + Qt Quick/QML boundary without changing the quantitative contracts.
+**UI2 — M2 Valuation Comparison, Convergence, Uncertainty & Greeks Workbench is complete.** UI2 extends the existing Black-Scholes Study over the actual merged M2 pricing and sensitivity contracts without adding UI-owned finance semantics or a generic desktop framework.
 
-The next finance-model milestone is **M5 — Heston Model and Independent Valuation**. The next desktop milestone is UI2, which may consume the actual merged M2 capabilities while preserving the UI1 boundary.
+ADR 0002 remains the platform-wide mathematical architecture authority. M2 pressure-tested the M0A/M1 pricing boundary with independent numerical methods and established the first concrete production sensitivity family. M3 established the first concrete control/dynamic-replication family. M4 establishes the first production observed-market boundary and the first concrete inverse-problem specialization without creating generic market-data, volatility-surface, or inverse-problem frameworks. ADR 0003 remains the native PySide6 + Qt Quick/QML authority; UI2 deepens that downstream architecture without changing the quantitative contracts.
+
+The next finance-model milestone is **M5 — Heston Model and Independent Valuation**. The next desktop milestone should be chosen from actual merged M3/M4 product pressure rather than pre-building generic hedge, market-data, or inverse-problem UI frameworks.
 
 ## What exists
 
@@ -34,7 +36,10 @@ The repository now establishes:
 - the first production observed-market package under `qf_platform.market_data`, with immutable raw observations, provenance, explicit midpoint normalization, and narrow strike-slice diagnostics;
 - the first production inverse-problem specialization under `qf_platform.inference`, with a Black-Scholes implied-volatility problem, separate numerical method, immutable result, feasibility checks, and conditioning evidence;
 - deterministic synthetic M4 fixtures for CI plus a pinned, provenance-bearing derived SPX evidence artifact showing strike skew and maturity dependence;
-- the native UI1 PySide6 + Qt Quick/QML Workbench vertical over the M1 Black-Scholes analytic method; and
+- the native PySide6 + Qt Quick/QML Quant Research Workbench;
+- UI2 method selection and explicit compatibility diagnostics for analytic, CRR, and Monte Carlo valuation over one normalized Black-Scholes pricing problem;
+- renderer-neutral payoff, convergence, Monte Carlo uncertainty, and Greek plot inputs;
+- UI2 analytic/CRR/Monte Carlo comparison tables, all five M2 Greeks, analytic-vs-finite-difference evidence, finite-difference diagnostics, and numerical/RNG provenance; and
 - dedicated desktop validation including QML/offscreen source smoke and one-platform standalone build/launch proof.
 
 ## Mathematical architecture
@@ -211,12 +216,12 @@ See `docs/models/m4_market_evidence_and_implied_volatility.md` and `docs/evidenc
 
 ## Native Workbench boundary
 
-UI1 remains a downstream M1 analytical vertical:
+The durable desktop dependency direction remains:
 
 ```text
 Qt Quick / QML
         ↓
-curated PySide6 controller / view-model boundary
+curated PySide6 controller / item-model boundary
         ↓
 frontend-neutral application + presentation semantics
         ↓
@@ -225,7 +230,38 @@ public mathematical-finance APIs
 production quantitative core
 ```
 
-QML owns no payoff, pricing, day-count, discounting, compatibility, inference, quote-cleaning, or arbitrage-diagnostic semantics. M2–M4 capabilities may be consumed only by later UI milestones after their backend semantics are settled.
+QML owns no payoff, pricing, day-count, discounting, compatibility, inference, quote-cleaning, arbitrage-diagnostic, sensitivity, convergence, or confidence-interval semantics. The Python/application side owns normalization, compatibility, execution, quantitative results, diagnostics, and provenance interpretation.
+
+### UI1
+
+UI1 remains the first M1 analytical vertical: native Home/Study navigation, Guided/Advanced Black-Scholes composition, mathematical inspector, authoritative `ValuationResult.present_value`, terminal payoff presentation, M1 parity/bounds/reference evidence, QML/offscreen smoke, and standalone deployment proof.
+
+### UI2
+
+UI2 extends that same Black-Scholes Study with actual M2 capabilities:
+
+```text
+same normalized PricingProblem
+        ├── BlackScholesClosedForm
+        ├── CoxRossRubinstein(steps)
+        └── MonteCarloEuropeanOption(paths, seed)
+```
+
+The Compose surface exposes method selection and method-specific configuration. RNG seed and finite-difference bump controls live at Advanced disclosure because they are reproducibility/numerical configuration rather than economic inputs.
+
+Analyze exposes renderer-neutral terminal-payoff, CRR-convergence, Monte-Carlo-uncertainty, and selected-Greek curves. Results expose analytic/CRR/Monte Carlo comparison plus a separate all-Greeks analytic-vs-finite-difference table. Validate keeps structural mathematical meaning, implementation availability, selected-method support, validation evidence, and Workbench exposure distinct, and preserves unsupported finite-difference domain-crossing bumps instead of silently changing the method. Present/Export exposes numerical/RNG/sensitivity provenance but does not invent M4 observation-provider provenance.
+
+UI2 uses the existing narrow `QThread` execution pattern for its concrete M2 analysis request. Monte Carlo supplies real asynchronous workload pressure, but UI2 still does not create a universal job/scheduler framework.
+
+UI1's payoff curve plus UI2 convergence/uncertainty/Greek curves earn a deliberately small renderer-neutral plotting value:
+
+```text
+PlotData
+└── PlotSeries
+    └── PlotPoint(x, y, optional lower/upper)
+```
+
+Only numeric points, labels, and paired vertical uncertainty bounds are shared. Qt styling, axes layout, pixel mapping, and interaction remain renderer concerns; there is no universal visualization grammar.
 
 See `docs/architecture/native_quant_workbench.md` and ADR 0003.
 
@@ -248,7 +284,7 @@ root-solver failure
 analytical floating-point error
 ```
 
-A terminal hedging discrepancy is not automatically model error, and a numerically converged implied-volatility result is not automatically well conditioned.
+A terminal hedging discrepancy is not automatically model error, a Monte Carlo confidence interval is not a deterministic pricing tolerance, and a numerically converged implied-volatility result is not automatically well conditioned.
 
 ## Quality and development cadence
 
@@ -277,8 +313,9 @@ The following remain absent until later milestones create real consumers:
 - Heston stochastic volatility and Heston calibration;
 - discount/dividend curve inference from option chains;
 - full put-call-parity forward extraction infrastructure;
-- native/C++ quantitative backends; and
-- generic UI schema/form generation, node editors, plugin architecture, or universal background-job infrastructure.
+- native/C++ quantitative backends;
+- generic UI schema/form generation, node editors, plugin architecture, universal plotting grammar, or universal background-job infrastructure; and
+- UI2 panels for M3 hedging, M4 observations/implied volatility, or future Heston/calibration work.
 
 ## Next objectives
 
@@ -297,6 +334,6 @@ Heston stochastic law
 
 The first M5 validation target is independent Heston valuation and numerical/model sanity, not calibration. M6 remains the later calibration/inverse milestone.
 
-### UI2 — M2 Valuation Comparison and Sensitivity Workbench
+### Next native Workbench pressure
 
-UI2 may consume the actual merged M2 public contracts and evidence while preserving the UI1 QML boundary. It should not speculatively expose M3/M4/M5 workflows merely because they now exist on the backend.
+UI2 deliberately stops at merged M2 capabilities even though M3 and M4 now exist. A later UI milestone may expose dynamic hedging/control evidence or market-observation/implied-volatility evidence, but the choice should follow actual merged product/research pressure and stable backend ownership rather than a speculative generic UI framework.
