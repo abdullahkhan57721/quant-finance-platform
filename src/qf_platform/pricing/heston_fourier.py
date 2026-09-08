@@ -3,21 +3,23 @@
 from __future__ import annotations
 
 import cmath
+from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import date
-from math import exp, isfinite, log, sqrt
-from typing import Callable, cast
+from math import exp, isfinite, log, pi, sqrt
+from typing import cast
 
 from qf_platform._validation import finite_real
 from qf_platform.pricing.black_scholes import BlackScholesLaw, BlackScholesParameters
 from qf_platform.pricing.black_scholes_valuation import BlackScholesClosedForm
 from qf_platform.pricing.dates import actual_365_fixed_year_fraction
-from qf_platform.pricing.equity import EquityState, EquityStateSpace, EuropeanOption, OptionRight
+from qf_platform.pricing.equity import EquityState, EuropeanOption, OptionRight
 from qf_platform.pricing.heston import (
     HestonEquityState,
     HestonLaw,
     HestonParameters,
     HestonStateSpace,
+    integrated_deterministic_heston_variance,
 )
 from qf_platform.pricing.measures import validated_numeraire_value
 from qf_platform.pricing.numeraire import FlatMoneyMarketNumeraire
@@ -77,11 +79,11 @@ def _heston_characteristic_function(
     parameters: HestonParameters,
     initial_variance: float,
 ) -> complex:
-    """Return E[exp(i*u*log(S_T))] under the supported Heston pricing dynamics.
+    """Return the Heston characteristic function of terminal log spot.
 
-    This implementation uses the stable ``g`` representation with the square-root
-    branch chosen so the real part of ``d`` is non-negative. The exact xi=0 boundary
-    is handled outside this function through the deterministic-variance limit.
+    The implementation uses the stable ``g`` representation and chooses the complex
+    square-root branch so the real part of ``d`` is non-negative. The exact ``xi=0``
+    boundary is handled outside this function through the deterministic-variance limit.
     """
 
     xi = parameters.volatility_of_variance
@@ -132,28 +134,12 @@ def _heston_characteristic_function(
     return _finite_complex(value, name="Heston characteristic function")
 
 
-def _integrated_deterministic_variance(
-    initial_variance: float,
-    parameters: HestonParameters,
-    year_fraction: float,
-) -> float:
-    kappa = parameters.mean_reversion_speed
-    theta = parameters.long_run_variance
-    value = theta * year_fraction + (initial_variance - theta) * (
-        1.0 - exp(-kappa * year_fraction)
-    ) / kappa
-    if not isfinite(value) or value < 0.0:
-        msg = "integrated deterministic Heston variance must be non-negative and finite"
-        raise ValueError(msg)
-    return value
-
-
 def _deterministic_variance_limit_value(
     problem: PricingProblem[date, HestonEquityState, HestonParameters],
     contract: EuropeanOption,
     year_fraction: float,
 ) -> float:
-    integrated_variance = _integrated_deterministic_variance(
+    integrated_variance = integrated_deterministic_heston_variance(
         problem.current_state.value.instantaneous_variance,
         problem.parameters,
         year_fraction,
@@ -205,7 +191,10 @@ class HestonFourierValuationResult(ValuationResult):
             raise ValueError(msg)
         object.__setattr__(self, "integration_lower_bound", lower)
         object.__setattr__(self, "integration_upper_bound", upper)
-        if type(self.intervals) is not int or self.intervals < 2 or self.intervals % 2:
+        if type(self.intervals) is not int:
+            msg = "intervals must be an integer"
+            raise TypeError(msg)
+        if self.intervals < 2 or self.intervals % 2:
             msg = "intervals must be an even integer of at least 2"
             raise ValueError(msg)
         if type(self.characteristic_function_evaluations) is not int:
@@ -218,12 +207,12 @@ class HestonFourierValuationResult(ValuationResult):
 
 @dataclass(frozen=True, slots=True)
 class HestonFourierEuropeanOption:
-    """Configured Heston characteristic-function valuation for European options.
+    """Configured characteristic-function valuation for Heston European options.
 
-    The implementation integrates the standard Heston risk-neutral probabilities
-    ``P1`` and ``P2`` by composite Simpson quadrature on a finite positive interval.
-    Numerical truncation and quadrature resolution are therefore explicit method
-    configuration rather than hidden properties of the Heston law.
+    The standard Heston risk-neutral probabilities ``P1`` and ``P2`` are evaluated by
+    composite Simpson quadrature on an explicit finite positive frequency interval.
+    Truncation and quadrature resolution therefore belong to this valuation method,
+    not to the Heston stochastic law.
     """
 
     integration_upper_bound: float = 100.0
@@ -274,7 +263,10 @@ class HestonFourierEuropeanOption:
         /,
     ) -> HestonFourierValuationResult:
         if not self.supports(problem):
-            msg = "HestonFourierEuropeanOption does not support the supplied pricing problem"
+            msg = (
+                "HestonFourierEuropeanOption does not support the supplied pricing "
+                "problem"
+            )
             raise UnsupportedPricingProblem(msg)
 
         contract = cast(EuropeanOption, problem.contract)
@@ -296,7 +288,11 @@ class HestonFourierEuropeanOption:
 
         if year_fraction == 0.0:
             signed = spot - strike
-            payoff = max(signed, 0.0) if contract.right is OptionRight.CALL else max(-signed, 0.0)
+            payoff = (
+                max(signed, 0.0)
+                if contract.right is OptionRight.CALL
+                else max(-signed, 0.0)
+            )
             return self._result(payoff, characteristic_function_evaluations=0)
 
         dividend_discount = _positive_finite_exp(
@@ -311,11 +307,19 @@ class HestonFourierEuropeanOption:
 
         if spot == 0.0 or strike == 0.0:
             signed = discounted_spot - discounted_strike
-            value = max(signed, 0.0) if contract.right is OptionRight.CALL else max(-signed, 0.0)
+            value = (
+                max(signed, 0.0)
+                if contract.right is OptionRight.CALL
+                else max(-signed, 0.0)
+            )
             return self._result(value, characteristic_function_evaluations=0)
 
         if problem.parameters.volatility_of_variance == 0.0:
-            value = _deterministic_variance_limit_value(problem, contract, year_fraction)
+            value = _deterministic_variance_limit_value(
+                problem,
+                contract,
+                year_fraction,
+            )
             return self._result(value, characteristic_function_evaluations=0)
 
         rate = cast(
@@ -375,13 +379,13 @@ class HestonFourierEuropeanOption:
             lower=self.integration_lower_bound,
             upper=self.integration_upper_bound,
             intervals=self.intervals,
-        ) / 3.141592653589793
+        ) / pi
         p2 = 0.5 + _simpson_integral(
             p2_integrand,
             lower=self.integration_lower_bound,
             upper=self.integration_upper_bound,
             intervals=self.intervals,
-        ) / 3.141592653589793
+        ) / pi
         if not isfinite(p1) or not isfinite(p2):
             msg = "Heston risk-neutral exercise probabilities must be finite"
             raise ValueError(msg)
@@ -389,7 +393,9 @@ class HestonFourierEuropeanOption:
         if contract.right is OptionRight.CALL:
             present_value = discounted_spot * p1 - discounted_strike * p2
         else:
-            present_value = discounted_strike * (1.0 - p2) - discounted_spot * (1.0 - p1)
+            present_value = discounted_strike * (1.0 - p2) - discounted_spot * (
+                1.0 - p1
+            )
         if not isfinite(present_value):
             msg = "Heston Fourier present value must be finite"
             raise ValueError(msg)
