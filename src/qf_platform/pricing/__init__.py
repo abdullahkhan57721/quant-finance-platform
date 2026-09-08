@@ -12,6 +12,20 @@ from qf_platform.pricing.equity import (
     EuropeanOption,
     OptionRight,
 )
+from qf_platform.pricing.heston import (
+    HestonEquityState,
+    HestonLaw,
+    HestonParameters,
+    HestonStateSpace,
+)
+from qf_platform.pricing.heston_fourier import (
+    HestonFourierEuropeanOption,
+    HestonFourierValuationResult,
+)
+from qf_platform.pricing.heston_monte_carlo import (
+    HestonMonteCarloEuropeanOption,
+    HestonMonteCarloValuationResult,
+)
 from qf_platform.pricing.measures import (
     Numeraire,
     PhysicalMeasureSemantics,
@@ -45,6 +59,14 @@ __all__ = [
     "EuropeanOption",
     "FinancialContract",
     "FlatMoneyMarketNumeraire",
+    "HestonEquityState",
+    "HestonFourierEuropeanOption",
+    "HestonFourierValuationResult",
+    "HestonLaw",
+    "HestonMonteCarloEuropeanOption",
+    "HestonMonteCarloValuationResult",
+    "HestonParameters",
+    "HestonStateSpace",
     "ModeledState",
     "MonteCarloEuropeanOption",
     "MonteCarloValuationResult",

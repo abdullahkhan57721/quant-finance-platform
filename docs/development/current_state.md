@@ -14,13 +14,15 @@
 
 **M4 — Market Evidence / Inverse Problems is complete.**
 
+**M5 — Heston Model and Independent Valuation is complete.** M5 establishes the first stochastic-volatility pricing specialization with explicit spot/instantaneous-variance state, immutable Heston parameter values, characteristic-function/Fourier valuation, independent full-truncation Euler Monte Carlo valuation, explicit numerical diagnostics, limiting-case evidence, and cross-method validation.
+
 **UI1 — Native Quant Research Workbench Architecture & Black-Scholes Vertical Slice is complete and establishes the current desktop architecture.**
 
 **UI2 — M2 Valuation Comparison, Convergence, Uncertainty & Greeks Workbench is complete.** UI2 extends the existing Black-Scholes Study over the actual merged M2 pricing and sensitivity contracts without adding UI-owned finance semantics or a generic desktop framework.
 
-ADR 0002 remains the platform-wide mathematical architecture authority. M2 pressure-tested the M0A/M1 pricing boundary with independent numerical methods and established the first concrete production sensitivity family. M3 established the first concrete control/dynamic-replication family. M4 establishes the first production observed-market boundary and the first concrete inverse-problem specialization without creating generic market-data, volatility-surface, or inverse-problem frameworks. ADR 0003 remains the native PySide6 + Qt Quick/QML authority; UI2 deepens that downstream architecture without changing the quantitative contracts.
+ADR 0002 remains the platform-wide mathematical architecture authority. M2 pressure-tested the M0A/M1 pricing boundary with independent numerical methods and established the first concrete production sensitivity family. M3 established the first concrete control/dynamic-replication family. M4 established the first production observed-market boundary and the first concrete inverse-problem specialization. M5 now proves that the same pricing architecture can host a materially richer two-factor stochastic law and two independent valuation methods without collapsing state, model parameters, valuation algorithms, or future calibration into one abstraction. ADR 0003 remains the native PySide6 + Qt Quick/QML authority; UI2 deepens that downstream architecture without changing the quantitative contracts.
 
-The next finance-model milestone is **M5 — Heston Model and Independent Valuation**. The next desktop milestone should be chosen from actual merged M3/M4 product pressure rather than pre-building generic hedge, market-data, or inverse-problem UI frameworks.
+The next finance-model milestone is **M6 — Heston Calibration / Inverse Problem**. It should consume the validated M5 Heston forward-pricing capability and M4 observation/inference discipline while keeping calibration targets/objectives separate from numerical optimization. The next desktop milestone should still be chosen from actual merged M3/M4/M5 product pressure rather than pre-building generic hedge, market-data, stochastic-volatility, or calibration UI frameworks.
 
 ## What exists
 
@@ -36,6 +38,12 @@ The repository now establishes:
 - the first production observed-market package under `qf_platform.market_data`, with immutable raw observations, provenance, explicit midpoint normalization, and narrow strike-slice diagnostics;
 - the first production inverse-problem specialization under `qf_platform.inference`, with a Black-Scholes implied-volatility problem, separate numerical method, immutable result, feasibility checks, and conditioning evidence;
 - deterministic synthetic M4 fixtures for CI plus a pinned, provenance-bearing derived SPX evidence artifact showing strike skew and maturity dependence;
+- `HestonEquityState`, `HestonStateSpace`, `HestonLaw`, and immutable `HestonParameters` under the existing pricing architecture;
+- reuse of the existing `EuropeanOption` contract under Heston rather than a model-specific contract duplicate;
+- `HestonFourierEuropeanOption` with explicit integration domain/resolution, stable characteristic-function branch semantics, and immutable quadrature diagnostics;
+- `HestonMonteCarloEuropeanOption` with explicit paths, timesteps, integer seed, local RNG ownership, correlated shocks, full-truncation Euler variance dynamics, sampling uncertainty, and negative-variance proposal diagnostics;
+- exact deterministic-variance handling at `xi = 0`, validated against the independent Black-Scholes closed form using integrated deterministic variance;
+- M5 evidence covering parameter/state domains, Feller-diagnostic semantics, expiry/zero-spot boundaries, put-call parity, Fourier convergence, Feller-violating but numerically supported parameters, seeded Monte Carlo reproducibility, variance-boundary pressure, and Fourier ↔ Monte Carlo agreement;
 - the native PySide6 + Qt Quick/QML Quant Research Workbench;
 - UI2 method selection and explicit compatibility diagnostics for analytic, CRR, and Monte Carlo valuation over one normalized Black-Scholes pricing problem;
 - renderer-neutral payoff, convergence, Monte Carlo uncertainty, and Greek plot inputs;
@@ -50,7 +58,7 @@ The platform-wide conceptual pattern remains:
 Problem + supported Method -> specific immutable Result
 ```
 
-For pricing:
+For Black-Scholes pricing:
 
 ```text
 same PricingProblem
@@ -59,6 +67,24 @@ same PricingProblem
         └── MonteCarloEuropeanOption
         ↓
 ValuationResult or method-specific subtype
+```
+
+For Heston pricing:
+
+```text
+HestonEquityState(spot, instantaneous variance)
++
+HestonLaw + HestonParameters
++
+existing EuropeanOption
++
+existing money-market numeraire + pricing measure
+        ↓
+PricingProblem
+        ├── HestonFourierEuropeanOption
+        └── HestonMonteCarloEuropeanOption
+        ↓
+method-specific immutable valuation evidence
 ```
 
 For sensitivity:
@@ -107,7 +133,7 @@ BisectionImpliedVolatility
 ImpliedVolatilityResult
 ```
 
-This remains concrete. The repository intentionally has no universal `SensitivityProblem`, `ControlProblem`, `InverseProblem`, `Strategy`, `Portfolio`, `Problem`, `Method`, or `Result` hierarchy.
+This remains concrete. The repository intentionally has no universal `SensitivityProblem`, `ControlProblem`, `InverseProblem`, `Strategy`, `Portfolio`, `Problem`, `Method`, `Result`, factor-model, Fourier-engine, or stochastic-simulator hierarchy.
 
 Protect:
 
@@ -120,9 +146,12 @@ inverse financial problem != root-finding method != inverse result
 Delta sensitivity != hedge policy != realized hedge action
 replication error != model error by definition
 implied volatility != directly observed or physical-measure volatility
+Heston state != Heston law != Heston parameters
+Heston law != Fourier method != Heston Monte Carlo method
+Heston forward valuation != future Heston calibration
 ```
 
-Pricing remains upstream of sensitivity and control. M4 inference consumes pricing and sensitivity behavior but does not move observation semantics into pricing.
+Pricing remains upstream of sensitivity and control. M4 inference consumes pricing and sensitivity behavior but does not move observation semantics into pricing. M5 stays on the forward-pricing side of that boundary; M6 should infer new immutable Heston parameter values rather than mutate model identity.
 
 ## M3 dynamic hedging / control
 
@@ -214,6 +243,32 @@ Thus one constant Black-Scholes volatility cannot reconcile the observed option 
 
 See `docs/models/m4_market_evidence_and_implied_volatility.md` and `docs/evidence/m4_spx_implied_volatility_evidence.json`.
 
+## M5 Heston stochastic volatility / independent valuation
+
+M5 responds to M4's observed strike-skew and maturity-dependence pressure by introducing a richer forward model rather than jumping directly to calibration.
+
+Under the existing money-market pricing semantics, the concrete dynamics are:
+
+```text
+dS_t = (r - q) S_t dt + sqrt(v_t) S_t dW^S_t
+
+dv_t = kappa (theta - v_t) dt + xi sqrt(v_t) dW^v_t
+
+d<W^S, W^v>_t = rho dt
+```
+
+The risk-free accumulation rate remains owned by the numeraire. `HestonEquityState` carries spot and instantaneous annualized variance. `HestonParameters` carries `kappa`, `theta`, `xi`, `rho`, and continuous dividend yield. The Feller discriminant `2*kappa*theta - xi^2` is available as positivity diagnostic evidence, but Feller violation is not treated as automatic model invalidity.
+
+The first deterministic method, `HestonFourierEuropeanOption`, evaluates the Heston characteristic function with a stable square-root branch and explicit finite-frequency composite-Simpson quadrature configuration. Its immutable result records the integration domain/resolution and characteristic-function evaluation count, keeping Fourier truncation/quadrature mechanics outside `HestonLaw`.
+
+The independent stochastic method, `HestonMonteCarloEuropeanOption`, owns explicit path count, timestep count, and integer seed. Each application creates fresh local RNG state, forms correlated Brownian shocks explicitly through `rho`, and uses full-truncation Euler for positive `xi`. Its result retains normal-approximation sampling uncertainty, variance-scheme identity, timestep count, and negative raw variance proposals as boundary-pressure evidence. Those proposals are numerical-discretization diagnostics, not financial-model error counts.
+
+At exactly `xi = 0`, variance is deterministic. M5 evaluates the integrated deterministic variance directly; Fourier pricing reduces to the existing Black-Scholes closed form with the corresponding effective volatility, while Monte Carlo samples the exact terminal log-spot distribution. This boundary provides independent limiting evidence and avoids pretending the singular positive-`xi` characteristic-function formula remains numerically appropriate at zero vol-of-vol.
+
+The validation set includes immutable/domain checks, Feller-violating supported parameters, expiry payoff and zero-spot boundaries, put-call parity, Fourier convergence under finer integration, exact `xi=0` reduction, equal-seed Monte Carlo reproducibility, explicit variance-boundary pressure, and non-degenerate Fourier ↔ Monte Carlo agreement with tolerance tied to MC sampling uncertainty plus discretization allowance.
+
+See `docs/models/m5_heston_stochastic_volatility.md`.
+
 ## Native Workbench boundary
 
 The durable desktop dependency direction remains:
@@ -230,7 +285,7 @@ public mathematical-finance APIs
 production quantitative core
 ```
 
-QML owns no payoff, pricing, day-count, discounting, compatibility, inference, quote-cleaning, arbitrage-diagnostic, sensitivity, convergence, or confidence-interval semantics. The Python/application side owns normalization, compatibility, execution, quantitative results, diagnostics, and provenance interpretation.
+QML owns no payoff, pricing, day-count, discounting, compatibility, inference, quote-cleaning, arbitrage-diagnostic, sensitivity, convergence, confidence-interval, Heston-model, or calibration semantics. The Python/application side owns normalization, compatibility, execution, quantitative results, diagnostics, and provenance interpretation.
 
 ### UI1
 
@@ -267,12 +322,16 @@ See `docs/architecture/native_quant_workbench.md` and ADR 0003.
 
 ## Error and evidence taxonomy
 
-The accumulated Black-Scholes evidence keeps different mechanisms separate:
+The accumulated evidence keeps different mechanisms separate:
 
 ```text
 financial model / misspecification effect
 CRR discretization / approximation error
+Fourier truncation / quadrature error
+complex characteristic-function numerical stability
 Monte Carlo valuation sampling error
+Heston time-discretization bias
+variance-boundary discretization effect
 finite-difference truncation error
 finite-difference cancellation / floating-point error
 discrete hedge-rebalancing error
@@ -284,7 +343,7 @@ root-solver failure
 analytical floating-point error
 ```
 
-A terminal hedging discrepancy is not automatically model error, a Monte Carlo confidence interval is not a deterministic pricing tolerance, and a numerically converged implied-volatility result is not automatically well conditioned.
+A terminal hedging discrepancy is not automatically model error, a Monte Carlo confidence interval is not a deterministic pricing tolerance, Fourier/MC disagreement is not automatically model error, and a numerically converged implied-volatility result is not automatically well conditioned.
 
 ## Quality and development cadence
 
@@ -299,6 +358,8 @@ pytest
 
 Use `./scripts/fix` after coherent Python batches, focused behavioral/quantitative validation during the inner loop, `./scripts/check_all` at meaningful checkpoints, and full CI on final candidates. Desktop-only dependencies/checks remain in the dedicated Desktop workflow.
 
+At the first full M5 candidate head, hosted core CI reported Ruff clean, all tracked Python formatted, strict Pyright with zero errors/warnings, and 161 passing tests with the three PySide6-dependent desktop tests skipped in core CI because the optional desktop dependency is not installed there. The final merged M5 head must be reverified after durable documentation reconciliation.
+
 ## Deliberately absent
 
 The following remain absent until later milestones create real consumers:
@@ -310,30 +371,49 @@ The following remain absent until later milestones create real consumers:
 - generic quote-cleaning or staleness framework;
 - generic volatility-surface construction/interpolation/repair framework;
 - generic inverse/inference, prediction, risk, or validation frameworks;
-- Heston stochastic volatility and Heston calibration;
+- Heston calibration and generic calibration/optimizer infrastructure;
+- generic Fourier/quadrature infrastructure;
+- generic stochastic-simulator or factor-model infrastructure;
 - discount/dividend curve inference from option chains;
 - full put-call-parity forward extraction infrastructure;
 - native/C++ quantitative backends;
 - generic UI schema/form generation, node editors, plugin architecture, universal plotting grammar, or universal background-job infrastructure; and
-- UI2 panels for M3 hedging, M4 observations/implied volatility, or future Heston/calibration work.
+- UI2 panels for M3 hedging, M4 observations/implied volatility, M5 Heston, or future calibration work.
 
 ## Next objectives
 
-### M5 — Heston Model and Independent Valuation
+### M6 — Heston calibration / inverse problem
 
-M4 supplies the specific empirical pressure for M5: under explicit rate/carry and quote-selection assumptions, observed SPX option prices imply systematic strike skew and maturity dependence that one constant Black-Scholes volatility cannot fit.
+M6 should consume M4's observation/provenance discipline and M5's validated Heston forward-pricing contracts to answer whether Heston parameter values can be inferred from known and observed targets, and how trustworthy that inference is.
 
-M5 should therefore introduce Heston as a concrete stochastic-volatility law while preserving:
+The required separation is:
 
 ```text
-Heston stochastic law
-!= Heston parameters
-!= Fourier valuation method
-!= Monte Carlo valuation method
+observed / synthetic targets
+        +
+Heston calibration problem
+        +
+objective / weighting / constraints
+        ↓
+separate numerical optimization method
+        ↓
+new immutable HestonParameters
+        +
+residual / recovery / stability evidence
 ```
 
-The first M5 validation target is independent Heston valuation and numerical/model sanity, not calibration. M6 remains the later calibration/inverse milestone.
+Protect:
+
+```text
+HestonLaw != calibrated HestonParameters
+calibration problem != numerical optimizer
+observations != inferred parameters
+forward-pricing numerical error != calibration residual
+parameter non-identifiability != optimizer failure
+```
+
+Synthetic parameter recovery should precede claims from real-market calibration. M6 should not mutate `HestonLaw`, move market observations into pricing, or create a universal inverse/optimizer framework merely because it has more than one parameter.
 
 ### Next native Workbench pressure
 
-UI2 deliberately stops at merged M2 capabilities even though M3 and M4 now exist. A later UI milestone may expose dynamic hedging/control evidence or market-observation/implied-volatility evidence, but the choice should follow actual merged product/research pressure and stable backend ownership rather than a speculative generic UI framework.
+UI2 deliberately stops at merged M2 capabilities even though M3, M4, and M5 now exist. A later UI milestone may expose dynamic hedging/control evidence, market-observation/implied-volatility evidence, or Heston forward valuation, but the choice should follow actual merged product/research pressure and stable backend ownership rather than a speculative generic UI framework.

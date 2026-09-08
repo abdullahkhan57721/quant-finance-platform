@@ -22,7 +22,9 @@ The first specialization is **Equity Derivatives & Volatility Modeling**.
 
 **M4 — Market Evidence / Inverse Problems is complete.** M4 adds provenance-bearing raw option/underlying observations, explicit quote normalization, Black-Scholes implied-volatility inversion as the first concrete inverse problem, conditioning/static-quote diagnostics, deterministic CI fixtures, and pinned SPX empirical evidence showing strike skew and maturity dependence.
 
-**M5 — Heston Model and Independent Valuation is next.** It is motivated by the observed M4 failure of one constant Black-Scholes volatility to reconcile the market option set, while M3 remains the replication/model-misspecification baseline.
+**M5 — Heston Model and Independent Valuation is complete.** M5 adds an explicit stochastic-volatility state/law/parameter specialization, deterministic characteristic-function/Fourier valuation, independent full-truncation Euler Monte Carlo valuation, exact deterministic-variance boundary handling, method-specific numerical evidence, and cross-method/theoretical validation without introducing calibration or generic Fourier/simulation frameworks.
+
+**M6 — Heston Calibration / Inverse Problem is next.** It will consume the validated M5 forward model and valuation semantics rather than redefining Heston model identity or numerical pricing responsibilities.
 
 See:
 
@@ -35,6 +37,7 @@ See:
 - [`docs/models/m2_numerical_methods_and_sensitivities.md`](docs/models/m2_numerical_methods_and_sensitivities.md) for M2 numerical methods, Greeks, uncertainty, and error taxonomy;
 - [`docs/models/m3_dynamic_delta_hedging.md`](docs/models/m3_dynamic_delta_hedging.md) for M3 path, policy, accounting, replication, and misspecification evidence;
 - [`docs/models/m4_market_evidence_and_implied_volatility.md`](docs/models/m4_market_evidence_and_implied_volatility.md) for M4 observation, normalization, inverse-problem, conditioning, and empirical-evidence semantics;
+- [`docs/models/m5_heston_stochastic_volatility.md`](docs/models/m5_heston_stochastic_volatility.md) for M5 Heston dynamics, Fourier/Monte Carlo method provenance, numerical conventions, and validation evidence;
 - [`docs/evidence/m4_spx_implied_volatility_evidence.json`](docs/evidence/m4_spx_implied_volatility_evidence.json) for the pinned derived SPX evidence artifact;
 - [`docs/decisions/0002-mathematical-problem-architecture.md`](docs/decisions/0002-mathematical-problem-architecture.md) for the current mathematical-problem doctrine; and
 - [`docs/development/engineering_principles.md`](docs/development/engineering_principles.md) for engineering/collaboration rationale.
@@ -228,18 +231,59 @@ The systematic downside skew and maturity dependence contradict the one-constant
 
 Implied volatility is a **model-dependent inferred parameter**, not a directly observed physical volatility.
 
+## M5 — Heston stochastic volatility and independent valuation
+
+M5 answers the M4 model-pressure question with a concrete stochastic-volatility specialization while reusing the same European-option contract and the existing pricing architecture:
+
+```text
+HestonEquityState(spot, instantaneous variance)
++
+HestonLaw
++
+HestonParameters(kappa, theta, xi, rho, q)
++
+existing EuropeanOption
++
+existing money-market numeraire + pricing measure
+        ↓
+PricingProblem
+        ├── HestonFourierEuropeanOption
+        └── HestonMonteCarloEuropeanOption
+```
+
+`HestonEquityState` refines `EquityState`, so a European option remains the same financial contract under Black-Scholes and Heston. The Heston parameter object owns mean-reversion speed, long-run variance, volatility of variance, Brownian correlation, and continuous dividend yield; the risk-free rate remains owned by the numeraire. The classical Feller condition is exposed as a diagnostic and is not silently treated as a universal model-validity restriction.
+
+`HestonFourierEuropeanOption` implements deterministic characteristic-function pricing with explicit finite integration bounds, composite-Simpson resolution, stable complex square-root branch semantics, and method-specific evaluation diagnostics. `HestonMonteCarloEuropeanOption(paths, time_steps, seed)` independently uses fresh local RNG state and full-truncation Euler variance dynamics, retaining sampling uncertainty, timestep configuration, variance-scheme identity, and negative raw variance proposals as boundary-pressure evidence.
+
+At `xi = 0`, Heston variance becomes deterministic. M5 handles that boundary exactly through integrated variance and validates the resulting price against the independent Black-Scholes closed form rather than forcing the general stochastic-volatility numerics through a singular formula.
+
+M5 evidence includes parameter/state-domain checks, expiry and zero-spot boundaries, put-call parity, Feller-violating but numerically supported parameters, Fourier convergence/stability, exact `xi=0` reduction, seeded Monte Carlo reproducibility, variance-boundary diagnostics, and Fourier ↔ Monte Carlo agreement for a non-degenerate parameter set with tolerance tied to sampling uncertainty and discretization bias.
+
+Protect:
+
+```text
+Heston stochastic law != Heston parameter values != current modeled state
+Heston law != Fourier valuation method != Monte Carlo valuation method
+Monte Carlo sampling error != Heston time-discretization bias
+variance-boundary discretization effect != financial model error
+Heston forward valuation != future Heston calibration
+```
+
 ## Validation evidence
 
 The platform does not rely on plausible-looking prices alone.
 
-M1 establishes analytical benchmarks, put-call parity, bounds, limiting cases, and formula traceability. M2 adds independent valuation convergence, Monte Carlo uncertainty/scaling, and analytic ↔ finite-difference Greek validation. M3 adds dynamic-replication/accounting/no-lookahead/distributional misspecification evidence. M4 adds observation provenance, normalization rejection tests, known-volatility recovery, financial-feasibility and numerical-failure tests, low-Vega conditioning evidence, synthetic smile/term-structure regression evidence, static quote diagnostics, and reproducible derived SPX evidence.
+M1 establishes analytical benchmarks, put-call parity, bounds, limiting cases, and formula traceability. M2 adds independent valuation convergence, Monte Carlo uncertainty/scaling, and analytic ↔ finite-difference Greek validation. M3 adds dynamic-replication/accounting/no-lookahead/distributional misspecification evidence. M4 adds observation provenance, normalization rejection tests, known-volatility recovery, financial-feasibility and numerical-failure tests, low-Vega conditioning evidence, synthetic smile/term-structure regression evidence, static quote diagnostics, and reproducible derived SPX evidence. M5 adds stochastic-volatility domain semantics, Fourier quadrature/convergence evidence, exact deterministic-variance reduction, positivity-boundary diagnostics, reproducible time-discretized Monte Carlo, and independent Fourier ↔ Monte Carlo cross-validation.
 
 The project keeps distinct:
 
 ```text
 financial model / misspecification effect
-numerical discretization / approximation error
+Fourier truncation / quadrature error
+complex-function numerical stability
 Monte Carlo valuation sampling error
+Heston time-discretization bias
+variance-boundary discretization effect
 finite-difference truncation error
 finite-difference cancellation / floating-point error
 discrete hedge-rebalancing error
@@ -268,7 +312,7 @@ separately from
 modeled state + stochastic law + parameters + probability semantics
 ```
 
-M4 is the first production consumer of this distinction. `RawUnderlyingObservation` is not an `EquityState`; normalized option prices are not model prices; inferred volatility is not raw market data.
+M4 is the first production consumer of this distinction. `RawUnderlyingObservation` is not an `EquityState`; normalized option prices are not model prices; inferred volatility is not raw market data. M5 remains on the forward-model side of this boundary; M6 will infer new immutable Heston parameter values from explicit targets rather than mutating `HestonLaw`.
 
 ## v0.1 direction
 
@@ -285,11 +329,9 @@ dynamic hedging/control        market evidence /
                                ← M4 complete
         └─────────────┬────────────┘
                       ↓
-Heston stochastic volatility                          ← M5 next
+Heston stochastic volatility + independent valuation     ← M5 complete
         ↓
-independent Heston valuation
-        ↓
-calibration / inverse problem
+Heston calibration / inverse problem                     ← M6 next
         ↓
 parameter recovery + stability
         ↓
@@ -315,9 +357,11 @@ numeraire != pricing measure
 problem != solution method
 pricing problem != sensitivity problem != control problem != inverse problem
 GBM stochastic law != Monte Carlo method != path simulation
+Heston law != Fourier method != Heston Monte Carlo method
 Delta sensitivity != hedge policy != realized hedge action
 inverse problem != optimizer / root finder
 implied volatility != observed volatility
+Heston forward valuation != Heston calibration
 FinancialContract != Trade != Portfolio
 production library != research study != presentation
 ```
@@ -376,7 +420,8 @@ The repository intentionally still contains no merged production implementation 
 - generic/live market-data-provider infrastructure;
 - generic quote-cleaning, staleness, or arbitrage-free surface construction/repair infrastructure;
 - generic inverse/inference, prediction, risk, or validation frameworks;
-- Heston or Heston calibration;
+- Heston calibration or generic calibration/optimizer infrastructure;
+- generic Fourier/quadrature or stochastic-simulator frameworks;
 - discount/dividend curve inference from option chains;
 - generic experiment infrastructure; or
 - a C++ backend abstraction.
