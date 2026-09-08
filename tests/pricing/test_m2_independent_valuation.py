@@ -90,7 +90,10 @@ def test_crr_converges_toward_black_scholes_reference() -> None:
 
     assert errors[-1] < 0.0013
     assert errors[-1] < errors[0] / 25.0
-    assert all(later < earlier for earlier, later in zip(errors, errors[1:]))
+    assert all(
+        later < earlier
+        for earlier, later in zip(errors, errors[1:], strict=False)
+    )
 
 
 def test_crr_support_boundary_exposes_discrete_no_arbitrage_condition() -> None:
