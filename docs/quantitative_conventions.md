@@ -6,7 +6,7 @@ This document is the authoritative register for project quantitative representat
 
 A convention may be **committed**, **explicitly deferred**, or **local to a specific API/study**. What is not allowed is a consequential convention remaining implicit across a public boundary.
 
-M0A commits the structural mathematics of the platform-wide problem taxonomy and the implemented pricing core. M1 makes the first concrete equity-option conventions explicit. M2 resolves the first concrete numerical-valuation and sensitivity conventions. M3 resolves the first concrete dynamic-hedging/control conventions without promoting Black-Scholes-specific choices into universal solver, risk, portfolio, simulation, or execution policy. M4 resolves the first concrete observed-market normalization and implied-volatility inverse-problem conventions without creating generic market-data, surface, or inverse-problem frameworks.
+M0A commits the structural mathematics of the platform-wide problem taxonomy and the implemented pricing core. M1 makes the first concrete equity-option conventions explicit. M2 resolves the first concrete numerical-valuation and sensitivity conventions. M3 resolves the first concrete dynamic-hedging/control conventions without promoting Black-Scholes-specific choices into universal solver, risk, portfolio, simulation, or execution policy. M4 resolves the first concrete observed-market normalization and implied-volatility inverse-problem conventions without creating generic market-data, surface, or inverse-problem frameworks. M5 resolves the first stochastic-volatility state/parameter and independent Fourier/Monte Carlo valuation conventions without creating generic factor-model, Fourier, quadrature, or stochastic-simulator frameworks.
 
 ADR 0002 is the current authority for the mathematical problem architecture. ADR 0001 remains the historical pricing-specific decision record.
 
@@ -175,6 +175,8 @@ The foundational completed pricing result uses **present value** terminology. `V
 
 M2 proves one small extension of that result boundary: a concrete valuation method may return a specific immutable subtype when the method genuinely produces additional evidence. `MonteCarloValuationResult` therefore retains `present_value` while adding Monte Carlo sampling uncertainty, path count, and seed. Those fields do not become optional members of every `ValuationResult`.
 
+M5 adds two further specific valuation-result subtypes without widening the common result. `HestonFourierValuationResult` retains explicit finite integration bounds, interval count, and characteristic-function evaluation count. `HestonMonteCarloValuationResult` extends Monte Carlo sampling evidence with Heston timestep and variance-discretization evidence. Those fields remain method-specific.
+
 Greeks/sensitivities, inference/calibration outputs, control policies, risk outputs, hedging evidence, validation evidence, and benchmark metadata remain separate specific result/evidence structures rather than optional fields on generic valuation output.
 
 ### Volatility values use explicit decimal/annualization semantics
@@ -188,6 +190,8 @@ annualized_volatility = 0.20
 means 20% annualized volatility, not 0.20% and not 20 percentage points. Variance, instantaneous variance, volatility-of-volatility, and model-specific variance-state quantities remain distinct concepts and should be named accordingly.
 
 M4 implied volatility follows the same unit convention, but the semantic role differs: it is the Black-Scholes parameter value inferred from an observed option target under explicit model inputs, not an observed or physical-measure volatility.
+
+M5 makes the variance distinction concrete: `HestonEquityState.instantaneous_variance = 0.04` means an instantaneous variance level whose square root is `0.20` annualized volatility under the model-year convention. It is not itself a 4% volatility input.
 
 ### No hidden project-wide numerical tolerance
 
@@ -214,6 +218,8 @@ Use explicitly owned/configured RNG state. Record seed/RNG information in reprod
 M2's Monte Carlo valuation method exercises this rule concretely: the method owns an explicit integer seed and creates a fresh local `random.Random(seed)` for each application. The seed is retained in the immutable Monte Carlo result. This gives repeatability within the committed Python implementation without promising identical random streams across future backends.
 
 M3 follows the same ownership rule for path simulation: `BlackScholesPathSimulation` owns an explicit integer seed, `simulate_black_scholes_path` creates fresh local RNG state, and the immutable realized path retains the generating configuration and seed.
+
+M5 follows the rule independently: `HestonMonteCarloEuropeanOption` owns explicit path count, timestep count, and integer seed and constructs fresh local `random.Random(seed)` state for each application. Its correlated Gaussian construction is local to method execution.
 
 Equal integer seeds across Python/C++ are **not** a contract for identical random streams. Use shared pre-generated random inputs when strict kernel parity is required.
 
@@ -310,7 +316,7 @@ M4 resolves only the conventions needed by its first observed option-market cons
 | Quote target | Positive, non-crossed bid/ask midpoint | `last` is retained raw where available but is not the first inference target. |
 | Missing/bad quote policy | Missing bid/ask, nonpositive bid/ask, crossed markets, mismatched underlying/date, unsupported exercise/settlement fail normalization | Bad raw observations may still exist as evidence. |
 | Exercise support | European only for the first inference consumer | No American-option inversion. |
-| Settlement support | Reject AM settlement under current date-only M1 expiry semantics | No silent AM/PM adjustment. |
+| Settlement support | Explicit PM settlement required under current date-only M1 expiry semantics | AM or unknown settlement is not silently normalized. |
 | Staleness | No staleness inference without source evidence sufficient to support it | Absence of a timestamp is preserved, not guessed. |
 | Implied-volatility problem | Solve the existing Black-Scholes forward map for annualized decimal `sigma` against one normalized observed target | Implied volatility is model-dependent inference, not observed/physical volatility. |
 | Volatility domain | Default `[0.0, 5.0]` annualized volatility decimals | Method/problem-local admissible interval, not an economic universal bound. |
@@ -327,17 +333,49 @@ M4 resolves only the conventions needed by its first observed option-market cons
 
 Detailed formulas, failure semantics, conditioning, deterministic fixtures, and real-market evidence are in `docs/models/m4_market_evidence_and_implied_volatility.md`.
 
+## M5 local Heston stochastic-volatility and valuation conventions
+
+M5 resolves only the conventions needed by the first stochastic-volatility law and its two independent European-option valuation methods. These are **local to the Heston pricing specialization unless explicitly identified above as cross-cutting**.
+
+| Convention | M5 decision | Scope / non-claim |
+| --- | --- | --- |
+| Current state | `HestonEquityState` refines `EquityState` with non-negative finite `instantaneous_variance` | Same European-option contract is reused; no generic factor/state-component framework. |
+| Instantaneous variance | Annualized variance under ACT/365F model-year units; `v=0.04` corresponds to instantaneous volatility `sqrt(v)=0.20` | Variance is not volatility and is not an implied-volatility quote. |
+| Mean reversion | `mean_reversion_speed = kappa > 0`, in inverse model-year units | Model parameter, not optimizer speed or a global time constant. |
+| Long-run level | `long_run_variance = theta >= 0` | Variance level, not long-run volatility. |
+| Volatility of variance | `volatility_of_variance = xi >= 0`, the CIR/Heston variance diffusion coefficient under model-year units | Do not reinterpret `xi` as an annualized spot-volatility decimal. |
+| Correlation | `rho` finite in `[-1, 1]` | Instantaneous Brownian correlation between spot and variance shocks. |
+| Dividend/carry | Finite continuous annualized yield `q` in `HestonParameters` | Same economic convention as M1 pricing; no discrete dividends. |
+| Risk-free rate | Existing flat money-market numeraire owns `r` | Heston parameters do not duplicate the risk-free rate. |
+| Feller condition | Expose `2*kappa*theta - xi^2` and whether it is non-negative as diagnostics | Feller inequality is not a universal constructor-validity requirement. |
+| Fourier method | Heston characteristic-function `P1/P2` valuation with explicit finite Simpson integration | No generic Fourier/quadrature framework. |
+| Fourier frequency domain | Default `[1e-8, 100]` with lower endpoint strictly positive | Local frequency truncation choice; not a universal transform domain. |
+| Fourier resolution | Default `2048` even Simpson intervals | Explicit method configuration; convergence evidence varies range/resolution. |
+| Complex branch | Square root chosen with non-negative real part, then non-negative imaginary part when the real part is zero | Heston implementation branch convention, documented for reproducibility. |
+| `xi=0` Fourier boundary | Exact deterministic variance integral mapped to independently implemented Black-Scholes with `sigma_eff=sqrt(I_T/T)` | Exact model boundary, not a small-`xi` approximation. |
+| Heston Monte Carlo path count | Explicit integer `paths >= 2` | No global Heston simulation budget. |
+| Heston Monte Carlo time grid | Explicit positive integer `time_steps`; uniform spacing in ACT/365F model time `T/time_steps` | Numerical SDE grid, not calendar observation dates and not M3 hedge rebalance dates. |
+| Heston Monte Carlo RNG | Explicit integer seed; fresh local Python `random.Random(seed)` on every application | Reproducible current Python execution; no cross-language stream-identity promise. |
+| Correlated shocks | `Z_S = rho Z_v + sqrt(1-rho^2) Z_perp` from independent standard normals | Method-local shock construction implementing Heston correlation. |
+| Variance discretization | Full-truncation Euler for `xi>0`: use positive part of raw variance in variance drift/diffusion and log-spot coefficients | Numerical scheme, not Heston-law semantics. |
+| Variance-boundary evidence | Record count of negative raw next-variance proposals | Discretization-pressure diagnostic, not continuous-model negative variance and not model error. |
+| `xi=0` Monte Carlo boundary | Sample terminal log spot exactly from deterministic integrated variance | Sampling error remains; Heston timestep-discretization bias does not. |
+| Heston Monte Carlo uncertainty | Reuse M2 sample standard error and normal-approximation 95% interval for discounted payoff mean | Sampling uncertainty only; does not cover timestep bias or model error. |
+| Cross-method comparison | Compare deterministic Fourier value with seeded MC using a tolerance that separately admits sampling uncertainty plus explicit timestep-bias allowance | Agreement is evidence, not proof by itself. |
+
+Detailed equations, characteristic-function notation, scheme definitions, references, limiting cases, and executable evidence are in `docs/models/m5_heston_stochastic_volatility.md`.
+
 ## Explicitly deferred finance conventions
 
 These decisions should be settled by the first milestones that create real consumers. Until then, do not spread a local choice across the codebase as if it were canonical.
 
 | Convention | Status | First expected pressure | Guidance until settled |
 | --- | --- | --- | --- |
-| General business-day/calendar framework | Deferred | future calendar-sensitive consumer | M1/M4 intentionally use date-valued ACT/365F semantics; do not generalize this into a universal calendar policy. |
-| General discount-factor/curve representation | Deferred | M5/M6 | M1/M4 use a flat money-market numeraire for their supported evidence; M0A commits numeraire semantics, not a curve hierarchy. |
-| Discrete dividend/corporate-action representation | Deferred | future instrument/market-data consumer | M1's continuous yield is local; do not reinterpret it as a discrete dividend schedule. M3 explicitly rejects nonzero continuous yield for hedge execution until cash-flow accounting is settled. |
+| General business-day/calendar framework | Deferred | future calendar-sensitive consumer | M1/M4/M5 intentionally use date-valued ACT/365F semantics; do not generalize this into a universal calendar policy. |
+| General discount-factor/curve representation | Deferred | future curve/rates consumer | M1/M4/M5 use a flat money-market numeraire for supported evidence; M0A commits numeraire semantics, not a curve hierarchy. |
+| Discrete dividend/corporate-action representation | Deferred | future instrument/market-data consumer | M1/M5 continuous yield is local; do not reinterpret it as a discrete dividend schedule. M3 explicitly rejects nonzero continuous yield for hedge execution until cash-flow accounting is settled. |
 | General forward-market observation semantics | Deferred | future forward/curve consumer | M4 observes spot and constructs a model forward from explicit `r/q`; that is not an observed forward quote. |
-| Array axis/order conventions for numerical kernels | Deferred | M5 | Define only when vectorized/compiled kernels create a shared boundary. |
+| Array axis/order conventions for numerical kernels | Deferred | future vectorized/native kernel consumer | M5's scalar Python Fourier/Monte Carlo implementations do not create a shared array boundary. |
 | Generic market timestamp/calendar convention | Deferred | future intraday/multi-market consumer | M4 requires timezone-aware retrieval/optional observation timestamps locally but does not define exchange-session semantics. |
 | Generic quote cleaning policy | Deferred | second materially different market-data consumer | M4 commits only its European midpoint normalization; do not assume it fits every instrument/provider. |
 | Inference/calibration loss/objective convention | Deferred | M6 | M4 solves a scalar equality; calibration objectives must belong to the future concrete calibration problem. |
@@ -383,6 +421,8 @@ M2 extends the same discipline to independent numerical valuation and sensitivit
 M3 extends it to dynamic replication in `docs/models/m3_dynamic_delta_hedging.md`, including exact-transition GBM path semantics, the Delta-to-policy boundary, stock/cash self-financing identities, terminal error sign convention, transaction costs, misspecification, and distributional validation evidence.
 
 M4 extends it to observed-data normalization and Black-Scholes inversion in `docs/models/m4_market_evidence_and_implied_volatility.md`, including price bounds, numerical method/failure semantics, M2-Vega conditioning, strike/maturity coordinates, static quote diagnostics, the pinned real-market source, explicit study assumptions, and the empirical evidence artifact.
+
+M5 extends it to stochastic volatility in `docs/models/m5_heston_stochastic_volatility.md`, including Heston state/parameter notation, Feller semantics, the characteristic-function branch and `P1/P2` integrals, deterministic `xi=0` reduction, full-truncation Euler, stochastic ownership, and independent Fourier/Monte Carlo validation evidence.
 
 ## Market-data provenance convention
 
