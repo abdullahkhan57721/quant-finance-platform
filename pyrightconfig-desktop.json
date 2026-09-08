@@ -1,0 +1,9 @@
+{
+  "include": [
+    "src/qf_platform/desktop",
+    "tests/desktop"
+  ],
+  "extraPaths": ["src"],
+  "pythonVersion": "3.12",
+  "typeCheckingMode": "strict"
+}

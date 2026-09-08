@@ -16,6 +16,9 @@ dev = [
     "pytest>=8.0",
     "ruff>=0.9",
 ]
+desktop = [
+    "PySide6==6.11.2",
+]
 
 [tool.setuptools.packages.find]
 where = ["src"]
@@ -33,5 +36,6 @@ select = ["B", "E4", "E7", "E9", "F", "I", "SIM", "UP"]
 
 [tool.pyright]
 include = ["src", "tests"]
+exclude = ["src/qf_platform/desktop", "tests/desktop"]
 pythonVersion = "3.12"
 typeCheckingMode = "strict"

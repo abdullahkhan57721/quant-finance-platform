@@ -1,0 +1,1 @@
+recursive-include src/qf_platform/desktop/qml *.qml
