@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import date
-from enum import Enum
+from enum import StrEnum
 
 from qf_platform._validation import calendar_date, nonnegative_finite_real
 from qf_platform.pricing.cashflows import CashFlow, CashFlowStream
@@ -38,7 +38,7 @@ class EquityStateSpace:
         return isinstance(value, EquityState)
 
 
-class OptionRight(str, Enum):
+class OptionRight(StrEnum):
     """European option exercise right."""
 
     CALL = "call"

@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 
 from qf_platform._validation import finite_real, nonnegative_finite_real
-from qf_platform.pricing.equity import EquityState, EquityStateSpace
+from qf_platform.pricing.equity import EquityStateSpace
 
 
 @dataclass(frozen=True, slots=True)
