@@ -2,15 +2,15 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import date
 from enum import StrEnum
 from math import isfinite
-from typing import Self, cast
+from typing import Protocol, Self, cast
 
 from qf_platform._validation import finite_real, nonnegative_finite_real
 from qf_platform.market_data.normalization import NormalizedOptionObservation
-from qf_platform.pricing.equity import EuropeanOption
+from qf_platform.pricing.equity import EuropeanOption, OptionRight
 from qf_platform.pricing.heston import HestonEquityState, HestonLaw, HestonParameters
 from qf_platform.pricing.heston_fourier import HestonFourierEuropeanOption
 from qf_platform.pricing.measures import PricingMeasureSemantics
@@ -19,7 +19,7 @@ from qf_platform.pricing.problem import PricingProblem
 from qf_platform.pricing.state import ModeledState
 from qf_platform.pricing.valuation import evaluate
 
-_HESSTON_CALIBRATION_PARAMETER_COUNT = 5
+_HESTON_CALIBRATION_PARAMETER_COUNT = 5
 
 
 class InvalidHestonCalibrationProblem(ValueError):
@@ -278,14 +278,15 @@ class HestonCalibrationBounds:
     def widths(self) -> tuple[float, float, float, float, float]:
         """Return finite domain widths used only to scale identifiability evidence."""
 
-        return tuple(
-            upper - lower
-            for lower, upper in zip(
-                self.lower_vector,
-                self.upper_vector,
-                strict=True,
-            )
-        )  # type: ignore[return-value]
+        lower = self.lower_vector
+        upper = self.upper_vector
+        return (
+            upper[0] - lower[0],
+            upper[1] - lower[1],
+            upper[2] - lower[2],
+            upper[3] - lower[3],
+            upper[4] - lower[4],
+        )
 
     def contains(self, coordinates: HestonCalibrationCoordinates, /) -> bool:
         """Return whether financial coordinates lie inside this admissible domain."""
@@ -313,7 +314,9 @@ class HestonCalibrationProblem:
     continuous_dividend_yield: float
     bounds: HestonCalibrationBounds
     weighting: HestonCalibrationWeighting = HestonCalibrationWeighting.UNIFORM_PRICE
-    forward_method: HestonFourierEuropeanOption = HestonFourierEuropeanOption()
+    forward_method: HestonFourierEuropeanOption = field(
+        default_factory=HestonFourierEuropeanOption
+    )
 
     def __post_init__(self) -> None:
         if not isinstance(cast(object, self.valuation_date), date):
@@ -356,7 +359,7 @@ class HestonCalibrationProblem:
         self._validate_targets()
 
     def _validate_targets(self) -> None:
-        contract_keys: set[tuple[date, float, object]] = set()
+        contract_keys: set[tuple[date, float, OptionRight]] = set()
         market_underlyings: set[str] = set()
         for target in self.targets:
             if not isinstance(cast(object, target), HestonPriceCalibrationTarget):
@@ -468,7 +471,7 @@ class HestonCalibrationConditioning:
             if value < 0:
                 msg = f"{name} must be non-negative"
                 raise ValueError(msg)
-        if self.parameter_count != _HESSTON_CALIBRATION_PARAMETER_COUNT:
+        if self.parameter_count != _HESTON_CALIBRATION_PARAMETER_COUNT:
             msg = "M6 conditioning parameter_count must be five"
             raise ValueError(msg)
         if self.jacobian_rank > min(self.target_count, self.parameter_count):
@@ -545,6 +548,18 @@ class HestonCalibrationResult:
         return max(abs(item.standardized_residual) for item in self.residuals)
 
 
+class HestonCalibrationMethod(Protocol):
+    """Numerical-method responsibility for M6's concrete calibration problem."""
+
+    def solve(
+        self,
+        problem: HestonCalibrationProblem,
+        /,
+    ) -> HestonCalibrationResult:
+        """Solve one already-formed Heston calibration problem."""
+        ...
+
+
 def heston_calibration_model_price(
     problem: HestonCalibrationProblem,
     coordinates: HestonCalibrationCoordinates,
@@ -597,3 +612,13 @@ def evaluate_heston_calibration_residuals(
             )
         )
     return tuple(residuals)
+
+
+def calibrate_heston(
+    problem: HestonCalibrationProblem,
+    method: HestonCalibrationMethod,
+    /,
+) -> HestonCalibrationResult:
+    """Evaluate one Heston calibration Problem + supported Method."""
+
+    return method.solve(problem)
