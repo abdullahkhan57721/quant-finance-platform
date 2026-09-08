@@ -14,8 +14,9 @@ class HestonEquityState(EquityState):
     """Modeled equity spot plus instantaneous variance under Heston semantics.
 
     The state refines ``EquityState`` so existing spot-dependent contracts can be
-    reused without introducing Heston-specific contract types. ``instantaneous_variance``
-    is an annualized variance quantity, not an annualized volatility.
+    reused without introducing Heston-specific contract types.
+    ``instantaneous_variance`` is an annualized variance quantity, not an annualized
+    volatility.
     """
 
     instantaneous_variance: float
@@ -46,7 +47,7 @@ class HestonParameters:
 
     ``mean_reversion_speed`` (kappa) is strictly positive per model year.
     ``long_run_variance`` (theta) and ``volatility_of_variance`` (xi) are
-    non-negative annualized variance-model quantities. ``correlation`` (rho) lies in
+    non-negative variance-model quantities. ``correlation`` (rho) lies in
     ``[-1, 1]``. The risk-free accumulation rate remains owned by the pricing
     problem's numeraire rather than being duplicated here.
 
@@ -122,13 +123,16 @@ def integrated_deterministic_heston_variance(
     year_fraction: float,
     /,
 ) -> float:
-    """Return integrated variance when ``xi == 0`` makes variance deterministic.
+    """Return integrated variance on the exact ``xi == 0`` Heston boundary.
 
     For ``dv = kappa(theta-v) dt`` the deterministic path is
     ``v(t)=theta+(v0-theta)exp(-kappa*t)``. Its integral is the variance entering the
     terminal log-spot distribution and therefore the Black-Scholes-equivalent limit.
     """
 
+    if parameters.volatility_of_variance != 0.0:
+        msg = "deterministic Heston variance integral requires volatility_of_variance == 0"
+        raise ValueError(msg)
     initial = nonnegative_finite_real(initial_variance, name="initial_variance")
     horizon = nonnegative_finite_real(year_fraction, name="year_fraction")
     kappa = parameters.mean_reversion_speed
