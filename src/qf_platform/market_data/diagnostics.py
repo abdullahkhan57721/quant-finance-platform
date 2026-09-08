@@ -108,9 +108,7 @@ def diagnose_option_strike_slice(
         )
         tolerance = _comparison_tolerance(left_slope, right_slope)
         if right_slope < left_slope - tolerance:
-            convexity.append(
-                (strikes[index], strikes[index + 1], strikes[index + 2])
-            )
+            convexity.append((strikes[index], strikes[index + 1], strikes[index + 2]))
 
     return OptionSliceDiagnostics(
         valuation_date=valuation_date,
