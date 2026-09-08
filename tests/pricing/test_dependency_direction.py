@@ -1,5 +1,5 @@
-import ast
 from pathlib import Path
+import ast
 
 
 LOW_LEVEL_MODULES = (
