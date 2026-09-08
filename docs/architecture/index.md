@@ -9,7 +9,7 @@ M0A establishes:
 1. a production mathematical asset-pricing composition core; and
 2. a platform-wide mathematical taxonomy for organizing quantitative problems without pre-building their operational frameworks.
 
-M1 provides the first concrete Black-Scholes/European-option specialization. M2 pressure-tests the pricing boundary with multiple valuation methods and establishes the first concrete sensitivity family. ADR 0002 remains the current authority for the platform-wide doctrine; ADR 0001 remains the historical pricing-specific decision.
+M1 provides the first concrete Black-Scholes/European-option specialization. M2 pressure-tests the pricing boundary with multiple valuation methods and establishes the first concrete sensitivity family. M3 establishes the first concrete control/dynamic-replication family while deliberately remaining narrower than a generic stochastic-control, portfolio, or execution framework. ADR 0002 remains the current authority for the platform-wide doctrine; ADR 0001 remains the historical pricing-specific decision.
 
 The repository intentionally does **not** define a complete package hierarchy or universal finance framework in advance.
 
@@ -196,7 +196,7 @@ observations != inferred parameters
 model structure != fitted parameter values
 ```
 
-An optimizer or root finder is a solution method; it does not own the financial meaning of the inverse problem. No generic production `InverseProblem` framework exists yet. M4 is expected to create the first narrow inverse consumer through implied volatility.
+An optimizer or root finder is a solution method; it does not own the financial meaning of the inverse problem. No generic production `InverseProblem` framework exists yet. M4 is the first narrow inverse consumer through implied-volatility work.
 
 ### Sensitivity
 
@@ -249,7 +249,7 @@ objective functional
 +
 constraints
         ↓
-optimal-control question
+control / optimization question
 ```
 
 Protect:
@@ -257,10 +257,38 @@ Protect:
 ```text
 control problem != optimizer
 objective/constraints != search algorithm
+sensitivity value != control policy
+policy != realized action / trajectory
 policy/result != mutable solver state
 ```
 
-No generic production `ControlProblem` framework exists yet. M3 is expected to create the first concrete pressure through dynamic delta hedging/replication.
+M3 implements the first **concrete** control pressure through Black-Scholes dynamic Delta hedging:
+
+```text
+Black-Scholes pricing problem
++
+exact-transition model-generated path
++
+rebalance schedule
++
+AnalyticDeltaHedgePolicy consuming M2 Delta
++
+stock/cash financing and cost convention
+        ↓
+DeltaHedgeResult
+        ↓
+ReplicationErrorSummary
+```
+
+This does **not** create a generic production `ControlProblem` framework. The policy is prescribed by the Black-Scholes replication argument; M3 does not solve a universal optimization problem or introduce strategy/portfolio/execution infrastructure.
+
+The first specialization also keeps:
+
+```text
+financial model != path simulation != hedge execution
+path observation grid != hedge rebalance schedule
+replication error != model error by definition
+```
 
 ### Risk
 
@@ -333,7 +361,7 @@ The expected later distinction remains:
 MarketSnapshot != MarketEnvironment
 ```
 
-where a snapshot is provenance-bearing observations and an environment is problem-ready interpretation/construction only if earned by real consumers. M0A–M2 create neither merely because future observed-market workflows are foreseeable.
+where a snapshot is provenance-bearing observations and an environment is problem-ready interpretation/construction only if earned by real consumers. M0A–M3 create neither merely because observed-market workflows are foreseeable. M3 model-generated paths are not market observations.
 
 ## Production pricing composition
 
@@ -375,9 +403,13 @@ Calibration/inference may later produce new parameter values; it must not turn f
 
 `FinancialContract` maps a modeled path to a realized immutable `CashFlowStream`. The contract owns contingent payment semantics, not valuation, inference/calibration, observed market data, trade/portfolio ownership, hedging/P&L, plotting/presentation, or numerical algorithms.
 
+M3 consumes the existing contract to settle the terminal option payoff; it does not move hedge state or ownership into `FinancialContract`.
+
 ### Numeraire and pricing-measure semantics
 
 `Numeraire[Time]` represents the strictly positive denomination process. `PhysicalMeasureSemantics` and `PricingMeasureSemantics[Time]` remain distinct. The architecture does not provide a generic change-of-measure engine.
+
+M3 uses the existing flat money-market numeraire both for the pricing problem and for explicit hedge cash-account financing. That reuse does not turn the numeraire into a portfolio or execution object.
 
 ### Pricing problem
 
@@ -385,7 +417,7 @@ Calibration/inference may later produce new parameter values; it must not turn f
 
 > What financial value is mathematically being asked for?
 
-It composes current modeled state, stochastic-law structure, parameter values, contract, numeraire, pricing measure, and valuation time. It does not choose an algorithm.
+It composes current modeled state, stochastic-law structure, parameter values, contract, numeraire, pricing measure, and valuation time. It does not choose an algorithm or own dynamic hedge state.
 
 ### Valuation method and compatibility
 
@@ -411,7 +443,38 @@ The finite CRR model and the continuous Black-Scholes model are not silently ide
 
 M2 demonstrates one stable extension rule: a concrete valuation method may return a **specific immutable subtype** when it genuinely produces additional method evidence. `MonteCarloValuationResult` therefore adds standard error, a labeled 95% normal-approximation confidence interval, path count, and seed.
 
-These fields do **not** become optional members of every valuation result. Greeks, calibration diagnostics, hedging/P&L evidence, validation evidence, and benchmark/performance metadata remain separate specific results/evidence.
+These fields do **not** become optional members of every valuation result. Greeks, calibration diagnostics, hedging/P&L evidence, validation evidence, and benchmark/performance metadata remain separate specific results/evidence. M3 therefore commits `DeltaHedgeResult` and `ReplicationErrorSummary` separately rather than extending `ValuationResult`.
+
+## M3 control / dynamic-replication boundary
+
+M3 establishes a concrete downstream package:
+
+```text
+qf_platform.pricing
+        ↓
+qf_platform.sensitivity
+        ↓
+qf_platform.control
+```
+
+The conceptual data flow is not a claim that every control workflow must depend on sensitivity. It records the actual first consumer: the Black-Scholes hedge policy uses M2 Delta.
+
+The package contains two separate responsibilities that happen to cooperate in M3:
+
+```text
+BlackScholesPathSimulation
+→ exact model-generated path evidence
+
+BlackScholesDeltaHedgeProblem + AnalyticDeltaHedgePolicy
+→ dynamic hedge question / policy
+→ realized hedge accounting evidence
+```
+
+The path configuration is not a `ValuationMethod`, and the hedge problem is not a `SensitivityProblem`.
+
+M3's exact-transition GBM setup means observation dates are output/sample dates rather than Euler discretization steps. A future stochastic law that requires numerical path discretization must introduce that method/configuration explicitly instead of generalizing M3's dates into a universal simulator clock.
+
+Mutable local execution state is permitted while a hedge trajectory is being constructed, but completed `SimulatedEquityPath`, `DeltaHedgeResult`, and aggregate evidence are immutable/value-like.
 
 ## Additional protected distinctions
 
@@ -421,7 +484,7 @@ These fields do **not** become optional members of every valuation result. Greek
 FinancialContract != Trade != Portfolio
 ```
 
-Introduce trade/portfolio structures only when real aggregation/ownership consumers exist.
+Introduce trade/portfolio structures only when real aggregation/ownership consumers exist. M3's convention of one short option is local to its control problem and does not create a general `Trade` abstraction.
 
 ### Model structure vs parameters
 
@@ -429,7 +492,7 @@ Introduce trade/portfolio structures only when real aggregation/ownership consum
 stochastic law != model parameters
 ```
 
-A calibrated parameter set is not a different model type.
+A calibrated parameter set is not a different model type. M3 likewise represents generating volatility and hedging volatility as parameter values under the same Black-Scholes law rather than inventing different model classes.
 
 ### Financial model vs numerical method
 
@@ -446,6 +509,12 @@ closed form / binomial / Monte Carlo / Fourier / PDE
 = valuation methods
 ```
 
+M3 adds another protected distinction:
+
+```text
+stochastic law != path-generation procedure != control policy
+```
+
 ### Inverse problem vs optimizer
 
 ```text
@@ -460,7 +529,7 @@ Financial inference owns observations/targets, comparison/error semantics, domai
 configuration/request != immutable result
 ```
 
-Mutable orchestration, solver state, caches, and work buffers belong outside committed results.
+Mutable orchestration, solver state, caches, work buffers, path-generation scratch state, and hedge-execution scratch state belong outside committed results.
 
 ### Production library vs research study vs presentation
 
@@ -492,21 +561,31 @@ pricing foundations + supported valuation semantics
 Black-Scholes sensitivity problem/method/result
 ```
 
+M3 adds a further downstream concrete control package:
+
+```text
+pricing + sensitivity
+          ↓
+Black-Scholes path/control/accounting/evidence
+```
+
 Guardrails:
 
 - low-level state, cash-flow, contract, measure, and stochastic-law modules must not depend on valuation implementations;
 - `PricingProblem` must not depend on valuation methods;
-- `qf_platform.pricing` must not depend on `qf_platform.sensitivity`;
-- sensitivity may consume pricing because the concrete question differentiates a valuation map;
+- `qf_platform.pricing` must not depend on `qf_platform.sensitivity` or `qf_platform.control`;
+- `qf_platform.sensitivity` may consume pricing but must not depend on `qf_platform.control`;
+- M3 control may consume pricing and sensitivity because its concrete policy uses both;
+- dynamic hedge state/evidence must not be pushed back into pricing or sensitivity result contracts;
 - market observations/environment must not depend on contracts merely for convenience;
-- stochastic-law semantics must not own inference/calibration orchestration;
+- stochastic-law semantics must not own inference/calibration orchestration or hedge execution;
 - numerical utilities may be used by methods but must not own finance-domain policy;
 - validation may invoke capabilities needed to gather independent evidence;
 - high-level research/UI code must consume public library behavior rather than duplicate it.
 
 ## Market-data and provenance direction
 
-Expected future conceptual flow:
+Expected conceptual flow for M4 and later observed-data work:
 
 ```text
 external/raw data
@@ -522,22 +601,26 @@ problem-ready inputs
 
 Core tests must not depend on live data services. Research data should preserve provider/source, as-of/retrieval timestamps, raw artifact or content hash where permitted, normalization version, and licensing/redistribution notes.
 
+M3 synthetic/model-generated paths remain outside this observation/provenance flow.
+
 ## Reproducibility and RNG
 
 Stochastic calculations must use explicitly owned randomness rather than ambient global state.
 
-M2 concretely exercises this rule: `MonteCarloEuropeanOption` owns explicit path count and integer seed and creates a fresh local Python RNG for each application. The immutable result retains path count and seed. Equal integer seeds across future Python/C++ implementations are not a cross-language random-stream contract.
+M2 concretely exercises this rule: `MonteCarloEuropeanOption` owns explicit path count and integer seed and creates a fresh local Python RNG for each application. The immutable result retains path count and seed.
 
-Use shared pre-generated numeric/random inputs when strict kernel parity is required.
+M3 exercises it again: `BlackScholesPathSimulation` owns an explicit seed, exact-transition path generation creates fresh local RNG state, and the realized immutable path retains the generating configuration. Aggregate replication summaries require distinct seeds rather than silently counting duplicate-seed runs as independent stochastic replicates.
+
+Equal integer seeds across future Python/C++ implementations are not a cross-language random-stream contract. Use shared pre-generated numeric/random inputs when strict kernel parity is required.
 
 ## Validation as architecture
 
 Relevant evidence categories include:
 
 1. **Software correctness** — unit tests, typing, invariants, boundary behavior.
-2. **Theoretical/financial correctness** — no-arbitrage identities, bounds, limiting cases.
+2. **Theoretical/financial correctness** — no-arbitrage identities, bounds, limiting cases, self-financing identities.
 3. **Numerical correctness** — convergence, stability, error behavior.
-4. **Stochastic correctness** — statistical error, confidence intervals, seeded reproducibility.
+4. **Stochastic correctness** — statistical error, confidence intervals, seeded reproducibility, replicate integrity.
 5. **Cross-method validation** — independent valuation/sensitivity methods.
 6. **Inference/calibration validation** — parameter recovery, residuals, stability, identifiability.
 7. **Empirical/out-of-sample validation** — evidence on observations not used to fit the model.
@@ -547,7 +630,9 @@ Relevant evidence categories include:
 
 M2 explicitly distinguishes financial-model error, CRR discretization/model-approximation error, Monte Carlo sampling error, finite-difference truncation error, cancellation/floating-point error, and analytical floating-point error.
 
-Independent implementations agreeing are useful evidence but are not automatically proof of conceptual correctness. Every nontrivial numerical tolerance should have a documented rationale.
+M3 adds concrete evidence distinguishing discrete hedge-rebalancing error, stochastic replicate variation, volatility misspecification effect, and transaction-cost drag. A terminal replication discrepancy is not labeled "model error" merely because it is nonzero.
+
+Independent implementations agreeing are useful evidence but are not automatically proof of conceptual correctness. Every nontrivial numerical tolerance or statistical/comparative criterion should have a documented rationale.
 
 ## Python/C++ execution boundary
 
@@ -560,7 +645,7 @@ financial semantics
 market data
 configuration
 inference/calibration orchestration
-research
+control/research orchestration
 validation
 presentation
 
@@ -583,11 +668,15 @@ Rules:
 - Do not introduce backend registries before a second real implementation exists.
 - Prefer primitive numeric arrays/scalars across a native boundary rather than exporting rich Python financial objects into C++.
 
-## M1/M2 specialization pressure
+M3 creates no native acceleration claim. Exact-transition path generation and hedge execution remain readable Python reference behavior until profiling later demonstrates a worthwhile numerical boundary.
+
+## M1/M2/M3 specialization pressure
 
 M1 specializes the pricing problem family with European options and Black-Scholes closed form.
 
 M2 proves that the same financial problem can support independent analytic/tree/Monte Carlo methods while method-specific uncertainty remains specific evidence. It also proves that sensitivity deserves a separate concrete problem family rather than being hidden as methods on a pricer.
+
+M3 proves that a sensitivity can be **consumed** by a dynamic policy without becoming that policy or owning its state, and that path simulation/accounting/control evidence deserves a separate downstream boundary.
 
 ```text
 same financial PricingProblem
@@ -600,9 +689,19 @@ separately
 BlackScholesSensitivityProblem
         ├── analytic differentiation
         └── finite differences
+
+then consumed downstream by
+
+BlackScholesDeltaHedgeProblem
+        +
+AnalyticDeltaHedgePolicy
+        +
+model-generated path
+        ↓
+DeltaHedgeResult / ReplicationErrorSummary
 ```
 
-Neither pressure justifies a universal solver registry, model god object, generic sensitivity engine, portfolio layer, or risk engine.
+None of these pressures justifies a universal solver registry, model god object, generic sensitivity/control engine, strategy hierarchy, portfolio layer, execution engine, or risk engine.
 
 ## Explicit traps
 
@@ -617,6 +716,9 @@ Avoid:
 - scalar-rate assumptions embedded throughout public pricing APIs;
 - conflating observations with modeled/implied values;
 - conflating pricing, sensitivity, control, and risk questions;
+- treating Delta as synonymous with a hedge policy or realized hedge action;
+- treating a path observation grid as automatically synonymous with a numerical SDE discretization grid;
+- treating every terminal hedging discrepancy as financial model error;
 - treating Monte Carlo/Fourier/PDE/optimization as financial models;
 - one giant result object with many optional unrelated fields;
 - generic experiment engines before multiple studies reveal shared semantics;
@@ -627,6 +729,6 @@ Avoid:
 
 Create a dedicated ADR only when a decision is durable, consequential, and difficult to infer from code plus this index.
 
-ADR 0001 is the historical authority for the pricing-specific foundational decision. ADR 0002 supersedes it as the current authority for the broader mathematical problem architecture. M2's changes are concrete extensions of ADR 0002 rather than a contradiction requiring a superseding ADR.
+ADR 0001 is the historical authority for the pricing-specific foundational decision. ADR 0002 supersedes it as the current authority for the broader mathematical problem architecture. M2 and M3 are concrete extensions of ADR 0002 rather than contradictions requiring a superseding ADR. M3 therefore records its local control/path/accounting conventions in code, tests, the quantitative-convention register, and `docs/models/m3_dynamic_delta_hedging.md` rather than creating a generic-control ADR.
 
 Do not rewrite historical ADRs to hide later changes. Supersede them when architecture truly changes.
