@@ -36,6 +36,7 @@ class ValuationMethod[TimeT, StateT, ParametersT](Protocol):
         /,
     ) -> bool:
         """Return whether this implementation supports the supplied problem."""
+        ...
 
     def apply(
         self,
@@ -43,6 +44,7 @@ class ValuationMethod[TimeT, StateT, ParametersT](Protocol):
         /,
     ) -> ValuationResult:
         """Evaluate a problem already known to be supported by this method."""
+        ...
 
 
 def evaluate[TimeT, StateT, ParametersT](
