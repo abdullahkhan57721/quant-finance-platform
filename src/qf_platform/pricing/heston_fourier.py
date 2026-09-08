@@ -97,9 +97,7 @@ def _heston_characteristic_function(
     q = parameters.continuous_dividend_yield
     imaginary_argument = 1j * argument
     beta = kappa - rho * xi * imaginary_argument
-    discriminant = beta * beta + xi * xi * (
-        imaginary_argument + argument * argument
-    )
+    discriminant = beta * beta + xi * xi * (imaginary_argument + argument * argument)
     root = cmath.sqrt(discriminant)
     if root.real < 0.0 or (root.real == 0.0 and root.imag < 0.0):
         root = -root
@@ -117,15 +115,10 @@ def _heston_characteristic_function(
         raise ValueError(msg)
 
     xi_squared = xi * xi
-    c_term = imaginary_argument * (
-        log_spot + (rate - q) * year_fraction
-    ) + (kappa * theta / xi_squared) * (
-        (beta - root) * year_fraction
-        - 2.0 * cmath.log(one_minus_g_exp / one_minus_g)
-    )
-    d_term = ((beta - root) / xi_squared) * (
-        (1.0 - exp_minus_root_t) / one_minus_g_exp
-    )
+    c_term = imaginary_argument * (log_spot + (rate - q) * year_fraction) + (
+        kappa * theta / xi_squared
+    ) * ((beta - root) * year_fraction - 2.0 * cmath.log(one_minus_g_exp / one_minus_g))
+    d_term = ((beta - root) / xi_squared) * ((1.0 - exp_minus_root_t) / one_minus_g_exp)
     try:
         value = cmath.exp(c_term + d_term * initial_variance)
     except OverflowError as exc:
@@ -374,18 +367,26 @@ class HestonFourierEuropeanOption:
                 name="Heston P2 integrand",
             ).real
 
-        p1 = 0.5 + _simpson_integral(
-            p1_integrand,
-            lower=self.integration_lower_bound,
-            upper=self.integration_upper_bound,
-            intervals=self.intervals,
-        ) / pi
-        p2 = 0.5 + _simpson_integral(
-            p2_integrand,
-            lower=self.integration_lower_bound,
-            upper=self.integration_upper_bound,
-            intervals=self.intervals,
-        ) / pi
+        p1 = (
+            0.5
+            + _simpson_integral(
+                p1_integrand,
+                lower=self.integration_lower_bound,
+                upper=self.integration_upper_bound,
+                intervals=self.intervals,
+            )
+            / pi
+        )
+        p2 = (
+            0.5
+            + _simpson_integral(
+                p2_integrand,
+                lower=self.integration_lower_bound,
+                upper=self.integration_upper_bound,
+                intervals=self.intervals,
+            )
+            / pi
+        )
         if not isfinite(p1) or not isfinite(p2):
             msg = "Heston risk-neutral exercise probabilities must be finite"
             raise ValueError(msg)
