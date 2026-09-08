@@ -2,7 +2,7 @@
 
 ## Status
 
-UI1 established the native PySide6 + Qt Quick/QML desktop architecture over the M1 Black-Scholes analytical vertical. UI2 extends that same architecture over the actual merged M2 valuation and sensitivity capabilities.
+UI1 established the native PySide6 + Qt Quick/QML desktop architecture over the M1 Black-Scholes analytical vertical. UI2 extends that same architecture over the actual merged M2 valuation and sensitivity capabilities. UI3 extends the same boundary over the merged M3 dynamic-control and M4 observed-market/inverse-problem capabilities while preserving them as different mathematical workflows.
 
 The durable dependency direction remains:
 
@@ -237,6 +237,77 @@ financial-model limitation
 ```
 
 A generic `error` field would erase quantitative meaning and is intentionally absent.
+
+## UI3 — dynamic hedging and observed-market inference
+
+UI3 adds a workflow home that asks the mathematical question before choosing a screen:
+
+```text
+Valuation & Sensitivity
+Dynamic Hedging / Control
+Market Evidence / Implied Volatility
+```
+
+The existing UI2 valuation workspace remains intact. The two new workspaces are concrete downstream adapters over M3 and M4 rather than a universal workflow schema.
+
+### Dynamic hedging
+
+The application layer constructs an immutable hedge request from the existing Black-Scholes financial composition plus explicit generating volatility, hedge-assumed volatility, rebalance cadence, seed, replicate count, and proportional transaction-cost rate. It preserves M3's zero-continuous-dividend execution boundary.
+
+One selected trajectory remains distinct from replicate evidence. Rebalance-frequency, volatility-misspecification, and transaction-cost comparisons reuse the same generated seeded paths across conditions, so displayed differences are controlled comparisons rather than unrelated Monte Carlo draws. QML receives only prepared path rows, aggregate rows, inspector values, and renderer-neutral plots; it never recomputes Delta, financing, trades, costs, payoff, or replication error.
+
+The hedging mathematical inspector remains concrete:
+
+```text
+State
+Generating law
+Sensitivity source
+Control policy
+Rebalance schedule
+Financing / transaction-cost convention
+Replication objective / error
+```
+
+### Market evidence and implied volatility
+
+The market workspace keeps the M4 lifecycle visible:
+
+```text
+raw observation + provenance
+        ↓
+explicit normalization
+        ↓
+normalized observed target
+        ↓
+Black-Scholes implied-volatility problem
+        +
+bracketed bisection method
+        ↓
+immutable inverse result + conditioning evidence
+```
+
+Synthetic deterministic M4 observations support the runnable raw-to-normalized-to-inferred laboratory. Invalid normalization remains explicit. Financial inconsistency, failure to bracket the admissible volatility domain, numerical convergence evidence, and poor inverse conditioning remain different concepts. Vega, local inverse price-to-volatility sensitivity, and first-order half-spread volatility shift come from authoritative M4 results.
+
+The historical SPX panel is deliberately **derived empirical evidence only**. UI3 renders the pinned M4 strike/maturity implied-volatility and conditioning evidence plus source/non-redistribution provenance; it does not fabricate or redistribute upstream raw SPX rows that M4 intentionally did not retain. Static monotonicity/convexity findings remain diagnostics, not surface repair.
+
+The inverse-problem mathematical inspector is likewise concrete:
+
+```text
+Observed target
+Forward model
+Unknown parameter
+Admissible domain
+Inverse method
+Conditioning evidence
+```
+
+### UI3 execution and presentation boundary
+
+UI3 reuses the narrow QThread ownership pattern for one immutable M3 hedge request and one bundled M4 evidence request. It does not add cancellation, queues, progress protocols, a scheduler, or a generic job registry.
+
+The existing `PlotData -> PlotSeries -> PlotPoint` value seam is sufficient for hedge time series, replicate/frequency evidence, discrete implied-volatility slices, and conditioning plots. Synchronized row selection remains a concrete controller/presentation responsibility. No universal visualization grammar is introduced.
+
+M5 Heston pricing is merged but intentionally not surfaced by UI3. The next desktop milestone must consume actual merged M5/M6 contracts rather than retrofitting Heston or calibration semantics into UI3.
 
 ## Packaging and validation
 
