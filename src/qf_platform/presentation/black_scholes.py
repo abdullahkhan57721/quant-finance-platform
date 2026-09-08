@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import date
 from math import exp
 
@@ -15,6 +15,7 @@ from qf_platform.pricing import (
     StatePath,
     ValuationResult,
     actual_365_fixed_year_fraction,
+    evaluate,
     validated_numeraire_value,
 )
 
@@ -134,6 +135,7 @@ def build_black_scholes_presentation(
 
     evidence_rows = list(_compatibility_rows(support))
     if result is not None:
+        evidence_rows.append(_put_call_parity_row(composition, result))
         evidence_rows.append(_no_arbitrage_bound_row(composition, result))
         evidence_rows.append(
             PresentationRow(
@@ -205,29 +207,79 @@ def _payoff_points(
     return tuple(points)
 
 
+def _discounted_spot_and_strike(
+    composition: BlackScholesStudyComposition,
+) -> tuple[float, float]:
+    problem = composition.problem
+    contract = problem.contract
+    numeraire = problem.numeraire
+    if not isinstance(contract, EuropeanOption):
+        raise TypeError("UI1 evidence requires an M1 EuropeanOption")
+    if not isinstance(numeraire, FlatMoneyMarketNumeraire):
+        raise TypeError("UI1 evidence requires an M1 money-market numeraire")
+
+    valuation_date = problem.valuation_time
+    year_fraction = actual_365_fixed_year_fraction(valuation_date, contract.expiry)
+    risk_free_discount = validated_numeraire_value(
+        numeraire, valuation_date
+    ) / validated_numeraire_value(numeraire, contract.expiry)
+    dividend_discount = exp(
+        -problem.parameters.continuous_dividend_yield * year_fraction
+    )
+    return (
+        problem.current_state.value.spot * dividend_discount,
+        contract.strike * risk_free_discount,
+    )
+
+
+def _put_call_parity_row(
+    composition: BlackScholesStudyComposition,
+    result: ValuationResult,
+) -> PresentationRow:
+    problem = composition.problem
+    contract = problem.contract
+    if not isinstance(contract, EuropeanOption):
+        raise TypeError("UI1 parity evidence requires an M1 EuropeanOption")
+
+    opposite_right = (
+        OptionRight.PUT if contract.right is OptionRight.CALL else OptionRight.CALL
+    )
+    opposite_contract = replace(contract, right=opposite_right)
+    opposite_problem = replace(problem, contract=opposite_contract)
+    opposite_result = evaluate(opposite_problem, composition.method)
+
+    if contract.right is OptionRight.CALL:
+        call_value = result.present_value
+        put_value = opposite_result.present_value
+    else:
+        call_value = opposite_result.present_value
+        put_value = result.present_value
+
+    discounted_spot, discounted_strike = _discounted_spot_and_strike(composition)
+    lhs = call_value - put_value
+    rhs = discounted_spot - discounted_strike
+    residual = lhs - rhs
+    return PresentationRow(
+        "Put-call parity",
+        f"C − P = {lhs:.8g}; S·e^(-qT) − K·D = {rhs:.8g}",
+        (
+            "Both option values come from the authoritative M1 analytic method; "
+            f"displayed parity residual = {residual:.3g}."
+        ),
+        "Reference evidence",
+    )
+
+
 def _no_arbitrage_bound_row(
     composition: BlackScholesStudyComposition,
     result: ValuationResult,
 ) -> PresentationRow:
     problem = composition.problem
     contract = problem.contract
-    numeraire = problem.numeraire
     if not isinstance(contract, EuropeanOption):
         raise TypeError("UI1 bound evidence requires an M1 EuropeanOption")
-    if not isinstance(numeraire, FlatMoneyMarketNumeraire):
-        raise TypeError("UI1 bound evidence requires an M1 money-market numeraire")
 
-    valuation_date = problem.valuation_time
-    expiry = contract.expiry
-    year_fraction = actual_365_fixed_year_fraction(valuation_date, expiry)
-    risk_free_discount = validated_numeraire_value(
-        numeraire, valuation_date
-    ) / validated_numeraire_value(numeraire, expiry)
-    dividend_discount = exp(
-        -problem.parameters.continuous_dividend_yield * year_fraction
-    )
-    discounted_spot = problem.current_state.value.spot * dividend_discount
-    discounted_strike = contract.strike * risk_free_discount
+    discounted_spot, discounted_strike = _discounted_spot_and_strike(composition)
     if contract.right is OptionRight.CALL:
         lower = max(discounted_spot - discounted_strike, 0.0)
         upper = discounted_spot
