@@ -17,27 +17,26 @@ ApplicationWindow {
     property bool advanced: false
 
     readonly property color panel: "#161b22"
-    readonly property color panelRaised: "#1f2630"
     readonly property color border: "#30363d"
     readonly property color textPrimary: "#f0f6fc"
     readonly property color textMuted: "#8b949e"
     readonly property color accent: "#58a6ff"
     readonly property color good: "#3fb950"
 
-    component SectionButton: Button {
-        required property string sectionName
-        text: sectionName
-        Layout.fillWidth: true
-        checkable: true
-        checked: window.section === sectionName
-        onClicked: window.section = sectionName
-    }
-
     component Panel: Rectangle {
         radius: 10
         color: window.panel
         border.color: window.border
         border.width: 1
+    }
+
+    component NavButton: Button {
+        required property string targetSection
+        Layout.fillWidth: true
+        text: targetSection
+        checkable: true
+        checked: window.section === targetSection
+        onClicked: window.section = targetSection
     }
 
     component FieldLabel: Label {
@@ -89,17 +88,19 @@ ApplicationWindow {
                 }
                 Label {
                     Layout.fillWidth: true
-                    wrapMode: Text.WordWrap
+                    text: "Compose mathematical-finance questions explicitly, run supported methods, and inspect the evidence behind the result."
                     color: window.textMuted
                     font.pixelSize: 17
-                    text: "Compose mathematical-finance questions explicitly, run supported methods, and inspect the evidence behind the result."
+                    wrapMode: Text.WordWrap
                 }
                 Panel {
                     Layout.fillWidth: true
                     implicitHeight: homeContent.implicitHeight + 40
                     ColumnLayout {
                         id: homeContent
-                        anchors.fill: parent
+                        anchors.left: parent.left
+                        anchors.right: parent.right
+                        anchors.top: parent.top
                         anchors.margins: 20
                         spacing: 14
                         Label {
@@ -110,9 +111,9 @@ ApplicationWindow {
                         }
                         Label {
                             Layout.fillWidth: true
-                            wrapMode: Text.WordWrap
-                            color: window.textMuted
                             text: "European option · GBM / Black-Scholes · money-market Q semantics · analytic valuation"
+                            color: window.textMuted
+                            wrapMode: Text.WordWrap
                         }
                         Button {
                             text: "New Study"
@@ -123,8 +124,8 @@ ApplicationWindow {
                             }
                         }
                         Label {
-                            color: window.textMuted
                             text: "Open Study persistence is intentionally deferred beyond UI1."
+                            color: window.textMuted
                         }
                     }
                 }
@@ -141,6 +142,7 @@ ApplicationWindow {
                     Layout.fillHeight: true
                     color: "#010409"
                     border.color: window.border
+
                     ColumnLayout {
                         anchors.fill: parent
                         anchors.margins: 14
@@ -151,20 +153,20 @@ ApplicationWindow {
                             font.pixelSize: 11
                             font.bold: true
                         }
-                        SectionButton { sectionName: "Compose" }
-                        SectionButton { sectionName: "Analyze" }
-                        SectionButton { sectionName: "Results" }
-                        SectionButton { sectionName: "Validate" }
-                        SectionButton { sectionName: "Present / Export" }
+                        NavButton { targetSection: "Compose" }
+                        NavButton { targetSection: "Analyze" }
+                        NavButton { targetSection: "Results" }
+                        NavButton { targetSection: "Validate" }
+                        NavButton { targetSection: "Present / Export" }
                         Item { Layout.fillHeight: true }
                         Button {
-                            text: "Mathematical Inspector"
                             Layout.fillWidth: true
+                            text: "Mathematical Inspector"
                             onClicked: inspectorDrawer.open()
                         }
                         Button {
-                            text: "Home"
                             Layout.fillWidth: true
+                            text: "Home"
                             onClicked: window.route = "home"
                         }
                     }
@@ -208,11 +210,14 @@ ApplicationWindow {
                         currentIndex: ["Compose", "Analyze", "Results", "Validate", "Present / Export"].indexOf(window.section)
 
                         ScrollView {
+                            id: composeScroll
+                            clip: true
                             contentWidth: availableWidth
                             ColumnLayout {
-                                width: parent.width
+                                x: 24
+                                y: 24
+                                width: Math.max(0, composeScroll.availableWidth - 48)
                                 spacing: 16
-                                padding: 24
                                 Label {
                                     text: "Compose"
                                     color: window.textPrimary
@@ -221,16 +226,18 @@ ApplicationWindow {
                                 }
                                 Label {
                                     Layout.fillWidth: true
-                                    wrapMode: Text.WordWrap
-                                    color: window.textMuted
                                     text: "Guided language maps to the same authoritative M1 semantics as Advanced disclosure. Inputs remain transient until Python validates them."
+                                    color: window.textMuted
+                                    wrapMode: Text.WordWrap
                                 }
                                 Panel {
                                     Layout.fillWidth: true
-                                    implicitHeight: formGrid.implicitHeight + 40
+                                    implicitHeight: composeGrid.implicitHeight + 40
                                     GridLayout {
-                                        id: formGrid
-                                        anchors.fill: parent
+                                        id: composeGrid
+                                        anchors.left: parent.left
+                                        anchors.right: parent.right
+                                        anchors.top: parent.top
                                         anchors.margins: 20
                                         columns: 2
                                         columnSpacing: 18
@@ -252,25 +259,31 @@ ApplicationWindow {
                                         ComboBox { id: optionRight; Layout.fillWidth: true; model: ["Call", "Put"] }
 
                                         CheckBox {
-                                            id: advancedToggle
                                             Layout.columnSpan: 2
                                             text: "Advanced semantics"
                                             checked: window.advanced
                                             onToggled: window.advanced = checked
                                         }
                                         FieldLabel { visible: window.advanced; text: "Valuation date" }
-                                        TextField { id: valuationDateField; visible: window.advanced; Layout.fillWidth: true; text: workbenchController.defaultValuationDate; placeholderText: "YYYY-MM-DD" }
+                                        TextField {
+                                            id: valuationDateField
+                                            visible: window.advanced
+                                            Layout.fillWidth: true
+                                            text: workbenchController.defaultValuationDate
+                                            placeholderText: "YYYY-MM-DD"
+                                        }
                                         FieldLabel { visible: window.advanced; text: "Model time" }
-                                        Label { visible: window.advanced; color: window.textPrimary; text: "Actual/365 Fixed" }
+                                        Label { visible: window.advanced; text: "Actual/365 Fixed"; color: window.textPrimary }
                                         FieldLabel { visible: window.advanced; text: "Rate / carry semantics" }
-                                        Label { visible: window.advanced; color: window.textPrimary; text: "Continuous annualized decimals" }
+                                        Label { visible: window.advanced; text: "Continuous annualized decimals"; color: window.textPrimary }
                                         FieldLabel { visible: window.advanced; text: "Pricing model / measure" }
-                                        Label { visible: window.advanced; color: window.textPrimary; text: "Black-Scholes / GBM · Q^B money-market" }
+                                        Label { visible: window.advanced; text: "Black-Scholes / GBM · Q^B money-market"; color: window.textPrimary }
                                         FieldLabel { visible: window.advanced; text: "Valuation method" }
-                                        Label { visible: window.advanced; color: window.textPrimary; text: "Black-Scholes analytic" }
+                                        Label { visible: window.advanced; text: "Black-Scholes analytic"; color: window.textPrimary }
                                     }
                                 }
                                 RowLayout {
+                                    Layout.fillWidth: true
                                     Button {
                                         text: "Validate Composition"
                                         onClicked: window.validateCurrentDraft()
@@ -282,26 +295,29 @@ ApplicationWindow {
                                     }
                                     Label {
                                         Layout.fillWidth: true
+                                        text: workbenchController.status
                                         color: window.textMuted
                                         wrapMode: Text.WordWrap
-                                        text: workbenchController.status
                                     }
                                 }
                             }
                         }
 
                         ScrollView {
+                            id: analyzeScroll
+                            clip: true
                             contentWidth: availableWidth
                             ColumnLayout {
-                                width: parent.width
+                                x: 24
+                                y: 24
+                                width: Math.max(0, analyzeScroll.availableWidth - 48)
                                 spacing: 16
-                                padding: 24
                                 Label { text: "Analyze"; color: window.textPrimary; font.pixelSize: 28; font.bold: true }
                                 Label {
                                     Layout.fillWidth: true
+                                    text: "Terminal payoff is sampled in Python through the authoritative EuropeanOption.cash_flows contract. QML only maps renderer-neutral x/y values to pixels."
                                     color: window.textMuted
                                     wrapMode: Text.WordWrap
-                                    text: "Terminal payoff is sampled in Python through the authoritative EuropeanOption.cash_flows contract. QML only maps renderer-neutral x/y values to pixels."
                                 }
                                 Panel {
                                     Layout.fillWidth: true
@@ -312,9 +328,10 @@ ApplicationWindow {
                                         anchors.margins: 24
                                         onPaint: {
                                             var ctx = getContext("2d")
-                                            ctx.reset()
+                                            ctx.clearRect(0, 0, width, height)
                                             var points = JSON.parse(workbenchController.payoffPointsJson || "[]")
-                                            if (points.length < 2) return
+                                            if (points.length < 2)
+                                                return
                                             var xMax = 1.0
                                             var yMax = 1.0
                                             for (var i = 0; i < points.length; ++i) {
@@ -327,14 +344,21 @@ ApplicationWindow {
                                             var usableH = bottom - 16
                                             ctx.strokeStyle = window.textMuted
                                             ctx.lineWidth = 1
-                                            ctx.beginPath(); ctx.moveTo(left, 8); ctx.lineTo(left, bottom); ctx.lineTo(width - 8, bottom); ctx.stroke()
+                                            ctx.beginPath()
+                                            ctx.moveTo(left, 8)
+                                            ctx.lineTo(left, bottom)
+                                            ctx.lineTo(width - 8, bottom)
+                                            ctx.stroke()
                                             ctx.strokeStyle = window.accent
                                             ctx.lineWidth = 2.5
                                             ctx.beginPath()
                                             for (var j = 0; j < points.length; ++j) {
                                                 var px = left + usableW * points[j].underlying / xMax
                                                 var py = bottom - usableH * points[j].payoff / yMax
-                                                if (j === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py)
+                                                if (j === 0)
+                                                    ctx.moveTo(px, py)
+                                                else
+                                                    ctx.lineTo(px, py)
                                             }
                                             ctx.stroke()
                                         }
@@ -348,25 +372,31 @@ ApplicationWindow {
                         }
 
                         ScrollView {
+                            id: resultsScroll
+                            clip: true
                             contentWidth: availableWidth
                             ColumnLayout {
-                                width: parent.width
+                                x: 24
+                                y: 24
+                                width: Math.max(0, resultsScroll.availableWidth - 48)
                                 spacing: 18
-                                padding: 24
                                 Label { text: "Results"; color: window.textPrimary; font.pixelSize: 28; font.bold: true }
                                 Panel {
                                     Layout.fillWidth: true
-                                    implicitHeight: 180
+                                    implicitHeight: resultContent.implicitHeight + 48
                                     ColumnLayout {
-                                        anchors.fill: parent
+                                        id: resultContent
+                                        anchors.left: parent.left
+                                        anchors.right: parent.right
+                                        anchors.top: parent.top
                                         anchors.margins: 24
                                         Label { text: "Present value"; color: window.textMuted; font.pixelSize: 13 }
                                         Label { text: workbenchController.presentValue; color: window.textPrimary; font.pixelSize: 42; font.bold: true }
                                         Label {
                                             Layout.fillWidth: true
+                                            text: workbenchController.hasResult ? "Authoritative ValuationResult.present_value from merged M1." : "Run / Price to produce an authoritative valuation result."
                                             color: window.textMuted
                                             wrapMode: Text.WordWrap
-                                            text: workbenchController.hasResult ? "Authoritative ValuationResult.present_value from merged M1." : "Run / Price to produce an authoritative valuation result."
                                         }
                                     }
                                 }
@@ -374,21 +404,25 @@ ApplicationWindow {
                         }
 
                         ScrollView {
+                            id: validateScroll
+                            clip: true
                             contentWidth: availableWidth
                             ColumnLayout {
-                                width: parent.width
+                                x: 24
+                                y: 24
+                                width: Math.max(0, validateScroll.availableWidth - 48)
                                 spacing: 14
-                                padding: 24
                                 Label { text: "Validate"; color: window.textPrimary; font.pixelSize: 28; font.bold: true }
                                 Label {
                                     Layout.fillWidth: true
+                                    text: "Capability, support, validation provenance, and Workbench exposure are deliberately distinct. Current-result checks are prepared in Python from normalized M1 semantics."
                                     color: window.textMuted
                                     wrapMode: Text.WordWrap
-                                    text: "Capability, support, validation provenance, and Workbench exposure are deliberately distinct. Current-result checks are prepared in Python from normalized M1 semantics."
                                 }
                                 Repeater {
                                     model: workbenchController.evidenceModel
                                     delegate: Panel {
+                                        id: evidenceCard
                                         required property string label
                                         required property string value
                                         required property string detail
@@ -397,15 +431,17 @@ ApplicationWindow {
                                         implicitHeight: evidenceContent.implicitHeight + 28
                                         ColumnLayout {
                                             id: evidenceContent
-                                            anchors.fill: parent
+                                            anchors.left: parent.left
+                                            anchors.right: parent.right
+                                            anchors.top: parent.top
                                             anchors.margins: 14
                                             RowLayout {
                                                 Layout.fillWidth: true
-                                                Label { Layout.fillWidth: true; text: parent.parent.parent.label; color: window.textPrimary; font.bold: true }
-                                                Label { text: parent.parent.parent.status; color: window.good }
+                                                Label { Layout.fillWidth: true; text: evidenceCard.label; color: window.textPrimary; font.bold: true }
+                                                Label { text: evidenceCard.status; color: window.good }
                                             }
-                                            Label { Layout.fillWidth: true; text: parent.parent.value; color: window.textPrimary; wrapMode: Text.WordWrap }
-                                            Label { Layout.fillWidth: true; text: parent.parent.detail; color: window.textMuted; wrapMode: Text.WordWrap }
+                                            Label { Layout.fillWidth: true; text: evidenceCard.value; color: window.textPrimary; wrapMode: Text.WordWrap }
+                                            Label { Layout.fillWidth: true; text: evidenceCard.detail; color: window.textMuted; wrapMode: Text.WordWrap }
                                         }
                                     }
                                 }
@@ -413,20 +449,31 @@ ApplicationWindow {
                         }
 
                         ScrollView {
+                            id: presentScroll
+                            clip: true
                             contentWidth: availableWidth
                             ColumnLayout {
-                                width: parent.width
+                                x: 24
+                                y: 24
+                                width: Math.max(0, presentScroll.availableWidth - 48)
                                 spacing: 16
-                                padding: 24
                                 Label { text: "Present / Export"; color: window.textPrimary; font.pixelSize: 28; font.bold: true }
                                 Panel {
                                     Layout.fillWidth: true
-                                    implicitHeight: 190
+                                    implicitHeight: presentContent.implicitHeight + 40
                                     ColumnLayout {
-                                        anchors.fill: parent
+                                        id: presentContent
+                                        anchors.left: parent.left
+                                        anchors.right: parent.right
+                                        anchors.top: parent.top
                                         anchors.margins: 20
                                         Label { text: "Reference study summary"; color: window.textPrimary; font.pixelSize: 19; font.bold: true }
-                                        Label { Layout.fillWidth: true; wrapMode: Text.WordWrap; color: window.textMuted; text: "UI1 proves native presentation over authoritative M1 semantics. General reports, file export, and publication workflows remain future product work." }
+                                        Label {
+                                            Layout.fillWidth: true
+                                            text: "UI1 proves native presentation over authoritative M1 semantics. General reports, file export, and publication workflows remain future product work."
+                                            color: window.textMuted
+                                            wrapMode: Text.WordWrap
+                                        }
                                         Label { text: "PV: " + workbenchController.presentValue; color: window.textPrimary }
                                     }
                                 }
@@ -442,10 +489,10 @@ ApplicationWindow {
                         Label {
                             anchors.fill: parent
                             anchors.margins: 12
-                            verticalAlignment: Text.AlignVCenter
-                            color: window.textMuted
-                            elide: Text.ElideRight
                             text: workbenchController.status
+                            color: window.textMuted
+                            verticalAlignment: Text.AlignVCenter
+                            elide: Text.ElideRight
                         }
                     }
                 }
@@ -459,27 +506,38 @@ ApplicationWindow {
         width: Math.min(520, window.width * 0.46)
         height: window.height
         background: Rectangle { color: window.panel; border.color: window.border }
+
         ScrollView {
+            id: inspectorScroll
             anchors.fill: parent
+            clip: true
+            contentWidth: availableWidth
             ColumnLayout {
-                width: parent.width
+                x: 20
+                y: 20
+                width: Math.max(0, inspectorScroll.availableWidth - 40)
                 spacing: 10
-                padding: 20
                 Label { text: "Mathematical Inspector"; color: window.textPrimary; font.pixelSize: 24; font.bold: true }
-                Label { Layout.fillWidth: true; wrapMode: Text.WordWrap; color: window.textMuted; text: "Read-only view of the active normalized pricing specification." }
+                Label {
+                    Layout.fillWidth: true
+                    text: "Read-only view of the active normalized pricing specification."
+                    color: window.textMuted
+                    wrapMode: Text.WordWrap
+                }
                 Repeater {
                     model: workbenchController.inspectorModel
                     delegate: ColumnLayout {
+                        id: inspectorRow
                         required property string label
                         required property string value
                         required property string detail
                         required property string status
                         Layout.fillWidth: true
                         spacing: 4
-                        Label { text: parent.label; color: window.textMuted; font.pixelSize: 11; font.bold: true }
-                        Label { Layout.fillWidth: true; text: parent.value; color: window.textPrimary; wrapMode: Text.WordWrap }
-                        Label { Layout.fillWidth: true; text: parent.detail; color: window.textMuted; wrapMode: Text.WordWrap; font.pixelSize: 12 }
-                        Label { visible: parent.status !== ""; text: parent.status; color: window.good; font.pixelSize: 12 }
+                        Label { text: inspectorRow.label; color: window.textMuted; font.pixelSize: 11; font.bold: true }
+                        Label { Layout.fillWidth: true; text: inspectorRow.value; color: window.textPrimary; wrapMode: Text.WordWrap }
+                        Label { Layout.fillWidth: true; text: inspectorRow.detail; color: window.textMuted; wrapMode: Text.WordWrap; font.pixelSize: 12 }
+                        Label { visible: inspectorRow.status !== ""; text: inspectorRow.status; color: window.good; font.pixelSize: 12 }
                         Rectangle { Layout.fillWidth: true; height: 1; color: window.border }
                     }
                 }
