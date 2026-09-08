@@ -1,6 +1,5 @@
-from pathlib import Path
 import ast
-
+from pathlib import Path
 
 LOW_LEVEL_MODULES = (
     "cashflows.py",
