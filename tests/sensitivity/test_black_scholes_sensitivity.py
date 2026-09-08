@@ -230,12 +230,12 @@ def test_finite_difference_support_rejects_bumps_that_cross_domains() -> None:
         BlackScholesSensitivity.VEGA,
     )
 
-    assert not FiniteDifferenceBlackScholesSensitivity(
-        spot_bump=0.1
-    ).supports(spot_problem)
-    assert not FiniteDifferenceBlackScholesSensitivity(
-        volatility_bump=0.001
-    ).supports(volatility_problem)
+    assert not FiniteDifferenceBlackScholesSensitivity(spot_bump=0.1).supports(
+        spot_problem
+    )
+    assert not FiniteDifferenceBlackScholesSensitivity(volatility_bump=0.001).supports(
+        volatility_problem
+    )
 
 
 @pytest.mark.parametrize(
