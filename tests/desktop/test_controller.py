@@ -1,19 +1,31 @@
 from __future__ import annotations
 
 import time
+from typing import cast
 
 import pytest
 
 pytest.importorskip("PySide6")
 
-from PySide6.QtCore import QCoreApplication
+from PySide6.QtGui import QGuiApplication
 
 from qf_platform.desktop.controller import WorkbenchController
 
+_APP: QGuiApplication | None = None
+
+
+def _app() -> QGuiApplication:
+    global _APP  # noqa: PLW0603
+    existing = QGuiApplication.instance()
+    if isinstance(existing, QGuiApplication):
+        _APP = existing
+    elif _APP is None:
+        _APP = QGuiApplication(["ui1-controller-tests"])
+    return _APP
+
 
 def _controller() -> WorkbenchController:
-    if QCoreApplication.instance() is None:
-        QCoreApplication([])
+    _app()
     return WorkbenchController()
 
 
@@ -26,8 +38,8 @@ def test_controller_normalizes_without_exposing_domain_graphs() -> None:
     assert controller.compositionReady
     assert controller.methodSupported
     assert not controller.hasResult
-    assert "Black-Scholes analytic is supported" in controller.status
-    assert "PricingProblem" not in controller.payoffPointsJson
+    assert "Black-Scholes analytic is supported" in cast(str, controller.status)
+    assert "PricingProblem" not in cast(str, controller.payoffPointsJson)
 
 
 def test_controller_rejects_invalid_transient_input() -> None:
@@ -37,13 +49,12 @@ def test_controller_rejects_invalid_transient_input() -> None:
         "oops", "100", "2026-01-01", "2027-01-01", "0.20", "0.05", "0", "call"
     )
     assert not controller.compositionReady
-    assert controller.status.startswith("Composition invalid:")
+    assert cast(str, controller.status).startswith("Composition invalid:")
 
 
 def test_pricing_worker_returns_authoritative_m1_result() -> None:
     controller = _controller()
-    app = QCoreApplication.instance()
-    assert app is not None
+    app = _app()
 
     assert controller.priceDraft(
         "100", "100", "2026-01-01", "2027-01-01", "0.20", "0.05", "0", "call"
@@ -54,7 +65,7 @@ def test_pricing_worker_returns_authoritative_m1_result() -> None:
 
     assert not controller.running
     assert controller.hasResult
-    assert float(controller.presentValue) == pytest.approx(
+    assert float(cast(str, controller.presentValue)) == pytest.approx(
         10.450583572185565,
         abs=2e-11,
     )
