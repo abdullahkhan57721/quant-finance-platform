@@ -19,6 +19,8 @@ class StochasticLaw[StateT, ParametersT](Protocol):
     @property
     def state_space(self) -> StateSpace[StateT]:
         """Return the state-space semantics governed by this law."""
+        ...
 
     def accepts_parameters(self, parameters: ParametersT, /) -> bool:
         """Return whether this law supports the supplied parameter value object."""
+        ...
