@@ -2,7 +2,13 @@
 
 from __future__ import annotations
 
-from PySide6.QtCore import QAbstractListModel, QByteArray, QModelIndex, Qt
+from PySide6.QtCore import (
+    QAbstractListModel,
+    QByteArray,
+    QModelIndex,
+    QPersistentModelIndex,
+    Qt,
+)
 
 from qf_platform.presentation import PresentationRow
 
@@ -10,7 +16,7 @@ _LABEL_ROLE = int(Qt.ItemDataRole.UserRole) + 1
 _VALUE_ROLE = _LABEL_ROLE + 1
 _DETAIL_ROLE = _LABEL_ROLE + 2
 _STATUS_ROLE = _LABEL_ROLE + 3
-_INVALID_INDEX = QModelIndex()
+_INVALID_INDEX: QModelIndex | QPersistentModelIndex = QModelIndex()
 
 
 class PresentationRowModel(QAbstractListModel):
@@ -20,14 +26,17 @@ class PresentationRowModel(QAbstractListModel):
         super().__init__()
         self._items: tuple[PresentationRow, ...] = ()
 
-    def rowCount(self, parent: QModelIndex = _INVALID_INDEX) -> int:  # noqa: N802
+    def rowCount(  # noqa: N802
+        self,
+        parent: QModelIndex | QPersistentModelIndex = _INVALID_INDEX,
+    ) -> int:
         if parent.isValid():
             return 0
         return len(self._items)
 
     def data(
         self,
-        index: QModelIndex,
+        index: QModelIndex | QPersistentModelIndex,
         role: int = int(Qt.ItemDataRole.DisplayRole),
     ) -> object | None:
         if not index.isValid() or not 0 <= index.row() < len(self._items):
