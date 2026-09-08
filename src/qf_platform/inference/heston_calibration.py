@@ -345,7 +345,9 @@ class HestonCalibrationProblem:
         if not isinstance(cast(object, self.weighting), HestonCalibrationWeighting):
             msg = "weighting must be HestonCalibrationWeighting"
             raise TypeError(msg)
-        if not isinstance(cast(object, self.forward_method), HestonFourierEuropeanOption):
+        if not isinstance(
+            cast(object, self.forward_method), HestonFourierEuropeanOption
+        ):
             msg = "forward_method must be HestonFourierEuropeanOption"
             raise TypeError(msg)
         object.__setattr__(
@@ -438,7 +440,12 @@ class HestonCalibrationResidual:
         if not isinstance(cast(object, self.target), HestonPriceCalibrationTarget):
             msg = "target must be HestonPriceCalibrationTarget"
             raise TypeError(msg)
-        for name in ("model_price", "residual", "residual_scale", "standardized_residual"):
+        for name in (
+            "model_price",
+            "residual",
+            "residual_scale",
+            "standardized_residual",
+        ):
             object.__setattr__(self, name, finite_real(getattr(self, name), name=name))
         if self.residual_scale <= 0.0:
             msg = "residual_scale must be strictly positive"
@@ -534,7 +541,9 @@ class HestonCalibrationResult:
         if not self.termination_message.strip():
             msg = "termination_message must be non-empty"
             raise ValueError(msg)
-        if not isinstance(cast(object, self.conditioning), HestonCalibrationConditioning):
+        if not isinstance(
+            cast(object, self.conditioning), HestonCalibrationConditioning
+        ):
             msg = "conditioning must be HestonCalibrationConditioning"
             raise TypeError(msg)
         if not self.optimizer_name.strip():
@@ -568,7 +577,10 @@ def heston_calibration_model_price(
 ) -> float:
     """Evaluate M6's configured M5 forward map at one financial coordinate set."""
 
-    if coordinates.parameters.continuous_dividend_yield != problem.continuous_dividend_yield:
+    if (
+        coordinates.parameters.continuous_dividend_yield
+        != problem.continuous_dividend_yield
+    ):
         msg = "calibration coordinates must use the problem's fixed dividend yield"
         raise InvalidHestonCalibrationProblem(msg)
     law = HestonLaw()
