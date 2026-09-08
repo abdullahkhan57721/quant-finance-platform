@@ -11,6 +11,7 @@ class StateSpace[StateT](Protocol):
 
     def contains(self, value: StateT, /) -> bool:
         """Return whether ``value`` belongs to this modeled state space."""
+        ...
 
 
 class StatePath[TimeT, StateT](Protocol):
@@ -18,6 +19,7 @@ class StatePath[TimeT, StateT](Protocol):
 
     def value_at(self, time: TimeT, /) -> StateT:
         """Return the modeled state at a supported time on the path."""
+        ...
 
 
 @dataclass(frozen=True, slots=True)
