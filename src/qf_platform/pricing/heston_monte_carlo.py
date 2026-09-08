@@ -24,7 +24,16 @@ from qf_platform.pricing.problem import PricingProblem
 from qf_platform.pricing.valuation import UnsupportedPricingProblem
 
 _NORMAL_95_Z = 1.959963984540054
-_VARIANCE_SCHEME = "full_truncation_euler"
+_FULL_TRUNCATION_EULER = "full_truncation_euler"
+_EXACT_DETERMINISTIC_VARIANCE = "exact_deterministic_variance"
+_NO_VARIANCE_PATH = "not_applicable"
+_SUPPORTED_VARIANCE_SCHEMES = frozenset(
+    {
+        _FULL_TRUNCATION_EULER,
+        _EXACT_DETERMINISTIC_VARIANCE,
+        _NO_VARIANCE_PATH,
+    }
+)
 
 
 def _payoff(right: OptionRight, terminal_spot: float, strike: float) -> float:
@@ -34,13 +43,30 @@ def _payoff(right: OptionRight, terminal_spot: float, strike: float) -> float:
     return max(-signed, 0.0)
 
 
+def _positive_finite_exp(exponent: float, *, name: str) -> float:
+    try:
+        value = exp(exponent)
+    except OverflowError as exc:
+        msg = f"{name} must be positive and finite"
+        raise ValueError(msg) from exc
+    if not isfinite(value) or value <= 0.0:
+        msg = f"{name} must be positive and finite"
+        raise ValueError(msg)
+    return value
+
+
 @dataclass(frozen=True, slots=True)
 class HestonMonteCarloValuationResult(MonteCarloValuationResult):
-    """Heston Monte Carlo value with sampling and discretization evidence."""
+    """Heston Monte Carlo value with sampling and discretization evidence.
+
+    ``negative_variance_proposals`` counts full-truncation Euler transitions whose raw
+    next variance is negative. It is diagnostic evidence of variance-boundary pressure;
+    it is not a financial-model error count.
+    """
 
     time_steps: int
-    variance_floor_hits: int
-    variance_scheme: str = _VARIANCE_SCHEME
+    negative_variance_proposals: int
+    variance_scheme: str
 
     def __post_init__(self) -> None:
         MonteCarloValuationResult.__post_init__(self)
@@ -50,32 +76,45 @@ class HestonMonteCarloValuationResult(MonteCarloValuationResult):
         if self.time_steps < 1:
             msg = "time_steps must be positive"
             raise ValueError(msg)
-        if type(self.variance_floor_hits) is not int:
-            msg = "variance_floor_hits must be an integer"
+        if type(self.negative_variance_proposals) is not int:
+            msg = "negative_variance_proposals must be an integer"
             raise TypeError(msg)
-        if self.variance_floor_hits < 0:
-            msg = "variance_floor_hits must be non-negative"
+        if self.negative_variance_proposals < 0:
+            msg = "negative_variance_proposals must be non-negative"
             raise ValueError(msg)
-        if self.variance_floor_hits > self.paths * self.time_steps:
-            msg = "variance_floor_hits cannot exceed simulated variance transitions"
+        if self.negative_variance_proposals > self.paths * self.time_steps:
+            msg = (
+                "negative_variance_proposals cannot exceed simulated variance "
+                "transitions"
+            )
             raise ValueError(msg)
-        if self.variance_scheme != _VARIANCE_SCHEME:
-            msg = f"variance_scheme must be {_VARIANCE_SCHEME!r}"
+        if self.variance_scheme not in _SUPPORTED_VARIANCE_SCHEMES:
+            msg = "variance_scheme is not a supported Heston Monte Carlo scheme label"
+            raise ValueError(msg)
+        if (
+            self.variance_scheme != _FULL_TRUNCATION_EULER
+            and self.negative_variance_proposals != 0
+        ):
+            msg = (
+                "negative_variance_proposals must be zero when no full-truncation "
+                "variance path is simulated"
+            )
             raise ValueError(msg)
 
 
 @dataclass(frozen=True, slots=True)
 class HestonMonteCarloEuropeanOption:
-    """Seeded Heston Monte Carlo using full-truncation Euler variance dynamics.
+    """Seeded Heston Monte Carlo with explicit variance-discretization semantics.
 
-    For positive volatility of variance, the method keeps the raw Euler variance state
-    (which may cross below zero), uses its positive part in drift/diffusion terms, and
-    records how often a proposed transition is negative. This is the full-truncation
-    convention; it is a numerical path method, not part of ``HestonLaw`` itself.
+    For positive volatility of variance, the method uses full-truncation Euler: the raw
+    Euler variance state may cross below zero, while drift/diffusion coefficients use
+    its positive part. Negative raw proposals are counted as discretization-pressure
+    evidence. This scheme belongs to the numerical method, not ``HestonLaw``.
 
-    When volatility of variance is exactly zero, variance is deterministic and the
-    terminal log-spot distribution can be sampled exactly from its integrated variance.
-    That boundary therefore has sampling error but no Heston time-discretization bias.
+    At exactly ``xi=0``, variance is deterministic and terminal log spot is sampled
+    exactly from the integrated variance. That boundary has sampling error but no
+    Heston time-discretization bias. Expiry/zero-spot/zero-strike cases require no
+    variance path at all.
     """
 
     paths: int
@@ -119,7 +158,10 @@ class HestonMonteCarloEuropeanOption:
         /,
     ) -> HestonMonteCarloValuationResult:
         if not self.supports(problem):
-            msg = "HestonMonteCarloEuropeanOption does not support the supplied pricing problem"
+            msg = (
+                "HestonMonteCarloEuropeanOption does not support the supplied pricing "
+                "problem"
+            )
             raise UnsupportedPricingProblem(msg)
 
         contract = cast(EuropeanOption, problem.contract)
@@ -142,12 +184,10 @@ class HestonMonteCarloEuropeanOption:
         if year_fraction == 0.0:
             return self._deterministic_result(_payoff(contract.right, spot, strike))
 
-        dividend_discount = exp(
-            -problem.parameters.continuous_dividend_yield * year_fraction
+        dividend_discount = _positive_finite_exp(
+            -problem.parameters.continuous_dividend_yield * year_fraction,
+            name="dividend discount factor",
         )
-        if not isfinite(dividend_discount) or dividend_discount <= 0.0:
-            msg = "dividend discount factor must be positive and finite"
-            raise ValueError(msg)
         discounted_spot = spot * dividend_discount
         discounted_strike = strike * discount
         if not isfinite(discounted_spot) or not isfinite(discounted_strike):
@@ -156,7 +196,11 @@ class HestonMonteCarloEuropeanOption:
 
         if spot == 0.0 or strike == 0.0:
             signed = discounted_spot - discounted_strike
-            value = max(signed, 0.0) if contract.right is OptionRight.CALL else max(-signed, 0.0)
+            value = (
+                max(signed, 0.0)
+                if contract.right is OptionRight.CALL
+                else max(-signed, 0.0)
+            )
             return self._deterministic_result(value)
 
         if problem.parameters.volatility_of_variance == 0.0:
@@ -221,7 +265,8 @@ class HestonMonteCarloEuropeanOption:
         return self._sample_result(
             mean,
             sum_squared_deviations,
-            variance_floor_hits=0,
+            negative_variance_proposals=0,
+            variance_scheme=_EXACT_DETERMINISTIC_VARIANCE,
         )
 
     def _full_truncation_sample(
@@ -242,7 +287,7 @@ class HestonMonteCarloEuropeanOption:
         rng = random.Random(self.seed)
         mean = 0.0
         sum_squared_deviations = 0.0
-        variance_floor_hits = 0
+        negative_variance_proposals = 0
         initial_log_spot = log(problem.current_state.value.spot)
         initial_variance = problem.current_state.value.instantaneous_variance
 
@@ -273,7 +318,7 @@ class HestonMonteCarloEuropeanOption:
                     * variance_shock
                 )
                 if next_raw_variance < 0.0:
-                    variance_floor_hits += 1
+                    negative_variance_proposals += 1
                 raw_variance = next_raw_variance
 
             if not isfinite(log_spot):
@@ -299,7 +344,8 @@ class HestonMonteCarloEuropeanOption:
         return self._sample_result(
             mean,
             sum_squared_deviations,
-            variance_floor_hits=variance_floor_hits,
+            negative_variance_proposals=negative_variance_proposals,
+            variance_scheme=_FULL_TRUNCATION_EULER,
         )
 
     def _sample_result(
@@ -307,7 +353,8 @@ class HestonMonteCarloEuropeanOption:
         mean: float,
         sum_squared_deviations: float,
         *,
-        variance_floor_hits: int,
+        negative_variance_proposals: int,
+        variance_scheme: str,
     ) -> HestonMonteCarloValuationResult:
         sample_variance = sum_squared_deviations / (self.paths - 1)
         standard_error = sqrt(max(sample_variance, 0.0) / self.paths)
@@ -319,10 +366,14 @@ class HestonMonteCarloEuropeanOption:
             paths=self.paths,
             seed=self.seed,
             time_steps=self.time_steps,
-            variance_floor_hits=variance_floor_hits,
+            negative_variance_proposals=negative_variance_proposals,
+            variance_scheme=variance_scheme,
         )
 
-    def _deterministic_result(self, present_value: float) -> HestonMonteCarloValuationResult:
+    def _deterministic_result(
+        self,
+        present_value: float,
+    ) -> HestonMonteCarloValuationResult:
         return HestonMonteCarloValuationResult(
             present_value=present_value,
             standard_error=0.0,
@@ -330,5 +381,6 @@ class HestonMonteCarloEuropeanOption:
             paths=self.paths,
             seed=self.seed,
             time_steps=self.time_steps,
-            variance_floor_hits=0,
+            negative_variance_proposals=0,
+            variance_scheme=_NO_VARIANCE_PATH,
         )
