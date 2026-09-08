@@ -16,7 +16,16 @@ from qf_platform.control import (
     simulate_black_scholes_path,
     summarize_replication_errors,
 )
-from qf_platform.pricing import BlackScholesParameters
+from qf_platform.pricing import (
+    BlackScholesParameters,
+    EquityState,
+    EuropeanOption,
+    PricingProblem,
+)
+
+type BlackScholesPricingProblem = PricingProblem[
+    date, EquityState, BlackScholesParameters
+]
 
 
 @dataclass(frozen=True, slots=True)
@@ -83,21 +92,15 @@ class HedgeWorkbenchAnalysis:
 def normalize_hedge_workbench_config(draft: HedgeWorkbenchDraft) -> HedgeWorkbenchConfig:
     """Normalize transient UI controls without changing M3 quantitative semantics."""
 
-    generating_volatility = _positive_float(
-        draft.generating_volatility,
-        "generating volatility",
-    )
-    hedging_volatility = _positive_float(
-        draft.hedging_volatility,
-        "hedging volatility",
-    )
-    transaction_cost_rate = _nonnegative_float(
-        draft.transaction_cost_rate,
-        "transaction cost rate",
-    )
     return HedgeWorkbenchConfig(
-        generating_volatility=generating_volatility,
-        hedging_volatility=hedging_volatility,
+        generating_volatility=_positive_float(
+            draft.generating_volatility,
+            "generating volatility",
+        ),
+        hedging_volatility=_positive_float(
+            draft.hedging_volatility,
+            "hedging volatility",
+        ),
         rebalance_day_interval=_positive_int(
             draft.rebalance_day_interval,
             "rebalance day interval",
@@ -108,7 +111,10 @@ def normalize_hedge_workbench_config(draft: HedgeWorkbenchDraft) -> HedgeWorkben
             "replicate count",
             minimum=2,
         ),
-        transaction_cost_rate=transaction_cost_rate,
+        transaction_cost_rate=_nonnegative_float(
+            draft.transaction_cost_rate,
+            "transaction cost rate",
+        ),
     )
 
 
@@ -118,8 +124,7 @@ def make_hedge_workbench_request(
 ) -> HedgeWorkbenchRequest:
     """Combine one normalized M1 composition with explicit M3 study configuration."""
 
-    problem = composition.problem
-    if problem.parameters.continuous_dividend_yield != 0.0:
+    if composition.problem.parameters.continuous_dividend_yield != 0.0:
         msg = "UI3 hedging preserves M3's zero continuous dividend-yield limitation"
         raise ValueError(msg)
     return HedgeWorkbenchRequest(
@@ -134,7 +139,6 @@ def run_hedge_workbench(request: HedgeWorkbenchRequest) -> HedgeWorkbenchAnalysi
     observation_dates = _daily_observation_dates(request)
     paths = _simulated_paths(request, observation_dates)
     config = request.config
-
     selected_results = _hedge_condition(
         request,
         paths,
@@ -147,23 +151,22 @@ def run_hedge_workbench(request: HedgeWorkbenchRequest) -> HedgeWorkbenchAnalysi
 
     frequency_evidence: list[HedgeFrequencyEvidence] = []
     for interval in _frequency_intervals(config.rebalance_day_interval):
-        if interval == config.rebalance_day_interval:
-            summary = selected_summary
-        else:
-            results = _hedge_condition(
-                request,
-                paths,
-                observation_dates,
-                rebalance_day_interval=interval,
-                hedging_volatility=config.hedging_volatility,
-                transaction_cost_rate=config.transaction_cost_rate,
+        summary = selected_summary
+        if interval != config.rebalance_day_interval:
+            summary = summarize_replication_errors(
+                _hedge_condition(
+                    request,
+                    paths,
+                    observation_dates,
+                    rebalance_day_interval=interval,
+                    hedging_volatility=config.hedging_volatility,
+                    transaction_cost_rate=config.transaction_cost_rate,
+                )
             )
-            summary = summarize_replication_errors(results)
         frequency_evidence.append(HedgeFrequencyEvidence(interval, summary))
 
-    if config.hedging_volatility == config.generating_volatility:
-        correctly_specified = selected_summary
-    else:
+    correctly_specified = selected_summary
+    if config.hedging_volatility != config.generating_volatility:
         correctly_specified = summarize_replication_errors(
             _hedge_condition(
                 request,
@@ -175,9 +178,8 @@ def run_hedge_workbench(request: HedgeWorkbenchRequest) -> HedgeWorkbenchAnalysi
             )
         )
 
-    if config.transaction_cost_rate == 0.0:
-        frictionless = selected_summary
-    else:
+    frictionless = selected_summary
+    if config.transaction_cost_rate != 0.0:
         frictionless = summarize_replication_errors(
             _hedge_condition(
                 request,
@@ -208,12 +210,14 @@ def run_hedge_workbench(request: HedgeWorkbenchRequest) -> HedgeWorkbenchAnalysi
 
 def _daily_observation_dates(request: HedgeWorkbenchRequest) -> tuple[date, ...]:
     problem = request.composition.problem
-    expiry = problem.contract.expiry
+    contract = problem.contract
+    if not isinstance(contract, EuropeanOption):
+        raise TypeError("UI3 hedging requires the M1 European option contract")
+    expiry = contract.expiry
     valuation_date = problem.valuation_time
     days = (expiry - valuation_date).days
     if days <= 0:
-        msg = "UI3 hedging requires expiry after valuation date"
-        raise ValueError(msg)
+        raise ValueError("UI3 hedging requires expiry after valuation date")
     return tuple(valuation_date + timedelta(days=offset) for offset in range(days + 1))
 
 
@@ -227,7 +231,7 @@ def _rebalance_dates(
 def _pricing_problem_with_volatility(
     request: HedgeWorkbenchRequest,
     annualized_volatility: float,
-):
+) -> BlackScholesPricingProblem:
     base = request.composition.problem
     return replace(
         base,
