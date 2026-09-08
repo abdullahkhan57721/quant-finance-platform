@@ -24,11 +24,9 @@ experiments                          implied-vol inference
         │                               │
         └───────────────┬───────────────┘
                         ↓
-Heston stochastic volatility                             ← M5 next
+Heston stochastic volatility + independent valuation     ← M5 complete
         ↓
-independent Heston valuation methods
-        ↓
-calibration / inverse problem
+Heston calibration / inverse problem                     ← M6 next
         ↓
 parameter recovery + stability
         ↓
@@ -228,11 +226,11 @@ M4 does **not** create a generic provider framework, generic quote-cleaning/stal
 
 ## M5 — Heston model and independent valuation
 
-**Status: next; unblocked by merged/verified M3 and M4.**
+**Status: complete.**
 
-**Question:** Can a stochastic-volatility model represent behavior Black-Scholes structurally cannot, and can we value it by independent methods?
+**Question:** Can a stochastic-volatility model represent behavior Black-Scholes structurally cannot, and can we value it by independent methods while preserving the platform's mathematical responsibility boundaries?
 
-M5 is now motivated by two different falsification pressures:
+M5 is motivated by two different falsification pressures:
 
 ```text
 M3:
@@ -246,29 +244,79 @@ one constant volatility scalar
 observed SPX strike skew + maturity dependence
 ```
 
-Expected capabilities:
+Implemented model composition:
 
-- Heston state/law structure and parameter object(s) specialized through the M0A pricing core;
-- characteristic-function/Fourier valuation method;
-- Monte Carlo valuation method;
-- parameter-domain validation;
-- Fourier ↔ Monte Carlo comparison;
-- convergence/stability and limiting/sanity studies.
+```text
+HestonEquityState(spot, instantaneous variance)
++
+HestonLaw
++
+HestonParameters(kappa, theta, xi, rho, q)
++
+existing EuropeanOption
++
+existing FlatMoneyMarketNumeraire + PricingMeasureSemantics
+        ↓
+PricingProblem
+        ├── HestonFourierEuropeanOption
+        └── HestonMonteCarloEuropeanOption
+```
 
-Keep separate:
+M5 establishes:
+
+- an immutable Heston state carrying spot and instantaneous annualized variance while refining the existing equity-state semantics;
+- immutable Heston parameter values for mean-reversion speed, long-run variance, volatility of variance, Brownian correlation, and continuous dividend yield;
+- risk-free accumulation remaining owned by the existing numeraire rather than duplicated as a model parameter;
+- Feller-condition evidence exposed as a diagnostic/sufficient positivity condition rather than silently over-enforced as structural validity;
+- reuse of the same `EuropeanOption` contract under Black-Scholes and Heston;
+- deterministic characteristic-function/Fourier valuation with explicit integration lower/upper bounds, even Simpson interval count, stable complex square-root branch convention, and immutable evaluation diagnostics;
+- independent Monte Carlo valuation with explicit paths, timesteps, seed, fresh local RNG ownership, explicit correlated shocks, and full-truncation Euler variance dynamics;
+- method-specific Monte Carlo sampling uncertainty plus separate timestep/variance-boundary evidence;
+- exact deterministic-variance handling at `xi = 0`, including Black-Scholes reduction using integrated deterministic variance; and
+- no generic Fourier, quadrature, factor-model, or stochastic-simulator framework.
+
+Validation evidence includes:
+
+- parameter/state-domain rejection;
+- Feller-violating but genuinely supported parameter sets;
+- expiry payoff and zero-spot boundaries;
+- put-call parity under the existing money-market/carry conventions;
+- exact `xi = 0` agreement with the independent Black-Scholes closed form;
+- Fourier convergence/stability under finer integration configuration;
+- equal-configuration/seed Monte Carlo reproducibility;
+- explicit negative raw variance proposal counts as full-truncation boundary-pressure evidence; and
+- Fourier ↔ Monte Carlo agreement for a non-degenerate Heston case with tolerance tied to sampling uncertainty plus discretization allowance.
+
+Protect:
 
 ```text
 Heston stochastic law
 != Heston parameter values
+!= current Heston state
 != Fourier valuation method
 != Monte Carlo valuation method
+!= future Heston calibration
 ```
 
-Do not fold calibration into M5 merely because M4 introduced an inverse problem. M6 owns Heston calibration.
+Keep the error taxonomy explicit:
+
+```text
+financial model misspecification
+!= Fourier truncation / quadrature error
+!= complex-function numerical stability
+!= Monte Carlo sampling error
+!= Heston time-discretization bias
+!= variance-boundary discretization effect
+!= floating-point error
+```
+
+M5 does **not** calibrate Heston parameters, fit the M4 SPX evidence, implement Heston Greeks/PDEs, redesign M3 hedging, introduce physical-measure forecasting, or add C++/UI infrastructure.
 
 ---
 
-## M6 — Calibration / inverse problem
+## M6 — Heston calibration / inverse problem
+
+**Status: next; unblocked by merged/verified M4 and M5.**
 
 **Question:** Can Heston parameters be inferred from known and observed targets, and how trustworthy is that inference?
 
@@ -288,15 +336,35 @@ real volatility-structure calibration
 residual diagnostics
 ```
 
+M6 should consume rather than redefine:
+
+- M4 raw/normalized observation and provenance semantics;
+- M5 `HestonLaw`, `HestonEquityState`, and immutable `HestonParameters`;
+- M5 forward valuation method(s) with explicit numerical configuration and error semantics;
+- M0A's inverse-problem distinction between the financial inference question and numerical solution method.
+
 Protect:
 
 ```text
 inverse / calibration problem != numerical optimizer
-observations != inferred parameters
-stochastic law != calibrated parameter values
+observations / targets != inferred parameters
+Heston stochastic law != calibrated Heston parameter values
+forward-pricing numerical error != calibration residual
+parameter non-identifiability != optimizer failure
 ```
 
-Expected evidence includes synthetic parameter recovery, residual analysis, multiple starts/optimizer robustness where justified, parameter stability, and identifiability concerns where observed.
+Expected evidence includes:
+
+- synthetic parameter recovery before real-market fitting claims;
+- explicit objective/loss and observation weighting semantics;
+- model-domain bounds/constraints distinct from optimizer mechanics;
+- residual analysis;
+- multiple starts or optimizer robustness where evidence justifies them;
+- parameter stability/sensitivity studies;
+- identifiability concerns where observed; and
+- real-market calibration only after the synthetic recovery and forward-pricing error budget are understood.
+
+Do not create a universal inverse/optimization framework merely because M6 calibrates several parameters.
 
 ---
 
@@ -316,7 +384,7 @@ Compare where data and methods support it:
 - computational cost; and
 - documented failure modes and assumptions.
 
-M7 should consume M4's observation/provenance semantics rather than introduce a parallel market-data lifecycle.
+M7 should consume M4's observation/provenance semantics and M6's calibration outputs rather than introduce parallel data or inference lifecycles.
 
 ---
 
@@ -378,10 +446,12 @@ The mathematical taxonomy can organize these later domains, but it does not just
 
 ## Parallelism guidance
 
-M0A through M4 are complete. Their production ownership boundaries are now settled:
+M0A through M5 are complete. Their production ownership boundaries are now settled enough for M6 to begin from merged truth:
 
 ```text
 pricing
+    ├── Black-Scholes forward methods
+    └── Heston forward methods
     ↑
 sensitivity
     ↑
@@ -390,8 +460,8 @@ control / dynamic replication        observation / normalization
                                 inverse inference
 ```
 
-M3 owns model-generated dynamic paths, hedge actions/accounting, and replication evidence. M4 owns external observations, provenance, normalization, implied-volatility inference, conditioning, and market-evidence diagnostics. Neither should redefine the other's contracts for convenience.
+M3 owns model-generated dynamic paths, hedge actions/accounting, and replication evidence. M4 owns external observations, provenance, normalization, implied-volatility inference, conditioning, and market-evidence diagnostics. M5 owns Heston forward-model state/law/parameter semantics plus Heston Fourier/Monte Carlo valuation evidence. None should redefine the others' contracts for convenience.
 
-M5 may now begin from merged M3/M4 truth. M6 remains downstream of a validated Heston valuation implementation. UI2 may proceed against merged M2 behavior while later UI work can consume M3/M4 only after the product semantics are deliberately designed.
+M6 may now begin only after M5 is squash-merged and verified on `main`. Later UI work may consume M3/M4/M5 only after product semantics are deliberately designed; no UI milestone should force changes into quantitative ownership merely to simplify presentation.
 
 Do **not** begin a parallel C++ workstream before profiling creates a concrete native-acceleration task.
