@@ -8,13 +8,17 @@ version = "0.0.0"
 description = "Validation-first quantitative-finance research and model-validation platform."
 readme = "README.md"
 requires-python = ">=3.12"
-dependencies = []
+dependencies = [
+    "numpy>=2.0",
+    "scipy>=1.14",
+]
 
 [project.optional-dependencies]
 dev = [
     "pyright>=1.1.390",
     "pytest>=8.0",
     "ruff>=0.9",
+    "scipy-stubs>=1.18.1.0",
 ]
 desktop = [
     "PySide6==6.11.2",

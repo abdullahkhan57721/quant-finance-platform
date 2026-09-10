@@ -6,7 +6,7 @@ This document is the authoritative register for project quantitative representat
 
 A convention may be **committed**, **explicitly deferred**, or **local to a specific API/study**. What is not allowed is a consequential convention remaining implicit across a public boundary.
 
-M0A commits the structural mathematics of the platform-wide problem taxonomy and the implemented pricing core. M1 makes the first concrete equity-option conventions explicit. M2 resolves the first concrete numerical-valuation and sensitivity conventions. M3 resolves the first concrete dynamic-hedging/control conventions without promoting Black-Scholes-specific choices into universal solver, risk, portfolio, simulation, or execution policy. M4 resolves the first concrete observed-market normalization and implied-volatility inverse-problem conventions without creating generic market-data, surface, or inverse-problem frameworks. M5 resolves the first stochastic-volatility state/parameter and independent Fourier/Monte Carlo valuation conventions without creating generic factor-model, Fourier, quadrature, or stochastic-simulator frameworks.
+M0A commits the structural mathematics of the platform-wide problem taxonomy and the implemented pricing core. M1 makes the first concrete equity-option conventions explicit. M2 resolves the first concrete numerical-valuation and sensitivity conventions. M3 resolves the first concrete dynamic-hedging/control conventions without promoting Black-Scholes-specific choices into universal solver, risk, portfolio, simulation, or execution policy. M4 resolves the first concrete observed-market normalization and implied-volatility inverse-problem conventions without creating generic market-data, surface, or inverse-problem frameworks. M5 resolves the first stochastic-volatility state/parameter and independent Fourier/Monte Carlo valuation conventions without creating generic factor-model, Fourier, quadrature, or stochastic-simulator frameworks. M6 resolves the first multi-parameter calibration objective, weighting, admissible-domain, optimizer-separation, and local identifiability conventions without creating generic inverse-problem or optimizer frameworks.
 
 ADR 0002 is the current authority for the mathematical problem architecture. ADR 0001 remains the historical pricing-specific decision record.
 
@@ -76,6 +76,8 @@ validation problem != validation method
 request/configuration != immutable result
 ```
 
+M4 and M6 now supply two concrete inverse consumers. They confirm the conceptual inverse Problem → Method → Result split but do **not** yet justify a universal runtime `InverseProblem` or optimizer hierarchy: scalar Black-Scholes root inversion and bounded noisy Heston calibration have materially different operational responsibilities.
+
 ### Foundational asset-pricing semantics
 
 The implemented pricing core commits these project-wide conceptual distinctions:
@@ -130,7 +132,7 @@ probability semantics
 
 Do not silently overwrite or reinterpret historical observations as model outputs. Raw observation, normalized input, inferred/calibrated quantity, and model-implied quantity are distinct semantics even when they share the same numerical type.
 
-M4 is the first production consumer of this rule: raw option/underlying observations retain provenance, normalized midpoint observations retain references to their raw evidence, and implied volatility remains a separate model-dependent result.
+M4 is the first production consumer of this rule: raw option/underlying observations retain provenance, normalized midpoint observations retain references to their raw evidence, and implied volatility remains a separate model-dependent result. M6 preserves the same lineage by constructing market calibration targets from `NormalizedOptionObservation`; synthetic model-generated targets use a different explicit source semantic and never masquerade as observations.
 
 ### Probability semantics are part of the quantitative question
 
@@ -177,6 +179,8 @@ M2 proves one small extension of that result boundary: a concrete valuation meth
 
 M5 adds two further specific valuation-result subtypes without widening the common result. `HestonFourierValuationResult` retains explicit finite integration bounds, interval count, and characteristic-function evaluation count. `HestonMonteCarloValuationResult` extends Monte Carlo sampling evidence with Heston timestep and variance-discretization evidence. Those fields remain method-specific.
 
+M6 follows the same rule on the inverse side. `HestonCalibrationResult` contains only the calibrated financial coordinates, objective/residual evidence, numerical termination diagnostics, and local Jacobian conditioning evidence justified by the Heston calibration execution. It does not absorb Greeks, hedging, pricing-method internals, UI state, or market-data repair outputs.
+
 Greeks/sensitivities, inference/calibration outputs, control policies, risk outputs, hedging evidence, validation evidence, and benchmark metadata remain separate specific result/evidence structures rather than optional fields on generic valuation output.
 
 ### Volatility values use explicit decimal/annualization semantics
@@ -191,7 +195,7 @@ means 20% annualized volatility, not 0.20% and not 20 percentage points. Varianc
 
 M4 implied volatility follows the same unit convention, but the semantic role differs: it is the Black-Scholes parameter value inferred from an observed option target under explicit model inputs, not an observed or physical-measure volatility.
 
-M5 makes the variance distinction concrete: `HestonEquityState.instantaneous_variance = 0.04` means an instantaneous variance level whose square root is `0.20` annualized volatility under the model-year convention. It is not itself a 4% volatility input.
+M5 makes the variance distinction concrete: `HestonEquityState.instantaneous_variance = 0.04` means an instantaneous variance level whose square root is `0.20` annualized volatility under the model-year convention. It is not itself a 4% volatility input. M6 preserves this distinction when calibrating `initial_variance`: the estimated `v0` remains a state-like variance coordinate, not an implied-volatility observation and not a new structural member of `HestonParameters`.
 
 ### No hidden project-wide numerical tolerance
 
@@ -219,7 +223,7 @@ M2's Monte Carlo valuation method exercises this rule concretely: the method own
 
 M3 follows the same ownership rule for path simulation: `BlackScholesPathSimulation` owns an explicit integer seed, `simulate_black_scholes_path` creates fresh local RNG state, and the immutable realized path retains the generating configuration and seed.
 
-M5 follows the rule independently: `HestonMonteCarloEuropeanOption` owns explicit path count, timestep count, and integer seed and constructs fresh local `random.Random(seed)` state for each application. Its correlated Gaussian construction is local to method execution.
+M5 follows the rule independently: `HestonMonteCarloEuropeanOption` owns explicit path count, timestep count, and integer seed and constructs fresh local `random.Random(seed)` state on every application. Its correlated Gaussian construction is local to method execution.
 
 Equal integer seeds across Python/C++ are **not** a contract for identical random streams. Use shared pre-generated random inputs when strict kernel parity is required.
 
@@ -228,6 +232,8 @@ Equal integer seeds across Python/C++ are **not** a contract for identical rando
 Live data can support research and manual workflows, but core CI tests should use deterministic fixtures, synthetic data, or curated snapshots whose provenance/licensing permits repository use.
 
 M4 follows this rule by testing market-observation, normalization, inversion, conditioning, and strike-slice diagnostics against deterministic synthetic fixtures. Real SPX evidence is a separately pinned research artifact and is not required for CI.
+
+M6 follows the same rule: known-truth recovery, multiple starts, controlled perturbation, failure behavior, and rank-deficient identification evidence use deterministic model-generated targets in CI. Real SPX calibration is reproduced from the pinned local M4 raw-data recipe and emits derived/provenance-bearing evidence without making the raw artifact a CI dependency.
 
 ## M1 local equity-option / Black-Scholes conventions
 
@@ -365,23 +371,54 @@ M5 resolves only the conventions needed by the first stochastic-volatility law a
 
 Detailed equations, characteristic-function notation, scheme definitions, references, limiting cases, and executable evidence are in `docs/models/m5_heston_stochastic_volatility.md`.
 
+## M6 local Heston calibration and inverse-problem conventions
+
+M6 resolves the first multi-parameter noisy inverse problem. These decisions are **local to the first Heston price-space calibration specialization unless explicitly identified above as cross-cutting**.
+
+| Convention | M6 decision | Scope / non-claim |
+| --- | --- | --- |
+| Calibration problem | `HestonCalibrationProblem` owns targets, fixed market/model inputs, target representation, residual scaling, admissible financial domain, and M5 forward-pricing dependency | The optimizer does not decide finance-domain semantics. |
+| Unknown coordinates | Calibrate `(v0, kappa, theta, xi, rho)` | `v0` remains state-like and is returned separately from a new immutable `HestonParameters`; observed spot, `r`, and `q` remain fixed in this first consumer. |
+| Target source | Explicit synthetic-model target or M4 normalized-market target | Synthetic prices never masquerade as observations; market targets retain M4 provenance lineage. |
+| Target representation | Option-price space | No claim that price-space and implied-volatility-space objectives are equivalent; IV-space Heston calibration remains deferred. |
+| Uniform weighting | `s_i = 1` in residual `(F_i-Y_i)/s_i` | Used for known-truth synthetic recovery. |
+| Market weighting | `s_i = (ask_i-bid_i)/2` for a strictly positive normalized spread | Economic quote-width scaling, not a statistical variance estimate or universal likelihood. |
+| Objective | Sum of squared standardized price residuals | Problem-owned financial mismatch definition; not an optimizer option. |
+| Financial bounds | Named finite bounds on each of `v0`, `kappa`, `theta`, `xi`, `rho` | Calibration-study admissible domain, distinct from broader M5 structural validity. |
+| Feller condition | Not imposed as a calibration constraint | Retains M5 diagnostic semantics; a calibrated result may violate Feller while remaining within the supported structural model domain. |
+| Parameter transform | None for the first method | Optimizer coordinates are direct financial coordinates; no transformed coordinates leak into results. |
+| Numerical method | `scipy.optimize.least_squares(method="trf")` with bound constraints | One concrete consumer, not a generic optimizer framework. |
+| Optimizer configuration | Explicit initial guess, `ftol`, `xtol`, `gtol`, maximum function evaluations, two-point numerical Jacobian | Method-owned mutable numerical search configuration. |
+| Failure separation | Invalid financial problem, invalid initial guess, and optimizer non-convergence are distinct failures | Optimizer failure is not silently converted into a calibrated estimate. |
+| Residual evidence | Retain target, model price, raw price residual, residual scale, and standardized residual per contract | Residuals are evidence; low residual does not establish model validity or parameter uniqueness. |
+| Local identifiability | Singular values/rank of the problem-standardized residual Jacobian after multiplying parameter columns by their financial-domain widths | Removes obvious unit-scale distortion but remains a local first-order diagnostic, not posterior uncertainty. |
+| Condition number | Largest/smallest singular-value ratio only when the five-parameter Jacobian has full column rank | Rank-deficient problems deliberately report no finite five-parameter condition number. |
+| Synthetic validation order | Known-truth multi-strike/multi-maturity recovery precedes market calibration | A noisy market fit is not accepted as the first proof that the inverse pipeline works. |
+| Multiple starts | Predeclared materially different initial guesses are compared | Repeatable convergence is evidence about initialization stability, not proof of global uniqueness. |
+| Perturbation evidence | Controlled target-price perturbation is used to expose parameter sensitivity | Target sensitivity is distinct from optimizer randomness. |
+| Real-market study | Reuse M4's pinned January 4, 2023 SPX evidence path, explicit `r=0.045`, `q=0.017`, OTM-side selection, and European/PM enrichment | No silent timestamp/underlying/input mixing and no claim that these rate/carry inputs were calibrated. |
+| Raw-data handling | Real workflow consumes a local pinned raw artifact and emits derived/provenance-bearing calibration evidence without redistributing raw rows | Core CI remains independent of live/network market data. |
+| Shared inverse abstraction | No universal runtime inverse hierarchy extracted after comparing M4 and M6 | The conceptual ADR-0002 responsibility split is shared; operational root-finding vs calibration responsibilities remain materially different. |
+
+Detailed objective semantics, parameter-domain meaning, optimizer separation, synthetic recovery, perturbation, non-identifiability evidence, real SPX calibration, and M4/M6 architecture comparison are in `docs/models/m6_heston_calibration.md`.
+
 ## Explicitly deferred finance conventions
 
 These decisions should be settled by the first milestones that create real consumers. Until then, do not spread a local choice across the codebase as if it were canonical.
 
 | Convention | Status | First expected pressure | Guidance until settled |
 | --- | --- | --- | --- |
-| General business-day/calendar framework | Deferred | future calendar-sensitive consumer | M1/M4/M5 intentionally use date-valued ACT/365F semantics; do not generalize this into a universal calendar policy. |
-| General discount-factor/curve representation | Deferred | future curve/rates consumer | M1/M4/M5 use a flat money-market numeraire for supported evidence; M0A commits numeraire semantics, not a curve hierarchy. |
-| Discrete dividend/corporate-action representation | Deferred | future instrument/market-data consumer | M1/M5 continuous yield is local; do not reinterpret it as a discrete dividend schedule. M3 explicitly rejects nonzero continuous yield for hedge execution until cash-flow accounting is settled. |
+| General business-day/calendar framework | Deferred | future calendar-sensitive consumer | M1/M4/M5/M6 intentionally use date-valued ACT/365F semantics; do not generalize this into a universal calendar policy. |
+| General discount-factor/curve representation | Deferred | future curve/rates consumer | M1/M4/M5/M6 use a flat money-market numeraire for supported evidence; M0A commits numeraire semantics, not a curve hierarchy. |
+| Discrete dividend/corporate-action representation | Deferred | future instrument/market-data consumer | M1/M5/M6 continuous yield is local; do not reinterpret it as a discrete dividend schedule. M3 explicitly rejects nonzero continuous yield for hedge execution until cash-flow accounting is settled. |
 | General forward-market observation semantics | Deferred | future forward/curve consumer | M4 observes spot and constructs a model forward from explicit `r/q`; that is not an observed forward quote. |
-| Array axis/order conventions for numerical kernels | Deferred | future vectorized/native kernel consumer | M5's scalar Python Fourier/Monte Carlo implementations do not create a shared array boundary. |
-| Generic market timestamp/calendar convention | Deferred | future intraday/multi-market consumer | M4 requires timezone-aware retrieval/optional observation timestamps locally but does not define exchange-session semantics. |
-| Generic quote cleaning policy | Deferred | second materially different market-data consumer | M4 commits only its European midpoint normalization; do not assume it fits every instrument/provider. |
-| Inference/calibration loss/objective convention | Deferred | M6 | M4 solves a scalar equality; calibration objectives must belong to the future concrete calibration problem. |
-| Inference weighting convention | Deferred | M6 | State how observations/targets are weighted and why. |
-| Parameter bounds/transforms | Deferred | M6 | Keep model-domain constraints distinct from optimizer mechanics. |
-| Arbitrage-free surface repair/interpolation | Deferred | future surface/calibration consumer | M4 reports narrow static violations only; it does not repair or interpolate a surface. |
+| Array axis/order conventions for numerical kernels | Deferred | future vectorized/native kernel consumer | M5/M6 scalar Python pricing/calibration implementations do not create a shared array boundary. |
+| Generic market timestamp/calendar convention | Deferred | future intraday/multi-market consumer | M4/M6 require the M4 timezone-aware retrieval/optional observation semantics locally but do not define exchange-session semantics. |
+| Generic quote cleaning policy | Deferred | second materially different market-data consumer | M4 commits only its European midpoint normalization; M6 consumes it rather than generalizing it. |
+| Alternative calibration target space | Deferred | future calibration/model-comparison consumer | M6 implements price-space Heston calibration only; any IV-space or transformed-space objective must define its own conditioning and weighting semantics explicitly. |
+| Generic calibration weighting/loss framework | Deferred | second materially different calibration consumer | M6's uniform and half-spread-standardized squared price residuals remain local, not project-wide defaults. |
+| Generic parameter transforms / unconstrained optimization coordinates | Deferred | future optimizer consumer requiring transforms | M6 uses direct bounded financial coordinates and therefore establishes no shared transform framework. |
+| Arbitrage-free surface repair/interpolation | Deferred | future surface/calibration consumer | M4 reports narrow static violations only; M6 calibrates the selected normalized cross-section without repairing or interpolating a surface. |
 | Prediction probability semantics | Deferred | future prediction consumer | State conditioning information, horizon, target, and probability semantics explicitly. |
 | Risk horizon | Deferred | first risk consumer | Must be explicit; no project-wide default. |
 | Risk probability/scenario semantics | Deferred | first risk consumer | Distinguish historical/physical/model/stress/scenario interpretations. |
@@ -424,6 +461,8 @@ M4 extends it to observed-data normalization and Black-Scholes inversion in `doc
 
 M5 extends it to stochastic volatility in `docs/models/m5_heston_stochastic_volatility.md`, including Heston state/parameter notation, Feller semantics, the characteristic-function branch and `P1/P2` integrals, deterministic `xi=0` reduction, full-truncation Euler, stochastic ownership, and independent Fourier/Monte Carlo validation evidence.
 
+M6 extends it to calibration in `docs/models/m6_heston_calibration.md`, including the five inferred financial coordinates, price-space residual/objective definition, weighting semantics, calibration-domain bounds, direct optimizer coordinates, SciPy TRF method ownership, domain-scaled Jacobian conditioning, known-truth recovery, perturbation/rank-deficiency experiments, and the provenance-preserving SPX calibration workflow.
+
 ## Market-data provenance convention
 
 M4 establishes the first concrete production market-data provenance representation. Preserve as applicable and legally permitted:
@@ -435,6 +474,8 @@ M4 establishes the first concrete production market-data provenance representati
 - raw artifact or content hash;
 - normalization/transformation version; and
 - licensing/redistribution notes.
+
+M6 consumes this convention rather than creating a calibration-specific provenance substitute: normalized market calibration targets retain their M4 observation objects and raw provenance lineage.
 
 If raw data cannot be redistributed or licensing is unclear, prefer a reproducible acquisition/processing recipe plus a pinned hash and derived evidence. Core CI should use deterministic synthetic or legally distributable curated fixtures rather than depending on live services.
 
