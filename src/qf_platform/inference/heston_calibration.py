@@ -78,7 +78,7 @@ class HestonPriceCalibrationTarget:
             return
 
         observation = self.observation
-        if not isinstance(cast(object, observation), NormalizedOptionObservation):
+        if not isinstance(observation, NormalizedOptionObservation):
             msg = "normalized-market target requires NormalizedOptionObservation"
             raise TypeError(msg)
         if observation.target_price != self.target_price:
