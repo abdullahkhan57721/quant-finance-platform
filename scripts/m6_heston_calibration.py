@@ -7,7 +7,8 @@ reconstructs raw observations with provenance, normalizes them through the produ
 M4 midpoint policy, and calibrates the M5 Heston forward model in option-price space.
 
 Raw rows are never written to output. The result contains derived calibration evidence,
-contract identifiers, residuals, and source/hash metadata only.
+contract identifiers, residuals, source/hash metadata, and the exact numerical
+configuration for every reported optimizer start.
 """
 
 from __future__ import annotations
@@ -25,6 +26,7 @@ from qf_platform.inference import (
     HestonCalibrationBounds,
     HestonCalibrationCoordinates,
     HestonCalibrationProblem,
+    HestonCalibrationResult,
     HestonCalibrationWeighting,
     HestonPriceCalibrationTarget,
     ScipyLeastSquaresHestonCalibration,
@@ -230,9 +232,7 @@ def _market_targets(
                 ):
                     continue
                 targets.append(
-                    HestonPriceCalibrationTarget.from_normalized_observation(
-                        observation
-                    )
+                    HestonPriceCalibrationTarget.from_normalized_observation(observation)
                 )
                 spots.add(observation.spot)
                 selected_keys.add((expiry, strike))
@@ -262,10 +262,30 @@ def _coordinates(
     )
 
 
-def _result_payload(result: object) -> dict[str, object]:
+def _method_payload(
+    method: ScipyLeastSquaresHestonCalibration,
+) -> dict[str, object]:
+    return {
+        "optimizer": "scipy.optimize.least_squares:trf",
+        "initial_guess": list(method.initial_guess.as_vector()),
+        "function_tolerance": method.function_tolerance,
+        "coordinate_tolerance": method.coordinate_tolerance,
+        "gradient_tolerance": method.gradient_tolerance,
+        "max_function_evaluations": method.max_function_evaluations,
+        "jacobian": "2-point",
+        "x_scale": "jac",
+    }
+
+
+def _result_payload(
+    result: HestonCalibrationResult,
+    *,
+    method: ScipyLeastSquaresHestonCalibration,
+) -> dict[str, object]:
     estimate = result.estimate
     parameters = estimate.parameters
     return {
+        "optimizer_configuration": _method_payload(method),
         "initial_variance": estimate.initial_variance,
         "mean_reversion_speed": parameters.mean_reversion_speed,
         "long_run_variance": parameters.long_run_variance,
@@ -325,14 +345,13 @@ def derive_evidence(args: argparse.Namespace) -> dict[str, object]:
         _coordinates((0.06, 1.0, 0.06, 0.8, -0.4), q=dividend_yield),
         _coordinates((0.02, 5.0, 0.02, 0.3, -0.85), q=dividend_yield),
     )
-    results = tuple(
-        calibrate_heston(
-            problem,
-            ScipyLeastSquaresHestonCalibration(initial_guess=start),
-        )
-        for start in starts
+    methods = tuple(
+        ScipyLeastSquaresHestonCalibration(initial_guess=start) for start in starts
     )
-    best = min(results, key=lambda item: item.objective_value)
+    runs = tuple(
+        (method, calibrate_heston(problem, method)) for method in methods
+    )
+    best_method, best = min(runs, key=lambda item: item[1].objective_value)
     residuals = [
         {
             "contract_id": item.target.label,
@@ -375,8 +394,10 @@ def derive_evidence(args: argparse.Namespace) -> dict[str, object]:
             "fourier_upper_bound": 100.0,
             "fourier_intervals": 256,
         },
-        "best_result": _result_payload(best),
-        "multiple_start_results": [_result_payload(result) for result in results],
+        "best_result": _result_payload(best, method=best_method),
+        "multiple_start_results": [
+            _result_payload(result, method=method) for method, result in runs
+        ],
         "residuals": residuals,
         "interpretation": {
             "optimizer_convergence_is_not_model_validation": True,
