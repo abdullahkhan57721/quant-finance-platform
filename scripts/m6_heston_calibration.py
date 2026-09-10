@@ -6,9 +6,10 @@ source artifact and 14 option contracts used by M4's published strike/maturity e
 reconstructs raw observations with provenance, normalizes them through the production
 M4 midpoint policy, and calibrates the M5 Heston forward model in option-price space.
 
-Raw rows are never written to output. The result contains derived calibration evidence,
-contract identifiers, residuals, source/hash metadata, and the exact numerical
-configuration for every reported optimizer start.
+The local file must exactly match the pinned Git blob before it is labeled as the
+reference source. Raw rows are never written to output. The result contains derived
+calibration evidence, contract identifiers, residuals, source/hash metadata, and the
+exact numerical configuration for every reported optimizer start.
 """
 
 from __future__ import annotations
@@ -94,12 +95,17 @@ def _aware_datetime(value: str) -> datetime:
     return parsed
 
 
-def _artifact_sha256(path: Path) -> str:
-    digest = hashlib.sha256()
+def _artifact_hashes(path: Path) -> tuple[str, str]:
+    """Return SHA-256 plus the exact Git blob SHA-1 for the local source bytes."""
+
+    sha256 = hashlib.sha256()
+    git_sha1 = hashlib.sha1()
+    git_sha1.update(f"blob {path.stat().st_size}\0".encode())
     with path.open("rb") as handle:
         for chunk in iter(lambda: handle.read(1024 * 1024), b""):
-            digest.update(chunk)
-    return digest.hexdigest()
+            sha256.update(chunk)
+            git_sha1.update(chunk)
+    return sha256.hexdigest(), git_sha1.hexdigest()
 
 
 def _clean_header(value: str) -> str:
@@ -310,7 +316,14 @@ def derive_evidence(args: argparse.Namespace) -> dict[str, object]:
         msg = "SPXW European/PM semantics must be explicitly confirmed"
         raise ValueError(msg)
     retrieved_at = _aware_datetime(args.retrieved_at)
-    artifact_hash = _artifact_sha256(args.csv_path)
+    artifact_hash, git_blob_sha1 = _artifact_hashes(args.csv_path)
+    if git_blob_sha1 != _SOURCE_GIT_BLOB_SHA1:
+        msg = (
+            "local CSV does not match the pinned M4/M6 Git blob: "
+            f"expected {_SOURCE_GIT_BLOB_SHA1}, observed {git_blob_sha1}"
+        )
+        raise ValueError(msg)
+
     rate = 0.045
     dividend_yield = 0.017
     targets, spot = _market_targets(
@@ -348,9 +361,7 @@ def derive_evidence(args: argparse.Namespace) -> dict[str, object]:
     methods = tuple(
         ScipyLeastSquaresHestonCalibration(initial_guess=start) for start in starts
     )
-    runs = tuple(
-        (method, calibrate_heston(problem, method)) for method in methods
-    )
+    runs = tuple((method, calibrate_heston(problem, method)) for method in methods)
     best_method, best = min(runs, key=lambda item: item[1].objective_value)
     residuals = [
         {
@@ -369,7 +380,8 @@ def derive_evidence(args: argparse.Namespace) -> dict[str, object]:
             "repository": _SOURCE_REPOSITORY,
             "commit": _SOURCE_COMMIT,
             "path": _SOURCE_PATH,
-            "git_blob_sha1": _SOURCE_GIT_BLOB_SHA1,
+            "git_blob_sha1": git_blob_sha1,
+            "git_blob_verified": True,
             "local_artifact_sha256": artifact_hash,
             "license_note": _LICENSE_NOTES,
         },
