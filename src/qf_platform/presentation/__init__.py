@@ -26,6 +26,14 @@ from qf_platform.presentation.ui3_market import (
     MarketWorkbenchPresentation,
     build_market_workbench_presentation,
 )
+from qf_platform.presentation.ui4_heston import (
+    HestonCalibrationPresentation,
+    HestonPricingPresentation,
+    M6MarketReferencePresentation,
+    build_heston_calibration_presentation,
+    build_heston_pricing_presentation,
+    build_m6_market_reference_presentation,
+)
 
 __all__ = [
     "BlackScholesPresentation",
@@ -33,7 +41,10 @@ __all__ = [
     "HedgeFrequencyRow",
     "HedgeStepRow",
     "HedgeWorkbenchPresentation",
+    "HestonCalibrationPresentation",
+    "HestonPricingPresentation",
     "M2WorkbenchPresentation",
+    "M6MarketReferencePresentation",
     "MarketObservationDetail",
     "MarketObservationRow",
     "MarketWorkbenchPresentation",
@@ -45,7 +56,10 @@ __all__ = [
     "ValuationComparisonRow",
     "build_black_scholes_presentation",
     "build_hedge_workbench_presentation",
+    "build_heston_calibration_presentation",
+    "build_heston_pricing_presentation",
     "build_m2_workbench_presentation",
+    "build_m6_market_reference_presentation",
     "build_market_workbench_presentation",
     "hedge_step_detail_rows",
 ]
