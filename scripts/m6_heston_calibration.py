@@ -238,7 +238,9 @@ def _market_targets(
                 ):
                     continue
                 targets.append(
-                    HestonPriceCalibrationTarget.from_normalized_observation(observation)
+                    HestonPriceCalibrationTarget.from_normalized_observation(
+                        observation
+                    )
                 )
                 spots.add(observation.spot)
                 selected_keys.add((expiry, strike))
