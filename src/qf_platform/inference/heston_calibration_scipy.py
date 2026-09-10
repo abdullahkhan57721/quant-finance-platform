@@ -94,11 +94,11 @@ class ScipyLeastSquaresHestonCalibration:
             gtol=self.gradient_tolerance,
             max_nfev=self.max_function_evaluations,
         )
-        success = cast(bool, optimizer_result.success)
+        success = optimizer_result.success
         status = int(cast(int, optimizer_result.status))
         message = str(optimizer_result.message)
-        function_evaluations = int(cast(int, optimizer_result.nfev))
-        jacobian_evaluations_raw = cast(int | None, optimizer_result.njev)
+        function_evaluations = int(optimizer_result.nfev)
+        jacobian_evaluations_raw = optimizer_result.njev
         jacobian_evaluations = (
             0 if jacobian_evaluations_raw is None else int(jacobian_evaluations_raw)
         )
