@@ -1,6 +1,6 @@
 # Quantitative Finance Research & Validation Platform
 
-A **validation-first quantitative-finance research platform** for implementing, challenging, and empirically evaluating financial models.
+A **validation-first quantitative-finance research platform** for implementing, challenging, calibrating, and empirically evaluating financial models.
 
 The first specialization is **Equity Derivatives & Volatility Modeling**.
 
@@ -22,9 +22,11 @@ The first specialization is **Equity Derivatives & Volatility Modeling**.
 
 **M4 — Market Evidence / Inverse Problems is complete.** M4 adds provenance-bearing raw option/underlying observations, explicit quote normalization, Black-Scholes implied-volatility inversion as the first concrete inverse problem, conditioning/static-quote diagnostics, deterministic CI fixtures, and pinned SPX empirical evidence showing strike skew and maturity dependence.
 
-**M5 — Heston Model and Independent Valuation is complete.** M5 adds an explicit stochastic-volatility state/law/parameter specialization, deterministic characteristic-function/Fourier valuation, independent full-truncation Euler Monte Carlo valuation, exact deterministic-variance boundary handling, method-specific numerical evidence, and cross-method/theoretical validation without introducing calibration or generic Fourier/simulation frameworks.
+**M5 — Heston Model and Independent Valuation is complete.** M5 adds explicit stochastic-volatility state/law/parameter semantics, deterministic characteristic-function/Fourier valuation, independent full-truncation Euler Monte Carlo valuation, exact deterministic-variance boundary handling, method-specific numerical evidence, and cross-method/theoretical validation.
 
-**M6 — Heston Calibration / Inverse Problem is next.** It will consume the validated M5 forward model and valuation semantics rather than redefining Heston model identity or numerical pricing responsibilities.
+**M6 — Heston Calibration / Inverse Problem is complete.** M6 adds explicit price-space calibration targets and objective/weighting semantics, bounded five-coordinate Heston calibration with a separate SciPy least-squares method, synthetic truth recovery, multiple-start and perturbation evidence, local Jacobian identifiability diagnostics, and a provenance-preserving SPX calibration workflow. M4 and M6 together do **not** yet justify a universal runtime inverse/optimizer framework.
+
+**M7 — Empirical Validation, Model Risk, and Black-Scholes vs Heston Comparison is next.**
 
 See:
 
@@ -36,9 +38,10 @@ See:
 - [`docs/models/black_scholes.md`](docs/models/black_scholes.md) for M1 formula provenance and reference evidence;
 - [`docs/models/m2_numerical_methods_and_sensitivities.md`](docs/models/m2_numerical_methods_and_sensitivities.md) for M2 numerical methods, Greeks, uncertainty, and error taxonomy;
 - [`docs/models/m3_dynamic_delta_hedging.md`](docs/models/m3_dynamic_delta_hedging.md) for M3 path, policy, accounting, replication, and misspecification evidence;
-- [`docs/models/m4_market_evidence_and_implied_volatility.md`](docs/models/m4_market_evidence_and_implied_volatility.md) for M4 observation, normalization, inverse-problem, conditioning, and empirical-evidence semantics;
+- [`docs/models/m4_market_evidence_and_implied_volatility.md`](docs/models/m4_market_evidence_and_implied_volatility.md) for M4 observation, normalization, scalar inverse-problem, conditioning, and empirical-evidence semantics;
 - [`docs/models/m5_heston_stochastic_volatility.md`](docs/models/m5_heston_stochastic_volatility.md) for M5 Heston dynamics, Fourier/Monte Carlo method provenance, numerical conventions, and validation evidence;
-- [`docs/evidence/m4_spx_implied_volatility_evidence.json`](docs/evidence/m4_spx_implied_volatility_evidence.json) for the pinned derived SPX evidence artifact;
+- [`docs/models/m6_heston_calibration.md`](docs/models/m6_heston_calibration.md) for M6 objective/weighting, parameter recovery, optimizer separation, identifiability, and market-calibration evidence;
+- [`docs/evidence/m4_spx_implied_volatility_evidence.json`](docs/evidence/m4_spx_implied_volatility_evidence.json) and [`docs/evidence/m6_spx_heston_calibration_reference.json`](docs/evidence/m6_spx_heston_calibration_reference.json) for the pinned derived market-evidence artifacts;
 - [`docs/decisions/0002-mathematical-problem-architecture.md`](docs/decisions/0002-mathematical-problem-architecture.md) for the current mathematical-problem doctrine; and
 - [`docs/development/engineering_principles.md`](docs/development/engineering_principles.md) for engineering/collaboration rationale.
 
@@ -93,7 +96,7 @@ Problem + supported Method -> specific immutable Result
 
 This is a mathematical responsibility map, not a universal runtime inheritance tree.
 
-## Pricing core and Black-Scholes specialization
+## Pricing and sensitivity reference verticals
 
 The production pricing composition is:
 
@@ -113,13 +116,7 @@ supported ValuationMethod
 ValuationResult
 ```
 
-M1 specializes it with `EquityState`, `BlackScholesLaw`, `BlackScholesParameters`, `EuropeanOption`, `FlatMoneyMarketNumeraire`, `PricingMeasureSemantics`, and `BlackScholesClosedForm`.
-
-The reference vertical uses calendar `datetime.date`, ACT/365F model time, modeled spot, a flat continuously compounded money-market rate, continuous proportional dividend/carry, annualized decimal volatility, explicit call/put rights, and non-negative finite spot/strike domains.
-
-## M2 — independent valuation methods
-
-M2 keeps one financial pricing question while changing the solution method:
+M1 specializes it with Black-Scholes and a European option. M2 keeps the same financial pricing question while varying the valuation method:
 
 ```text
 same M1 PricingProblem
@@ -128,25 +125,17 @@ same M1 PricingProblem
         └── MonteCarloEuropeanOption
 ```
 
-`CoxRossRubinstein(steps)` distinguishes a fixed finite complete-market tree from increasing-step convergence toward the continuous Black-Scholes reference. `MonteCarloEuropeanOption(paths, seed)` owns explicit path-count/RNG configuration and returns method-specific sampling uncertainty on `MonteCarloValuationResult` without bloating the common valuation result.
-
-## M2 — first concrete sensitivity family
-
-Pricing and sensitivity remain separate questions:
+Sensitivity remains a separate question:
 
 ```text
-pricing:
-PricingProblem + ValuationMethod -> ValuationResult
-
-sensitivity:
 BlackScholesSensitivityProblem
-        +
-supported sensitivity method
+        ├── AnalyticBlackScholesSensitivity
+        └── FiniteDifferenceBlackScholesSensitivity
         ↓
 BlackScholesSensitivityResult
 ```
 
-The first specialization supports Delta, Gamma, Vega, Theta, and Rho with explicit differentiation variable, derivative order, units, scaling, and sign conventions. Analytic and finite-difference methods are independently cross-validated with explicit native-unit bumps.
+The first specialization supports Delta, Gamma, Vega, Theta, and Rho with explicit differentiation variable, derivative order, units, scaling, sign conventions, and finite-difference cross-validation.
 
 ## M3 — dynamic hedging as the first control specialization
 
@@ -168,7 +157,7 @@ DeltaHedgeResult
 ReplicationErrorSummary
 ```
 
-The path observation grid and hedge schedule are separate. For one short European option, the hedge records explicit stock trades, cash financing, optional proportional transaction costs, terminal payoff/value, and replication error. Evidence covers reproducibility, self-financing identities, no-lookahead behavior, rebalance-frequency effects, volatility misspecification, and transaction-cost drag.
+Evidence covers reproducibility, self-financing identities, no-lookahead behavior, rebalance-frequency effects, volatility misspecification, and transaction-cost drag.
 
 Protect:
 
@@ -197,43 +186,15 @@ BlackScholesImpliedVolatilityProblem
     + BisectionImpliedVolatility
     ↓
 ImpliedVolatilityResult
-    ↓
-strike / maturity / conditioning evidence
 ```
 
-Raw observations retain source/timing/hash/licensing lineage and are not overwritten by normalized or modeled values. The first normalization policy uses a positive non-crossed bid/ask midpoint for supported European non-AM contracts and retains raw lineage plus a normalization version.
+Raw observations retain source/timing/hash/licensing lineage and are not overwritten by normalized or modeled values. Financial feasibility is checked before root search. The root finder owns numerical search, not the financial meaning of the inverse problem. M2 analytic Vega exposes local inverse conditioning.
 
-The financial inverse problem owns the observed target, Black-Scholes forward map, volatility domain, financial feasibility, and failure interpretation. The bisection method owns only the root-search procedure. No-arbitrage price bounds are checked before solving; unbracketed domains and unresolved numerical solves have distinct failure semantics.
-
-M4 reuses M2 analytic Vega to expose local inverse conditioning. A numerically converged implied volatility can therefore still be flagged as sensitive to quote perturbations through inverse-Vega and half-spread diagnostics.
-
-### Market evidence
-
-Core CI uses a deterministic synthetic option fixture with deliberate strike and maturity structure. Separately, a pinned January 4, 2023 SPX research artifact derives implied volatility for approximately 30-day and 114-day expiries under explicit flat rate/carry and OTM quote-selection assumptions.
-
-Representative inferred values are:
-
-```text
-30-day slice:
-K=3720 put   ~23.03%
-K=3850 put   ~21.45%
-K=3900 call  ~20.65%
-K=4020 call  ~19.08%
-
-~114-day slice:
-K=3720 put   ~23.12%
-K=3900 call  ~21.49%
-K=4075 call  ~19.63%
-K=4240 call  ~18.22%
-```
-
-The systematic downside skew and maturity dependence contradict the one-constant-volatility structure as a cross-sectional description of these observed prices. Same-right midpoint slices also contain discrete convexity violations; M4 records those as data-quality evidence rather than silently repairing a surface.
-
-Implied volatility is a **model-dependent inferred parameter**, not a directly observed physical volatility.
+The pinned January 4, 2023 SPX study shows systematic downside skew and maturity dependence under explicit flat rate/carry and OTM-selection assumptions. One constant Black-Scholes volatility cannot reconcile that selected cross-section. Implied volatility remains a **model-dependent inferred parameter**, not directly observed physical volatility.
 
 ## M5 — Heston stochastic volatility and independent valuation
 
-M5 answers the M4 model-pressure question with a concrete stochastic-volatility specialization while reusing the same European-option contract and the existing pricing architecture:
+M5 responds to M4's empirical pressure with a richer forward model while reusing the same European-option contract and pricing architecture:
 
 ```text
 HestonEquityState(spot, instantaneous variance)
@@ -251,97 +212,164 @@ PricingProblem
         └── HestonMonteCarloEuropeanOption
 ```
 
-`HestonEquityState` refines `EquityState`, so a European option remains the same financial contract under Black-Scholes and Heston. The Heston parameter object owns mean-reversion speed, long-run variance, volatility of variance, Brownian correlation, and continuous dividend yield; the risk-free rate remains owned by the numeraire. The classical Feller condition is exposed as a diagnostic and is not silently treated as a universal model-validity restriction.
+`HestonEquityState` keeps current variance separate from the structural parameter values. The Feller condition is exposed as a diagnostic rather than silently over-enforced. Fourier valuation owns explicit quadrature configuration; Monte Carlo owns path/timestep/RNG configuration and full-truncation Euler. At `xi = 0`, M5 follows the exact deterministic-variance boundary and validates against independent Black-Scholes pricing.
 
-`HestonFourierEuropeanOption` implements deterministic characteristic-function pricing with explicit finite integration bounds, composite-Simpson resolution, stable complex square-root branch semantics, and method-specific evaluation diagnostics. `HestonMonteCarloEuropeanOption(paths, time_steps, seed)` independently uses fresh local RNG state and full-truncation Euler variance dynamics, retaining sampling uncertainty, timestep configuration, variance-scheme identity, and negative raw variance proposals as boundary-pressure evidence.
+## M6 — Heston calibration as a financial inverse problem
 
-At `xi = 0`, Heston variance becomes deterministic. M5 handles that boundary exactly through integrated variance and validates the resulting price against the independent Black-Scholes closed form rather than forcing the general stochastic-volatility numerics through a singular formula.
-
-M5 evidence includes parameter/state-domain checks, expiry and zero-spot boundaries, put-call parity, Feller-violating but numerically supported parameters, Fourier convergence/stability, exact `xi=0` reduction, seeded Monte Carlo reproducibility, variance-boundary diagnostics, and Fourier ↔ Monte Carlo agreement for a non-degenerate parameter set with tolerance tied to sampling uncertainty and discretization bias.
-
-Protect:
+M6 calibrates the five financial coordinates
 
 ```text
-Heston stochastic law != Heston parameter values != current modeled state
-Heston law != Fourier valuation method != Monte Carlo valuation method
-Monte Carlo sampling error != Heston time-discretization bias
-variance-boundary discretization effect != financial model error
-Heston forward valuation != future Heston calibration
+(v0, kappa, theta, xi, rho)
 ```
+
+while keeping observed/model spot, flat risk-free rate, and continuous dividend yield fixed for the first calibration consumer. `v0` remains state-like and is returned separately from a new immutable `HestonParameters` value.
+
+The first target space is **option price**, deliberately not treated as equivalent to implied-volatility space. Calibration targets are either explicit synthetic model-generated targets or M4 `NormalizedOptionObservation` targets retaining provenance.
+
+The problem owns the standardized price residual:
+
+```text
+(model price - target price) / residual scale
+```
+
+with two concrete policies:
+
+```text
+UNIFORM_PRICE
+    residual scale = 1
+
+BID_ASK_HALF_SPREAD
+    residual scale = (ask - bid) / 2
+```
+
+The first supports truth-known synthetic recovery. The second gives observed price mismatch an explicit quote-width scale without interpreting half-spread as a statistical variance or universal likelihood.
+
+Financial calibration bounds are explicit and distinct from broader M5 model validity, the optimizer's numerical bound mechanism, and parameter transforms. M6 uses direct bounded financial coordinates and does not impose Feller as a calibration constraint.
+
+The numerical method is `ScipyLeastSquaresHestonCalibration`, a concrete SciPy trust-region-reflective bounded nonlinear least-squares method. It owns initial guess, tolerances, finite-difference Jacobian strategy, maximum evaluations, and mutable search state. It does **not** own the financial objective/weighting/domain semantics.
+
+### Recovery and identifiability evidence
+
+A deterministic 20-option surface over four maturities and five strikes is generated from known truth:
+
+```text
+v0    = 0.04
+kappa = 2.0
+theta = 0.04
+xi    = 0.5
+rho   = -0.7
+q     = 0.01
+```
+
+Multiple materially different starts recover the known truth to tight numerical tolerance. Controlled target-price perturbations move the inferred coordinates while preserving a small objective.
+
+A deliberately underdetermined three-quote slice demonstrates the key negative result: multiple starts can obtain near-zero price loss with materially different Heston estimates. Its local Jacobian is rank deficient.
+
+```text
+optimizer converged
+!= uniquely identified parameters
+
+small objective
+!= trustworthy parameter estimate
+```
+
+M6 reports singular values/rank from the problem-standardized residual Jacobian after scaling parameter columns by their explicit financial-domain widths. A finite condition number is reported only for full five-column rank. This is local first-order identification evidence, not posterior uncertainty.
+
+### SPX calibration evidence
+
+The real workflow reuses M4's pinned January 4, 2023 SPX source lineage and selected 14 OTM-side contracts:
+
+```text
+local pinned raw CSV
+→ M4 raw observations + provenance
+→ M4 midpoint normalization
+→ M6 Heston price targets
+→ half-spread-standardized calibration
+```
+
+The three-start reference fit clusters around:
+
+```text
+v0      ≈ 0.04447
+kappa   ≈ 3.2575
+theta   ≈ 0.06622
+xi      ≈ 0.62715
+rho     ≈ -0.77937
+```
+
+with standardized sum-squared objective around `12.56`. The domain-scaled Jacobian is full rank but has condition number about `404`: stable optimizer convergence coexists with nontrivial parameter conditioning.
+
+That result is calibration evidence—not a claim that Heston is valid or superior. M7 owns the actual model-risk comparison.
+
+## Why there is still no generic inverse framework
+
+M4 and M6 now provide two real inverse consumers:
+
+```text
+M4
+scalar monotone Black-Scholes volatility inversion
+financial feasibility + bracketing + root convergence
+
+M6
+five-coordinate noisy Heston calibration
+weighted residuals + bounded nonlinear least squares + identifiability evidence
+```
+
+What is genuinely shared is the ADR-0002 conceptual split:
+
+```text
+financial inverse question
+!= numerical solution method
+!= immutable completed result/evidence
+```
+
+The operational responsibilities remain materially different. The repository therefore still has no universal runtime `InverseProblem`, optimizer, Bayesian, filtering, or forecasting framework.
 
 ## Validation evidence
 
-The platform does not rely on plausible-looking prices alone.
+The platform does not rely on plausible-looking prices alone. The evidence ladder now includes:
 
-M1 establishes analytical benchmarks, put-call parity, bounds, limiting cases, and formula traceability. M2 adds independent valuation convergence, Monte Carlo uncertainty/scaling, and analytic ↔ finite-difference Greek validation. M3 adds dynamic-replication/accounting/no-lookahead/distributional misspecification evidence. M4 adds observation provenance, normalization rejection tests, known-volatility recovery, financial-feasibility and numerical-failure tests, low-Vega conditioning evidence, synthetic smile/term-structure regression evidence, static quote diagnostics, and reproducible derived SPX evidence. M5 adds stochastic-volatility domain semantics, Fourier quadrature/convergence evidence, exact deterministic-variance reduction, positivity-boundary diagnostics, reproducible time-discretized Monte Carlo, and independent Fourier ↔ Monte Carlo cross-validation.
+- analytical Black-Scholes benchmarks, parity, bounds, and limiting cases;
+- CRR and Monte Carlo independent valuation evidence;
+- analytic ↔ finite-difference Greek validation;
+- dynamic-replication/accounting/no-lookahead/misspecification evidence;
+- observed-market provenance, normalization, implied-volatility feasibility/conditioning, and SPX strike/maturity evidence;
+- Heston Fourier convergence, deterministic-variance reduction, seeded Monte Carlo, variance-boundary diagnostics, and Fourier ↔ Monte Carlo validation;
+- Heston synthetic parameter recovery from multiple starts;
+- controlled calibration-target perturbation evidence;
+- explicit rank-deficient low-loss non-identifiability evidence; and
+- provenance-preserving SPX Heston calibration with residual and local conditioning evidence.
 
-The project keeps distinct:
+Keep distinct:
 
 ```text
-financial model / misspecification effect
-Fourier truncation / quadrature error
-complex-function numerical stability
-Monte Carlo valuation sampling error
+financial model misspecification
+numerical valuation error
+Monte Carlo sampling error
 Heston time-discretization bias
-variance-boundary discretization effect
-finite-difference truncation error
-finite-difference cancellation / floating-point error
-discrete hedge-rebalancing error
-stochastic hedge-replicate variation
-transaction-cost effect
 observed quote / data-quality uncertainty
-inverse-problem conditioning
-root-solver failure
+implied-volatility inverse conditioning
+calibration objective / weighting choice
+optimizer convergence failure
+calibration initialization dependence
+parameter non-identifiability / ill-conditioning
+calibration residual
+model validity
 ```
-
-## Observations vs modeled quantities
-
-The platform preserves:
-
-```text
-real world
-    ↓
-raw observations + provenance
-    ↓
-normalization / cleaning
-    ↓
-problem-ready observed information
-
-separately from
-
-modeled state + stochastic law + parameters + probability semantics
-```
-
-M4 is the first production consumer of this distinction. `RawUnderlyingObservation` is not an `EquityState`; normalized option prices are not model prices; inferred volatility is not raw market data. M5 remains on the forward-model side of this boundary; M6 will infer new immutable Heston parameter values from explicit targets rather than mutating `HestonLaw`.
 
 ## v0.1 direction
 
 ```text
-mathematical problem architecture + pricing foundation   ← M0A complete
-        ↓
-Black-Scholes reference specialization                   ← M1 complete
-        ↓
-independent valuation + sensitivity/Greeks               ← M2 complete
-        ├──────────────────────────┐
-        ↓                          ↓
-dynamic hedging/control        market evidence /
-← M3 complete                  implied-vol inference
-                               ← M4 complete
-        └─────────────┬────────────┘
-                      ↓
-Heston stochastic volatility + independent valuation     ← M5 complete
-        ↓
-Heston calibration / inverse problem                     ← M6 next
-        ↓
-parameter recovery + stability
-        ↓
-out-of-sample/model-risk validation
-        ↓
-profile measured bottlenecks
-        ↓
-targeted C++ acceleration
-        ↓
-portfolio-quality release
+M0A mathematical architecture                     complete
+M1 Black-Scholes reference vertical               complete
+M2 independent valuation + Greeks                 complete
+M3 dynamic hedging/control                        complete
+M4 market evidence + implied-vol inference        complete
+M5 Heston stochastic volatility                   complete
+M6 Heston calibration + identifiability           complete
+M7 empirical/model-risk comparison                next
+M8 profile + targeted C++ acceleration            planned
+M9 portfolio-quality v0.1 release                 planned
 ```
 
 ## Architecture philosophy
@@ -351,22 +379,23 @@ Key protected distinctions include:
 ```text
 financial state != market observation
 raw observation != normalized observation != modeled value
-state != stochastic law != parameters
+state != stochastic law != parameters != calibrated estimate
 contract != cash-flow stream
 numeraire != pricing measure
 problem != solution method
 pricing problem != sensitivity problem != control problem != inverse problem
-GBM stochastic law != Monte Carlo method != path simulation
-Heston law != Fourier method != Heston Monte Carlo method
+GBM/Heston stochastic law != valuation/path method
 Delta sensitivity != hedge policy != realized hedge action
-inverse problem != optimizer / root finder
+inverse problem != root finder / optimizer
+calibration objective / weighting != optimizer configuration
+financial domain constraint != optimizer bound mechanism != parameter transform
 implied volatility != observed volatility
-Heston forward valuation != Heston calibration
+optimizer converged != model valid
 FinancialContract != Trade != Portfolio
 production library != research study != presentation
 ```
 
-The governing rule is:
+The governing rule remains:
 
 ```text
 Foundational mathematical domain distinctions
@@ -384,7 +413,7 @@ universal operational APIs.
 
 Python owns reference financial semantics, research/control orchestration, inference/calibration, validation, and market-data workflows.
 
-C++ will be introduced only after profiling identifies numerical hotspots worth accelerating. Python reference implementations remain the correctness authority, with numerical/statistical parity evidence across any future native boundary.
+C++ will be introduced only after M8 profiling identifies numerical hotspots worth accelerating. Python reference implementations remain the correctness authority, with numerical/statistical parity evidence across any future native boundary.
 
 ## Local development
 
@@ -409,21 +438,22 @@ Apply supported Ruff fixes and formatting with:
 ./scripts/fix
 ```
 
-The current gate runs Ruff linting, Ruff format checking, strict Pyright, and pytest. GitHub Actions invokes the same `scripts/check_all` entry point so local and hosted checks remain aligned.
+The canonical core gate runs Ruff linting, Ruff format checking, strict Pyright, and pytest. The dedicated Desktop workflow owns PySide6/QML checks. `scipy-stubs` is a development-only typing dependency for strict checking of the SciPy-backed M6 method.
 
 ## Current non-goals
 
-The repository intentionally still contains no merged production implementation of:
+The repository intentionally still contains no production implementation of:
 
 - generic stochastic-control, strategy, execution, trade, portfolio, VaR, or scenario frameworks;
 - physical-measure M3 forecasting semantics or nonzero-dividend hedge accounting;
 - generic/live market-data-provider infrastructure;
 - generic quote-cleaning, staleness, or arbitrage-free surface construction/repair infrastructure;
-- generic inverse/inference, prediction, risk, or validation frameworks;
-- Heston calibration or generic calibration/optimizer infrastructure;
-- generic Fourier/quadrature or stochastic-simulator frameworks;
+- universal inverse/inference or optimizer framework;
+- Bayesian Heston inference, filtering, or physical-measure Heston estimation;
+- generic calibration weighting/loss or parameter-transform framework;
 - discount/dividend curve inference from option chains;
+- generic Fourier/quadrature or stochastic-simulator frameworks;
 - generic experiment infrastructure; or
-- a C++ backend abstraction.
+- a C++ backend abstraction before profiling justifies one.
 
 Those capabilities should specialize or consume the existing mathematical architecture only when their milestones provide real quantitative pressure.
