@@ -58,6 +58,13 @@ from qf_platform.application.ui4_heston import (
     run_heston_calibration,
     run_heston_pricing,
 )
+from qf_platform.application.ui5_validation import (
+    UI5ValidationAnalysis,
+    UI5ValidationRequest,
+    UI5WorkloadDefinition,
+    make_ui5_reference_validation_request,
+    run_ui5_validation,
+)
 
 __all__ = [
     "BlackScholesStudyComposition",
@@ -89,6 +96,9 @@ __all__ = [
     "MarketSliceEvidence",
     "MarketWorkbenchAnalysis",
     "MarketWorkbenchConfig",
+    "UI5ValidationAnalysis",
+    "UI5ValidationRequest",
+    "UI5WorkloadDefinition",
     "WorkbenchValuationMethod",
     "annualized_volatility_from_variance",
     "canonical_black_scholes_draft",
@@ -100,6 +110,7 @@ __all__ = [
     "make_heston_calibration_request",
     "make_heston_pricing_request",
     "make_m2_workbench_request",
+    "make_ui5_reference_validation_request",
     "normalize_hedge_workbench_config",
     "normalize_m2_workbench_config",
     "run_hedge_workbench",
@@ -107,5 +118,6 @@ __all__ = [
     "run_heston_pricing",
     "run_m2_workbench",
     "run_market_workbench",
+    "run_ui5_validation",
     "selected_method",
 ]
