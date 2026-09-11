@@ -40,7 +40,7 @@ def _finish(controller: WorkbenchController, timeout: float = 30.0) -> None:
     app.processEvents()
 
 
-def test_ui5_controller_exposes_empty_validation_state_without_fabricating_results() -> (
+def test_ui5_controller_exposes_empty_validation_and_committed_performance_state() -> (
     None
 ):
     controller = _controller()
@@ -74,6 +74,26 @@ def test_ui5_controller_exposes_empty_validation_state_without_fabricating_resul
     assert (
         cast(PresentationRowModel, controller.validationInspectorModel).rowCount() == 0
     )
+
+    assert cast(PresentationRowModel, controller.performanceWorkloadModel).rowCount() == 6
+    assert cast(PresentationRowModel, controller.performanceParityModel).rowCount() == 3
+    assert (
+        cast(PresentationRowModel, controller.performanceNativeDecisionModel).rowCount()
+        == 3
+    )
+    assert (
+        cast(PresentationRowModel, controller.performanceProvenanceModel).rowCount() == 4
+    )
+    performance_plot = json.loads(cast(str, controller.performanceRuntimePlotJson))
+    assert len(performance_plot["series"]) == 2
+    assert all(len(series["points"]) == 6 for series in performance_plot["series"])
+
+    performance_report = cast(str, controller.performanceReportText)
+    combined_report = cast(str, controller.ui5EvidenceReportText)
+    assert "M8 PERFORMANCE ENGINEERING EVIDENCE" in performance_report
+    assert "C++ kernel added: False" in performance_report
+    assert "Run the M7 validation study" in combined_report
+    assert "M8 PERFORMANCE ENGINEERING EVIDENCE" in combined_report
 
 
 def test_ui5_threaded_validation_installs_authoritative_m7_evidence() -> None:
@@ -114,6 +134,9 @@ def test_ui5_threaded_validation_installs_authoritative_m7_evidence() -> None:
     assert len(stability_plot["series"][0]["points"]) == 5
 
     report = cast(str, controller.validationReportText)
+    combined_report = cast(str, controller.ui5EvidenceReportText)
     assert "10 training / 4 evaluation" in report
     assert "Bounded conclusion" in report
     assert "no authoritative Heston hedge comparison" in report
+    assert "10 training / 4 evaluation" in combined_report
+    assert "M8 PERFORMANCE ENGINEERING EVIDENCE" in combined_report
