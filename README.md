@@ -36,7 +36,7 @@ M8 profiling + targeted C++ acceleration       ← next
 M9 portfolio-quality v0.1 release
 ```
 
-The native desktop workbench is a parallel downstream track. UI1–UI3 are complete; UI4 consumes the authoritative M5/M6 Heston/calibration contracts and remains separate from M7 validation semantics.
+The native desktop workbench is a parallel downstream track. **UI1–UI4 are complete.** UI5 may now consume authoritative M7 validation/model-risk evidence; performance/release presentation should consume M8 only after that evidence exists.
 
 ## Read first
 
@@ -393,7 +393,7 @@ public quantitative APIs
 production quantitative core
 ```
 
-The finance core remains Qt-independent. UI4 may expose authoritative M5/M6 Heston/calibration behavior but must not invent M7 validation calculations or conclusions in QML.
+The finance core remains Qt-independent. UI4 is complete and exposes authoritative M5/M6 Heston/calibration behavior without inventing M7 validation calculations or conclusions in QML. UI5 may now consume merged M7 evidence through downstream application/presentation adapters.
 
 ## Local development
 
