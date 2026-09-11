@@ -29,15 +29,40 @@ ApplicationWindow {
         color: hub.panel
         border.color: hub.border
         implicitHeight: cardColumn.implicitHeight + 24
+
         ColumnLayout {
             id: cardColumn
             anchors.fill: parent
             anchors.margins: 12
             spacing: 5
-            Label { Layout.fillWidth: true; text: parent.parent.rowLabel; color: hub.textPrimary; font.bold: true; wrapMode: Text.WordWrap }
-            Label { Layout.fillWidth: true; text: parent.parent.rowValue; color: hub.textPrimary; wrapMode: Text.WordWrap }
-            Label { Layout.fillWidth: true; visible: text.length > 0; text: parent.parent.rowDetail; color: hub.textMuted; wrapMode: Text.WordWrap; font.pixelSize: 11 }
-            Label { visible: text.length > 0; text: parent.parent.rowStatus; color: hub.good; font.pixelSize: 11; font.bold: true }
+            Label {
+                Layout.fillWidth: true
+                text: parent.parent.rowLabel
+                color: hub.textPrimary
+                font.bold: true
+                wrapMode: Text.WordWrap
+            }
+            Label {
+                Layout.fillWidth: true
+                text: parent.parent.rowValue
+                color: hub.textPrimary
+                wrapMode: Text.WordWrap
+            }
+            Label {
+                Layout.fillWidth: true
+                visible: text.length > 0
+                text: parent.parent.rowDetail
+                color: hub.textMuted
+                wrapMode: Text.WordWrap
+                font.pixelSize: 11
+            }
+            Label {
+                visible: text.length > 0
+                text: parent.parent.rowStatus
+                color: hub.good
+                font.pixelSize: 11
+                font.bold: true
+            }
         }
     }
 
@@ -59,7 +84,7 @@ ApplicationWindow {
             }
             Label {
                 Layout.fillWidth: true
-                text: "UI5 brings the model-comparison story to the center: fit models fairly, freeze them before evaluation, inspect where they fail, and keep model quality separate from parameter identification, hedging evidence, and computational cost."
+                text: "UI5 brings the model-comparison story to the center: fit models fairly, freeze them before evaluation, inspect where they fail, and keep model quality separate from parameter identification, hedging evidence, and measured computational cost."
                 color: hub.textMuted
                 font.pixelSize: 15
                 wrapMode: Text.WordWrap
@@ -78,7 +103,12 @@ ApplicationWindow {
                     anchors.margins: 18
                     spacing: 12
 
-                    Label { text: "Scientific story"; color: hub.textPrimary; font.pixelSize: 19; font.bold: true }
+                    Label {
+                        text: "Scientific story"
+                        color: hub.textPrimary
+                        font.pixelSize: 19
+                        font.bold: true
+                    }
 
                     GridLayout {
                         Layout.fillWidth: true
@@ -93,9 +123,20 @@ ApplicationWindow {
                             color: "#0d1117"
                             border.color: hub.border
                             ColumnLayout {
-                                anchors.fill: parent; anchors.margins: 12
-                                Label { text: "BLACK-SCHOLES"; color: hub.textPrimary; font.bold: true; font.pixelSize: 17 }
-                                Label { Layout.fillWidth: true; text: "One fitted constant volatility · same training observations"; color: hub.textMuted; wrapMode: Text.WordWrap }
+                                anchors.fill: parent
+                                anchors.margins: 12
+                                Label {
+                                    text: "BLACK-SCHOLES"
+                                    color: hub.textPrimary
+                                    font.bold: true
+                                    font.pixelSize: 17
+                                }
+                                Label {
+                                    Layout.fillWidth: true
+                                    text: "One fitted constant volatility · same training observations"
+                                    color: hub.textMuted
+                                    wrapMode: Text.WordWrap
+                                }
                             }
                         }
                         Label {
@@ -112,16 +153,27 @@ ApplicationWindow {
                             color: "#0d1117"
                             border.color: hub.border
                             ColumnLayout {
-                                anchors.fill: parent; anchors.margins: 12
-                                Label { text: "HESTON"; color: hub.textPrimary; font.bold: true; font.pixelSize: 17 }
-                                Label { Layout.fillWidth: true; text: "Five calibrated coordinates · same training observations"; color: hub.textMuted; wrapMode: Text.WordWrap }
+                                anchors.fill: parent
+                                anchors.margins: 12
+                                Label {
+                                    text: "HESTON"
+                                    color: hub.textPrimary
+                                    font.bold: true
+                                    font.pixelSize: 17
+                                }
+                                Label {
+                                    Layout.fillWidth: true
+                                    text: "Five calibrated coordinates · same training observations"
+                                    color: hub.textMuted
+                                    wrapMode: Text.WordWrap
+                                }
                             }
                         }
                     }
 
                     Label {
                         Layout.fillWidth: true
-                        text: "M7 then evaluates both frozen training fits on the same four held-out contracts. The result supports a bounded pricing conclusion—not temporal forecasting, universal model validity, or Heston hedge superiority."
+                        text: "M7 evaluates both frozen training fits on the same four held-out contracts. M8 separately measures representative computational workloads. Better pricing, stronger identification, hedging evidence, and faster execution remain different claims."
                         color: hub.textMuted
                         wrapMode: Text.WordWrap
                     }
@@ -145,17 +197,22 @@ ApplicationWindow {
                         anchors.fill: parent
                         anchors.margins: 17
                         spacing: 8
-                        Label { text: "Validation & Model Risk"; color: hub.textPrimary; font.pixelSize: 20; font.bold: true }
+                        Label {
+                            text: "Validation, Model Risk & Performance"
+                            color: hub.textPrimary
+                            font.pixelSize: 20
+                            font.bold: true
+                        }
                         Label {
                             Layout.fillWidth: true
-                            text: "Which model fits better? Where? Does the advantage survive a predeclared holdout? Which Heston coordinates are locally fragile? What conclusions remain unsupported?"
+                            text: "Which model fits better? Where? Does the advantage survive a predeclared holdout? Which Heston coordinates are locally fragile? What did M8 actually make faster, and what does its no-C++ decision mean?"
                             color: hub.textPrimary
                             wrapMode: Text.WordWrap
                         }
                         Button {
                             id: validationButton
                             text: "Open Validation Workspace"
-                            Accessible.name: "Open validation and model risk workspace"
+                            Accessible.name: "Open validation model risk and performance workspace"
                             onClicked: {
                                 hub.hide()
                                 validationWindow.show()
@@ -176,7 +233,12 @@ ApplicationWindow {
                         anchors.fill: parent
                         anchors.margins: 17
                         spacing: 8
-                        Label { text: "Research Workbench Library"; color: hub.textPrimary; font.pixelSize: 20; font.bold: true }
+                        Label {
+                            text: "Research Workbench Library"
+                            color: hub.textPrimary
+                            font.pixelSize: 20
+                            font.bold: true
+                        }
                         Label {
                             Layout.fillWidth: true
                             text: "Open the established UI1–UI4 workflows: Black-Scholes valuation/Greeks, Heston valuation, dynamic hedging, market/IV evidence, and Heston calibration/identifiability."
@@ -200,15 +262,15 @@ ApplicationWindow {
             Rectangle {
                 Layout.fillWidth: true
                 radius: 9
-                color: "#1f1608"
-                border.color: hub.warning
+                color: "#102318"
+                border.color: hub.good
                 implicitHeight: m8Label.implicitHeight + 24
                 Label {
                     id: m8Label
                     anchors.fill: parent
                     anchors.margins: 12
-                    text: "Performance status: M8 is active independently, but no M8 performance evidence is merged into repository truth yet. UI5 can show M7's representative workload definitions and structural evaluation counts, but no runtime chart, C++ speedup, memory comparison, progress percentage, cancellation control, backend selector, signing, or installer claim is authoritative yet."
-                    color: hub.warning
+                    text: "Performance status: M8 is merged. The Workbench presents revision-pinned before/after evidence for the six representative M7 workloads. The four heavy workloads improve by about 4.61×–27.38× in the pinned reference with parity retained. M8's measured native decision is no C++ kernel for v0.1, so UI5 correctly exposes no backend selector. Hosted timings are descriptive evidence, not CI thresholds."
+                    color: hub.good
                     wrapMode: Text.WordWrap
                 }
             }
@@ -241,7 +303,9 @@ ApplicationWindow {
         title: "Quant Research Workbench · Validation & Model Risk"
         color: "#0d1117"
 
-        onClosing: function(close) { hub.show() }
+        onClosing: function(close) {
+            hub.show()
+        }
 
         ValidationWorkspace {
             anchors.fill: parent
@@ -265,7 +329,10 @@ ApplicationWindow {
             height: validationWindow.height
             edge: Qt.RightEdge
             modal: false
-            background: Rectangle { color: "#010409"; border.color: hub.border }
+            background: Rectangle {
+                color: "#010409"
+                border.color: hub.border
+            }
 
             ScrollView {
                 anchors.fill: parent
@@ -275,10 +342,15 @@ ApplicationWindow {
                     y: 18
                     width: Math.max(0, parent.width - 36)
                     spacing: 12
-                    Label { text: "Validation Mathematical Inspector"; color: hub.textPrimary; font.pixelSize: 22; font.bold: true }
+                    Label {
+                        text: "Validation Mathematical Inspector"
+                        color: hub.textPrimary
+                        font.pixelSize: 22
+                        font.bold: true
+                    }
                     Label {
                         Layout.fillWidth: true
-                        text: "Observed quantities, predeclared partition, training fits, validation method, immutable evidence, conditioning, and the M8 workload handoff remain distinct."
+                        text: "Observed quantities, predeclared partition, training fits, validation method, immutable validation evidence, conditioning, and the separate merged-M8 computational evidence remain distinct."
                         color: hub.textMuted
                         wrapMode: Text.WordWrap
                     }
@@ -300,7 +372,22 @@ ApplicationWindow {
         }
     }
 
-    Shortcut { sequence: "Ctrl+1"; onActivated: { hub.hide(); validationWindow.show() } }
-    Shortcut { sequence: "Ctrl+2"; onActivated: { hub.hide(); legacyWorkbench.show() } }
-    Shortcut { sequence: StandardKey.Quit; onActivated: Qt.quit() }
+    Shortcut {
+        sequence: "Ctrl+1"
+        onActivated: {
+            hub.hide()
+            validationWindow.show()
+        }
+    }
+    Shortcut {
+        sequence: "Ctrl+2"
+        onActivated: {
+            hub.hide()
+            legacyWorkbench.show()
+        }
+    }
+    Shortcut {
+        sequence: StandardKey.Quit
+        onActivated: Qt.quit()
+    }
 }
