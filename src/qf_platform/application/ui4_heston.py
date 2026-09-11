@@ -317,7 +317,9 @@ def run_heston_pricing(request: HestonPricingRequest) -> HestonPricingAnalysis:
     if not isinstance(fourier, HestonFourierValuationResult):
         raise TypeError("Heston Fourier execution returned an unexpected result type")
     if not isinstance(monte_carlo, HestonMonteCarloValuationResult):
-        raise TypeError("Heston Monte Carlo execution returned an unexpected result type")
+        raise TypeError(
+            "Heston Monte Carlo execution returned an unexpected result type"
+        )
 
     selected_intervals = request.fourier_method.intervals
     candidates = tuple(
@@ -446,7 +448,9 @@ def make_heston_calibration_request(
     if intervals % 2:
         raise ValueError("fourier_intervals must be even")
     if not _SYNTHETIC_BOUNDS.contains(initial_guess):
-        raise ValueError("initial guess lies outside the UI4 synthetic calibration domain")
+        raise ValueError(
+            "initial guess lies outside the UI4 synthetic calibration domain"
+        )
     return HestonCalibrationWorkbenchRequest(
         mode=normalized_mode,
         initial_guess=initial_guess,
