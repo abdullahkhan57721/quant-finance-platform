@@ -58,6 +58,12 @@ from qf_platform.application.ui4_heston import (
     run_heston_calibration,
     run_heston_pricing,
 )
+from qf_platform.application.ui5_performance import (
+    UI5PerformanceParity,
+    UI5PerformanceReference,
+    UI5PerformanceWorkload,
+    canonical_m8_performance_reference,
+)
 from qf_platform.application.ui5_validation import (
     UI5ValidationAnalysis,
     UI5ValidationRequest,
@@ -96,6 +102,9 @@ __all__ = [
     "MarketSliceEvidence",
     "MarketWorkbenchAnalysis",
     "MarketWorkbenchConfig",
+    "UI5PerformanceParity",
+    "UI5PerformanceReference",
+    "UI5PerformanceWorkload",
     "UI5ValidationAnalysis",
     "UI5ValidationRequest",
     "UI5WorkloadDefinition",
@@ -105,6 +114,7 @@ __all__ = [
     "canonical_m4_market_workbench",
     "canonical_m4_spx_evidence",
     "canonical_m6_market_reference",
+    "canonical_m8_performance_reference",
     "compose_black_scholes_study",
     "make_hedge_workbench_request",
     "make_heston_calibration_request",
