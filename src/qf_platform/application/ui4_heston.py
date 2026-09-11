@@ -314,12 +314,6 @@ def run_heston_pricing(request: HestonPricingRequest) -> HestonPricingAnalysis:
 
     fourier = evaluate(request.problem, request.fourier_method)
     monte_carlo = evaluate(request.problem, request.monte_carlo_method)
-    if not isinstance(fourier, HestonFourierValuationResult):
-        raise TypeError("Heston Fourier execution returned an unexpected result type")
-    if not isinstance(monte_carlo, HestonMonteCarloValuationResult):
-        raise TypeError(
-            "Heston Monte Carlo execution returned an unexpected result type"
-        )
 
     selected_intervals = request.fourier_method.intervals
     candidates = tuple(
