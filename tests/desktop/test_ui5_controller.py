@@ -75,14 +75,17 @@ def test_ui5_controller_exposes_empty_validation_and_committed_performance_state
         cast(PresentationRowModel, controller.validationInspectorModel).rowCount() == 0
     )
 
-    assert cast(PresentationRowModel, controller.performanceWorkloadModel).rowCount() == 6
+    assert (
+        cast(PresentationRowModel, controller.performanceWorkloadModel).rowCount() == 6
+    )
     assert cast(PresentationRowModel, controller.performanceParityModel).rowCount() == 3
     assert (
         cast(PresentationRowModel, controller.performanceNativeDecisionModel).rowCount()
         == 3
     )
     assert (
-        cast(PresentationRowModel, controller.performanceProvenanceModel).rowCount() == 4
+        cast(PresentationRowModel, controller.performanceProvenanceModel).rowCount()
+        == 4
     )
     performance_plot = json.loads(cast(str, controller.performanceRuntimePlotJson))
     assert len(performance_plot["series"]) == 2
