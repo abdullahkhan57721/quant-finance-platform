@@ -107,6 +107,7 @@ class WorkbenchController(QObject):
         self._greek_comparison = GreekComparisonModel()
         self._thread: QThread | None = None
         self._worker: QObject | None = None
+        self._running = False
         self._status = "Create a Black-Scholes study or load the canonical example."
         self._defaults = canonical_black_scholes_draft()
         self._m2_defaults = M2WorkbenchDraft()
@@ -199,7 +200,7 @@ class WorkbenchController(QObject):
 
     @Property(bool, notify=runningChanged)
     def running(self) -> bool:
-        return self._thread is not None
+        return self._running
 
     @Property(str, notify=statusChanged)
     def status(self) -> str:
@@ -553,8 +554,9 @@ class WorkbenchController(QObject):
 
     @Slot()
     def _worker_finished(self) -> None:
-        self._worker = None
-        self._thread = None
+        # Keep the just-finished PySide wrappers alive outside QThread.finished.
+        # Releasing them in this callback can race Qt deferred QObject destruction.
+        self._running = False
         self.runningChanged.emit()
 
     def _start_worker(
@@ -575,6 +577,7 @@ class WorkbenchController(QObject):
         thread.finished.connect(thread.deleteLater)
         self._worker = worker
         self._thread = thread
+        self._running = True
         self.runningChanged.emit()
         thread.start()
 

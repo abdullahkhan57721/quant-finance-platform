@@ -28,6 +28,8 @@ M7         empirical validation / BS vs Heston model risk    complete
                       ↓
 M8         measured performance engineering                  complete
                       ↓
+UI5        validation/model-risk product hardening           complete
+                      ↓
 M9         portfolio-quality v0.1 release                    next
 ```
 
@@ -42,6 +44,7 @@ theory
 → calibrated inverse problem with identifiability evidence
 → predeclared held-out model comparison
 → measured optimization
+→ validation-first native presentation/product hardening
 → release
 ```
 
@@ -193,6 +196,30 @@ This negative native decision is part of the M8 result. Future materially larger
 
 See `docs/models/m8_performance_engineering.md`, `docs/evidence/m8_performance_reference.json`, `scripts/m8_profile_workloads.py`, and `scripts/m8_compare_performance.py`.
 
+## UI5 — Validation, model risk, performance evidence and product hardening
+
+**Status: complete.**
+
+UI5 makes the earned M7/M8 scientific story the center of the native product while retaining UI1–UI4 as the research-workbench library.
+
+Its validation workspace provides:
+
+- separate training and held-out evaluation metrics;
+- contract-level Black-Scholes/Heston residual structure;
+- held-out absolute pricing error;
+- Heston training/full-sample parameter stability and local conditioning;
+- explicit model-risk non-claims, including the absence of authoritative Heston hedge evidence;
+- the committed M8 representative before/after runtime evidence with revision/environment provenance;
+- deterministic and statistical parity semantics;
+- the measured negative native decision, with no fabricated backend selector; and
+- a combined copyable M7/M8 evidence report.
+
+Product hardening adds keyboard navigation, accessibility names, responsive layouts, explicit empty/running/result/warning/error boundaries, truthful busy-state-only long-running UX, process-isolated Qt controller tests, and continued standalone build/package-launch proof.
+
+UI5 deliberately does not create generic persisted-study/fork/report frameworks before the platform owns a durable saved-study/document identity. Signing, notarization, installers and supported-platform release guarantees remain M9 release-target decisions.
+
+See `docs/models/ui5_validation_model_risk_and_product_hardening.md` and `docs/architecture/native_quant_workbench.md`.
+
 ## M9 — Portfolio-quality v0.1 release
 
 **Status: next.**
@@ -203,8 +230,9 @@ M9 should consolidate rather than broaden the quantitative scope. Expected outpu
 - explicit market-data/provenance/replay instructions;
 - validation/model-risk conclusions and non-claims;
 - M8 same-run before/after performance evidence and the measured no-C++ decision;
-- polished downstream native-workbench integration;
+- the completed UI5 downstream native-workbench integration;
 - release-oriented documentation and examples;
+- concrete platform/distribution decisions where justified;
 - final quality/reproducibility review; and
 - the tagged v0.1 release.
 
@@ -217,12 +245,8 @@ UI1  native architecture + Black-Scholes analytic vertical       complete
 UI2  valuation comparison / convergence / uncertainty / Greeks  complete
 UI3  dynamic hedging + market evidence / implied volatility     complete
 UI4  Heston forward valuation + calibration / identifiability   complete
-UI5  validation/model-risk + performance/release evidence       active
+UI5  validation/model-risk + performance/product hardening      complete
 ```
-
-UI4 consumes authoritative M5/M6 contracts and remains downstream of finance semantics. UI5 is a parallel active PR that consumes M7 validation/model-risk evidence and may reconcile against M8 performance evidence after M8 merges.
-
-M8 established that there is no v0.1 native quantitative backend to expose. UI5 must therefore present the measured optimization/no-C++ result truthfully rather than inventing a backend selector or C++ execution path.
 
 The dependency direction remains:
 
@@ -233,12 +257,12 @@ PySide6 controller / item models
         ↓
 application + presentation
         ↓
-public quantitative APIs
+public quantitative APIs + committed derived evidence
         ↓
 production quantitative core
 ```
 
-Finance milestones do not depend on UI completion.
+Finance milestones do not depend on UI completion. M9 can now consume the completed quantitative M1–M8 and native UI1–UI5 evidence stack without first opening another broad UI feature milestone.
 
 ## Post-v0.1 directions
 

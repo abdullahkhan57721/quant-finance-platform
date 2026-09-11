@@ -567,8 +567,9 @@ class WorkbenchController(UI3WorkbenchController):
 
     @Slot()
     def _ui4_worker_finished(self) -> None:
-        self._worker = None
-        self._thread = None
+        # Keep the just-finished PySide wrappers alive outside QThread.finished.
+        # Releasing them in this callback can race Qt deferred QObject destruction.
+        self._running = False
         self._ui4_active_job_id = None
         self._ui4_active_kind = ""
         self._ui4_active_valid = True
@@ -606,6 +607,7 @@ class WorkbenchController(UI3WorkbenchController):
         thread.finished.connect(thread.deleteLater)
         self._worker = worker
         self._thread = thread
+        self._running = True
         self.runningChanged.emit()
         thread.start()
 
