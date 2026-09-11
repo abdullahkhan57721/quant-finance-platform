@@ -50,13 +50,14 @@ def test_ui5_validation_runs_real_m7_evidence_and_keeps_limits_explicit() -> Non
     assert evidence.heston_stability.training_condition_number is not None
     assert len(analysis.workloads) == 6
     assert all(
-        "runtime" not in workload.detail.lower()
-        for workload in analysis.workloads[:-1]
+        "runtime" not in workload.detail.lower() for workload in analysis.workloads[:-1]
     )
     assert "not runtime" in analysis.workloads[-1].detail.lower()
 
 
-def test_ui5_presentation_separates_training_evaluation_and_workload_structure() -> None:
+def test_ui5_presentation_separates_training_evaluation_and_workload_structure() -> (
+    None
+):
     presentation = build_ui5_validation_presentation(_analysis())
 
     assert any("TRAINING" in row.label for row in presentation.training_metric_rows)
@@ -64,8 +65,7 @@ def test_ui5_presentation_separates_training_evaluation_and_workload_structure()
     assert len(presentation.residual_rows) == 14
     assert {row.status for row in presentation.residual_rows} == {"TRAIN", "HELD OUT"}
     assert any(
-        row.label == "Heston hedging advantage"
-        for row in presentation.model_risk_rows
+        row.label == "Heston hedging advantage" for row in presentation.model_risk_rows
     )
     assert all(row.status == "Profile in M8" for row in presentation.workload_rows)
     assert len(presentation.residual_plot.series) == 4

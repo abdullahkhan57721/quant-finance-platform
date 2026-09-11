@@ -102,7 +102,11 @@ class WorkbenchController(UI4WorkbenchController):
     @Property(str, notify=validationChanged)
     def validationResidualPlotJson(self) -> str:  # noqa: N802
         presentation = self._validation_presentation
-        return "{}" if presentation is None else _serialize_plot(presentation.residual_plot)
+        return (
+            "{}"
+            if presentation is None
+            else _serialize_plot(presentation.residual_plot)
+        )
 
     @Property(str, notify=validationChanged)
     def validationHeldOutErrorPlotJson(self) -> str:  # noqa: N802
@@ -231,7 +235,9 @@ class WorkbenchController(UI4WorkbenchController):
         self._validation_presentation = presentation
         self._validation_summary.set_items(presentation.summary_rows)
         self._validation_training_metrics.set_items(presentation.training_metric_rows)
-        self._validation_evaluation_metrics.set_items(presentation.evaluation_metric_rows)
+        self._validation_evaluation_metrics.set_items(
+            presentation.evaluation_metric_rows
+        )
         self._validation_residuals.set_items(presentation.residual_rows)
         self._validation_stability.set_items(presentation.stability_rows)
         self._validation_risk.set_items(presentation.model_risk_rows)

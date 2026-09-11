@@ -9,7 +9,9 @@ pytest.importorskip("PySide6")
 from qf_platform.desktop.ui5_controller import WorkbenchController
 
 
-def test_ui5_controller_exposes_empty_validation_state_without_fabricating_results() -> None:
+def test_ui5_controller_exposes_empty_validation_state_without_fabricating_results() -> (
+    None
+):
     controller = WorkbenchController()
 
     assert not controller.validationAnalysisReady

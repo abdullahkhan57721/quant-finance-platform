@@ -150,7 +150,9 @@ def _residual_rows(analysis: UI5ValidationAnalysis) -> tuple[PresentationRow, ..
         dict[ValidationModel, ModelResidualEvidence],
     ] = {}
     for residual in analysis.evidence.residuals:
-        paired.setdefault((residual.contract_id, residual.partition), {})[residual.model] = residual
+        paired.setdefault((residual.contract_id, residual.partition), {})[
+            residual.model
+        ] = residual
 
     rows: list[PresentationRow] = []
     for (contract_id, partition), models in paired.items():
@@ -387,8 +389,7 @@ def _parameter_stability_plot(analysis: UI5ValidationAnalysis) -> PlotData:
                 "shift",
                 "domain-scaled movement",
                 tuple(
-                    PlotPoint(float(index), shift)
-                    for index, shift in enumerate(shifts)
+                    PlotPoint(float(index), shift) for index, shift in enumerate(shifts)
                 ),
             ),
         ),
