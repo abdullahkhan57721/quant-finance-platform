@@ -1,0 +1,47 @@
+name: M8 Performance Evidence
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/m8-performance.yml"
+      - "scripts/m8_profile_workloads.py"
+      - "src/qf_platform/pricing/heston_fourier.py"
+      - "src/qf_platform/pricing/heston_monte_carlo.py"
+      - "src/qf_platform/inference/heston_calibration.py"
+      - "src/qf_platform/inference/heston_calibration_scipy.py"
+      - "src/qf_platform/validation/model_comparison.py"
+      - "tests/fixtures/m7_spx_validation_observations.json"
+  workflow_dispatch:
+
+jobs:
+  profile:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install package
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev]"
+
+      - name: Profile frozen M7 workloads
+        run: |
+          python scripts/m8_profile_workloads.py \
+            --repetitions 3 \
+            --profile-top 15 \
+            --output m8-performance-evidence.json
+
+      - name: Upload performance evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: m8-performance-evidence-${{ github.sha }}
+          path: m8-performance-evidence.json
+          if-no-files-found: error
