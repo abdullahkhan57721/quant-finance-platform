@@ -65,7 +65,11 @@ def _discounted_payoffs(
     discount: float,
 ) -> NDArray[np.float64]:
     signed = terminal_spots - strike
-    payoffs = np.maximum(signed, 0.0) if right is OptionRight.CALL else np.maximum(-signed, 0.0)
+    payoffs = (
+        np.maximum(signed, 0.0)
+        if right is OptionRight.CALL
+        else np.maximum(-signed, 0.0)
+    )
     discounted = discount * payoffs
     if not np.all(np.isfinite(discounted)):
         msg = "discounted simulated Heston payoff must be finite"
