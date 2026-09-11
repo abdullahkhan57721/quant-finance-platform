@@ -311,36 +311,46 @@ class WorkbenchController(UI3WorkbenchController):
     @Property(str, notify=hestonChanged)
     def hestonMethodComparisonPlotJson(self) -> str:  # noqa: N802
         presentation = self._heston_presentation
-        return "{}" if presentation is None else _serialize_plot(
-            presentation.method_comparison_plot
+        return (
+            "{}"
+            if presentation is None
+            else _serialize_plot(presentation.method_comparison_plot)
         )
 
     @Property(str, notify=hestonChanged)
     def hestonFourierStabilityPlotJson(self) -> str:  # noqa: N802
         presentation = self._heston_presentation
-        return "{}" if presentation is None else _serialize_plot(
-            presentation.fourier_stability_plot
+        return (
+            "{}"
+            if presentation is None
+            else _serialize_plot(presentation.fourier_stability_plot)
         )
 
     @Property(str, notify=calibrationChanged)
     def calibrationParameterErrorPlotJson(self) -> str:  # noqa: N802
         presentation = self._calibration_presentation
-        return "{}" if presentation is None else _serialize_plot(
-            presentation.parameter_error_plot
+        return (
+            "{}"
+            if presentation is None
+            else _serialize_plot(presentation.parameter_error_plot)
         )
 
     @Property(str, notify=calibrationChanged)
     def calibrationResidualPlotJson(self) -> str:  # noqa: N802
         presentation = self._calibration_presentation
-        return "{}" if presentation is None else _serialize_plot(
-            presentation.residual_plot
+        return (
+            "{}"
+            if presentation is None
+            else _serialize_plot(presentation.residual_plot)
         )
 
     @Property(str, notify=calibrationChanged)
     def calibrationObjectivePlotJson(self) -> str:  # noqa: N802
         presentation = self._calibration_presentation
-        return "{}" if presentation is None else _serialize_plot(
-            presentation.objective_plot
+        return (
+            "{}"
+            if presentation is None
+            else _serialize_plot(presentation.objective_plot)
         )
 
     @Property(str, constant=True)
