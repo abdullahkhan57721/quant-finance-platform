@@ -240,6 +240,7 @@ class WorkbenchController(UI4WorkbenchController):
         thread.finished.connect(thread.deleteLater)
         self._worker = worker
         self._thread = thread
+        self._running = True
         self.runningChanged.emit()
         self._set_status(
             "Running M7 Black-Scholes vs Heston validation outside the GUI thread. "
@@ -266,8 +267,9 @@ class WorkbenchController(UI4WorkbenchController):
 
     @Slot()
     def _validation_worker_finished(self) -> None:
-        self._worker = None
-        self._thread = None
+        # Keep the just-finished PySide wrappers alive outside QThread.finished.
+        # Releasing them in this callback can race Qt deferred QObject destruction.
+        self._running = False
         self.runningChanged.emit()
 
     def _clear_validation_presentation(self) -> None:

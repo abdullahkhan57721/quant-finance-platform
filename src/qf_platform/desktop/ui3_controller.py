@@ -397,6 +397,7 @@ class WorkbenchController(UI2WorkbenchController):
         thread.finished.connect(thread.deleteLater)
         self._worker = worker
         self._thread = thread
+        self._running = True
         self.runningChanged.emit()
         thread.start()
 
