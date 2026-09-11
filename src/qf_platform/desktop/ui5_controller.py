@@ -15,7 +15,9 @@ from qf_platform.application.ui5_validation import (
     run_ui5_validation,
 )
 from qf_platform.desktop.models import PresentationRowModel
-from qf_platform.desktop.ui4_controller import WorkbenchController as UI4WorkbenchController
+from qf_platform.desktop.ui4_controller import (
+    WorkbenchController as UI4WorkbenchController,
+)
 from qf_platform.presentation.plotting import PlotData
 from qf_platform.presentation.ui5_validation import (
     UI5ValidationPresentation,
