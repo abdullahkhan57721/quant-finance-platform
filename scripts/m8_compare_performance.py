@@ -58,10 +58,18 @@ def _deterministic_checks(
     m7_before = _output(baseline, "m7_end_to_end_cross_sectional_validation")
     m7_after = _output(optimized, "m7_end_to_end_cross_sectional_validation")
 
-    train_objectives_before = [float(item["objective_value"]) for item in train_before["starts"]]
-    train_objectives_after = [float(item["objective_value"]) for item in train_after["starts"]]
-    full_objectives_before = [float(item["objective_value"]) for item in full_before["starts"]]
-    full_objectives_after = [float(item["objective_value"]) for item in full_after["starts"]]
+    train_objectives_before = [
+        float(item["objective_value"]) for item in train_before["starts"]
+    ]
+    train_objectives_after = [
+        float(item["objective_value"]) for item in train_after["starts"]
+    ]
+    full_objectives_before = [
+        float(item["objective_value"]) for item in full_before["starts"]
+    ]
+    full_objectives_after = [
+        float(item["objective_value"]) for item in full_after["starts"]
+    ]
 
     checks = {
         "black_scholes_value_close": _close(
