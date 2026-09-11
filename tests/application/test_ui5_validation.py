@@ -52,9 +52,7 @@ def test_ui5_validation_runs_real_m7_evidence_and_keeps_limits_explicit() -> Non
     assert all(
         "runtime" not in workload.detail.lower() for workload in analysis.workloads[:-1]
     )
-    assert (
-        "does not claim measured runtime" in analysis.workloads[-1].detail.lower()
-    )
+    assert "does not claim measured runtime" in analysis.workloads[-1].detail.lower()
 
 
 def test_ui5_presentation_separates_training_evaluation_and_workload_structure() -> (
