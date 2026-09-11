@@ -8,6 +8,7 @@ import json
 
 from PySide6.QtCore import Property, QObject, QThread, Signal, Slot
 
+from qf_platform.application.ui5_performance import canonical_m8_performance_reference
 from qf_platform.application.ui5_validation import (
     UI5ValidationAnalysis,
     UI5ValidationRequest,
@@ -19,6 +20,10 @@ from qf_platform.desktop.ui4_controller import (
     WorkbenchController as UI4WorkbenchController,
 )
 from qf_platform.presentation.plotting import PlotData
+from qf_platform.presentation.ui5_performance import (
+    UI5PerformancePresentation,
+    build_ui5_performance_presentation,
+)
 from qf_platform.presentation.ui5_validation import (
     UI5ValidationPresentation,
     build_ui5_validation_presentation,
@@ -46,7 +51,7 @@ class _ValidationWorker(QObject):
 
 
 class WorkbenchController(UI4WorkbenchController):
-    """Extend UI4 with M7 validation/model-risk evidence without moving math into QML."""
+    """Extend UI4 with M7 validation and merged M8 performance evidence."""
 
     validationChanged = Signal()
 
@@ -62,6 +67,24 @@ class WorkbenchController(UI4WorkbenchController):
         self._validation_risk = PresentationRowModel()
         self._validation_workloads = PresentationRowModel()
         self._validation_inspector = PresentationRowModel()
+
+        self._performance_presentation: UI5PerformancePresentation = (
+            build_ui5_performance_presentation(canonical_m8_performance_reference())
+        )
+        self._performance_workloads = PresentationRowModel()
+        self._performance_parity = PresentationRowModel()
+        self._performance_native_decision = PresentationRowModel()
+        self._performance_provenance = PresentationRowModel()
+        self._performance_workloads.set_items(
+            self._performance_presentation.workload_rows
+        )
+        self._performance_parity.set_items(self._performance_presentation.parity_rows)
+        self._performance_native_decision.set_items(
+            self._performance_presentation.native_decision_rows
+        )
+        self._performance_provenance.set_items(
+            self._performance_presentation.provenance_rows
+        )
 
     @Property(bool, notify=validationChanged)
     def validationAnalysisReady(self) -> bool:  # noqa: N802
@@ -99,6 +122,22 @@ class WorkbenchController(UI4WorkbenchController):
     def validationInspectorModel(self) -> QObject:  # noqa: N802
         return self._validation_inspector
 
+    @Property(QObject, constant=True)
+    def performanceWorkloadModel(self) -> QObject:  # noqa: N802
+        return self._performance_workloads
+
+    @Property(QObject, constant=True)
+    def performanceParityModel(self) -> QObject:  # noqa: N802
+        return self._performance_parity
+
+    @Property(QObject, constant=True)
+    def performanceNativeDecisionModel(self) -> QObject:  # noqa: N802
+        return self._performance_native_decision
+
+    @Property(QObject, constant=True)
+    def performanceProvenanceModel(self) -> QObject:  # noqa: N802
+        return self._performance_provenance
+
     @Property(str, notify=validationChanged)
     def validationResidualPlotJson(self) -> str:  # noqa: N802
         presentation = self._validation_presentation
@@ -126,11 +165,15 @@ class WorkbenchController(UI4WorkbenchController):
             else _serialize_plot(presentation.parameter_stability_plot)
         )
 
+    @Property(str, constant=True)
+    def performanceRuntimePlotJson(self) -> str:  # noqa: N802
+        return _serialize_plot(self._performance_presentation.runtime_plot)
+
     @Property(str, notify=validationChanged)
     def validationReportText(self) -> str:  # noqa: N802
         analysis = self._validation_analysis
         if analysis is None:
-            return "Run the M7 validation study to populate the evidence report."
+            return "Run the M7 validation study to populate the validation evidence report."
         evidence = analysis.evidence
         return "\n".join(
             (
@@ -158,8 +201,20 @@ class WorkbenchController(UI4WorkbenchController):
                 evidence.conclusion.statement,
                 "",
                 "Non-claims: no temporal OOS test; no authoritative Heston hedge comparison; "
-                "conditioning is not posterior uncertainty; M8 workload definitions are not runtime benchmarks.",
+                "conditioning is not posterior uncertainty.",
             )
+        )
+
+    @Property(str, constant=True)
+    def performanceReportText(self) -> str:  # noqa: N802
+        return self._performance_presentation.report_text
+
+    @Property(str, notify=validationChanged)
+    def ui5EvidenceReportText(self) -> str:  # noqa: N802
+        return (
+            f"{self.validationReportText}\n\n"
+            "============================================================\n\n"
+            f"{self.performanceReportText}"
         )
 
     @Slot(result=bool)
@@ -202,7 +257,7 @@ class WorkbenchController(UI4WorkbenchController):
         self._apply_validation_presentation(build_ui5_validation_presentation(payload))
         self._set_status(
             "M7 validation complete. Training, held-out evaluation, model-risk limits, "
-            "and M8 workload structure remain separate evidence."
+            "and merged M8 performance evidence remain separate evidence."
         )
 
     @Slot(str)
