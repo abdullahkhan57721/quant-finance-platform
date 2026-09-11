@@ -2,9 +2,18 @@
 
 ## Status
 
-UI1 established the native PySide6 + Qt Quick/QML desktop architecture over the M1 Black-Scholes analytical vertical. UI2 extends that same architecture over the actual merged M2 valuation and sensitivity capabilities. UI3 extends the same boundary over the merged M3 dynamic-control and M4 observed-market/inverse-problem capabilities while preserving them as different mathematical workflows.
+The native Workbench is a PySide6 + Qt Quick/QML desktop application downstream of the quantitative core.
 
-The durable dependency direction remains:
+The implemented desktop milestones are:
+
+- **UI1** — Black-Scholes analytical vertical and native desktop architecture;
+- **UI2** — independent M2 valuation methods, convergence/uncertainty, and Greeks;
+- **UI3** — M3 dynamic hedging/control plus M4 observed-market/implied-volatility workflows;
+- **UI4** — M5 Heston forward valuation plus M6 Heston calibration/identifiability workflows.
+
+ADR 0003 remains the authority for the native desktop boundary. UI4 extends that boundary; it does not replace it.
+
+## Dependency direction
 
 ```text
 Qt Quick / QML
@@ -18,154 +27,85 @@ public quantitative APIs
 production quantitative core
 ```
 
-The finance core remains Qt-independent.
+The finance core remains Qt-independent. PySide6 remains an optional desktop dependency.
 
-## Boundary rule
+QML receives only curated scalar properties, signals/slots, item models, and serialized renderer-neutral plot values. Production finance-domain graphs remain private to Python.
 
-Values cross the QML boundary; finance-domain object graphs do not.
-
-QML receives only deliberately exposed:
-
-- scalar properties;
-- signals and slots/actions;
-- Qt item models containing renderer-neutral rows;
-- serialized renderer-neutral plot data.
-
-The Python controller may privately retain immutable `PricingProblem`, valuation result, sensitivity result, application request, and presentation objects. QML never receives arbitrary contracts, stochastic laws, model parameters, numeraires, pricing-measure objects, method objects, or production result graphs.
-
-QML owns interaction and pixel rendering. It does not calculate prices, Greeks, confidence intervals, convergence errors, finite-difference diagnostics, payoff semantics, day count, discounting, compatibility, parity, or no-arbitrage evidence.
-
-## Draft state and committed state
-
-Interactive text remains transient until Python normalization succeeds:
+Protect:
 
 ```text
-financial draft text
+QML presentation != quantitative authority
+UI draft state != committed finance state
+Qt object != immutable quantitative result
+```
+
+QML does not calculate prices, Greeks, payoff semantics, residuals, objective values, financial bounds, calibration, conditioning, discounting, day count, or method compatibility.
+
+## Product organization
+
+The Workbench starts from the mathematical question rather than from a generic plugin/model browser.
+
+Current concrete workflows are:
+
+```text
+Forward valuation / sensitivity
+    ├── Black-Scholes valuation & Greeks
+    └── Heston forward valuation
+
+Control / replication
+    └── Black-Scholes dynamic Delta hedging
+
+Observed-market inverse inference
+    └── Black-Scholes implied volatility / market evidence
+
+Multi-parameter inverse inference
+    └── Heston calibration / identifiability
+```
+
+These are concrete downstream adapters over merged quantitative behavior. They are not instances of a universal workflow framework.
+
+## Draft state and normalization
+
+Interactive editing remains transient until Python normalization succeeds.
+
+Black-Scholes follows:
+
+```text
+text-valued financial draft
         ↓
 BlackScholesStudyDraft
         ↓
-M1 typed financial composition
-        ↓
-immutable PricingProblem
+M1 typed composition / PricingProblem
 ```
 
-UI2 adds separate numerical/reproducibility configuration:
+Heston follows:
 
 ```text
-method / RNG / sensitivity draft text
+text-valued Heston draft
         ↓
-M2WorkbenchDraft
+HestonPricingDraft
         ↓
-M2WorkbenchConfig
+HestonEquityState + HestonLaw + HestonParameters
++ EuropeanOption + numeraire + pricing measure
+        ↓
+PricingProblem
 ```
 
-These are deliberately distinct responsibilities:
+Numerical configuration remains separate from financial/model coordinates. For Heston in particular:
 
 ```text
-spot / strike / volatility / rate / carry
+v0, kappa, theta, xi, rho, q
 !=
-CRR steps / Monte Carlo paths / RNG seed / finite-difference bumps
+Fourier integration bounds / intervals
+!=
+Monte Carlo paths / timesteps / seed
 ```
 
-The RNG seed is reproducibility configuration, not an economic or stochastic-law parameter. Guided and Advanced disclosure are product views over one normalization path, not different financial models.
+`v0` remains current state-like instantaneous variance. It is not moved into `HestonParameters` for UI convenience.
 
-## Product surface
+## Renderer-neutral presentation seam
 
-The native shell keeps the UI1 product model:
-
-```text
-HOME
-└── New Study
-
-STUDY
-├── Compose
-├── Analyze
-├── Results
-├── Validate
-└── Present / Export
-
-Run Study = action
-```
-
-UI2 deepens the existing Black-Scholes Study rather than creating a generic study framework.
-
-### Compose
-
-Guided financial inputs remain:
-
-- Spot;
-- Strike;
-- Expiry;
-- Volatility;
-- Interest rate;
-- Dividend/carry;
-- Option type.
-
-UI2 adds a valuation-method selector for:
-
-- `BlackScholesClosedForm`;
-- `CoxRossRubinstein(steps)`;
-- `MonteCarloEuropeanOption(paths, seed)`.
-
-Method-specific configuration is conditional. CRR exposes steps. Monte Carlo exposes paths, while the seed sits in Advanced disclosure because it is reproducibility provenance rather than a financial input.
-
-Advanced disclosure also exposes valuation date, ACT/365F and continuous-rate/carry semantics, finite-difference bump configuration, model/measure identity, and RNG semantics.
-
-### Analyze
-
-UI2 exposes renderer-neutral plots for:
-
-- terminal payoff;
-- CRR convergence against the analytic reference;
-- Monte Carlo valuation across path counts with 95% uncertainty bounds;
-- one selected Greek against spot, comparing analytic and finite-difference methods where supported.
-
-### Results
-
-The result surface preserves method specificity. Common valuation rows may display `present_value`, but Monte Carlo uncertainty remains owned by `MonteCarloValuationResult` and is surfaced only when that concrete result exists.
-
-The comparison table therefore keeps separate:
-
-```text
-analytic reference
-CRR approximation/discretization evidence
-Monte Carlo sampling evidence
-```
-
-The sensitivity table is a separate workflow over `BlackScholesSensitivityProblem` and compares analytic versus finite-difference Delta, Gamma, Vega, Theta, and Rho. Greeks are not fields on `ValuationResult`.
-
-### Validate
-
-The Workbench keeps these questions distinct:
-
-```text
-mathematically meaningful
-!= implemented
-!= supported by selected method/configuration
-!= validated
-!= Workbench-exposed
-```
-
-Compatibility authority remains in Python and ultimately delegates to the production method support boundary. In particular, a structurally valid Black-Scholes pricing problem can be unsupported by a coarse CRR configuration when the finite-tree risk-neutral probability condition fails.
-
-Finite-difference diagnostics retain unsupported domain-crossing bumps explicitly. The UI does not silently clip a bump or switch to a different differentiation scheme.
-
-### Present / Export
-
-UI2 records numerical provenance needed to interpret its evidence:
-
-- normalized pricing inputs;
-- selected valuation method and method configuration;
-- Monte Carlo path count and seed;
-- finite-difference bump configuration;
-- sensitivity method identity;
-- explicit evidence/error semantics.
-
-Market-observation/provider provenance is intentionally absent from UI2 and belongs to M4. General file/report export remains future product work.
-
-## Renderer-neutral plotting values
-
-UI1 had one payoff-series consumer. UI2 adds multiple real plot consumers, so a small shared renderer-neutral plotting contract is now earned:
+The repeated plot responsibility earned through UI1–UI3 remains intentionally small:
 
 ```text
 PlotData
@@ -173,145 +113,229 @@ PlotData
     └── PlotPoint(x, y, optional lower/upper)
 ```
 
-The abstraction intentionally contains only responsibilities shared by the concrete payoff, convergence, uncertainty, and Greek plots:
+UI4 reuses this seam for Heston method comparison, Fourier-resolution stability, calibration parameter error, residuals, multiple-start objectives, and committed M6 SPX derived evidence.
 
-- labels;
-- numeric x/y points;
-- optional paired vertical uncertainty bounds.
+Styling, layout, pixel transforms, legends, and interaction remain renderer-owned. There is still no generic chart DSL or quantitative visualization framework.
 
-Styling, pixel transforms, legends, themes, interaction, and Qt objects remain renderer-owned. This is not a universal visualization grammar, plugin system, or chart schema.
+## UI4 — Heston forward valuation
 
-## Execution boundary
-
-UI1 established a local `QThread` worker. UI2 reuses that ownership pattern for a concrete M2 analysis request:
+UI4 makes the model distinction visible while preserving the shared forward-pricing question and contract:
 
 ```text
-immutable M2WorkbenchRequest
-        ↓
-_M2Worker.run()
-        ↓
-run_m2_workbench(...)
-        ↓
-immutable M2WorkbenchAnalysis
-        ↓
-controller-owned presentation
+Black-Scholes
+    state: S_t
+    constant annualized volatility
+
+Heston
+    state: (S_t, v_t)
+    stochastic variance
+    correlated spot/variance shocks
 ```
 
-Monte Carlo supplies real longer-running pressure for this boundary, but UI2 still does not justify a universal scheduler, job registry, task graph, persistence system, cancellation framework, or progress protocol.
+The Heston workspace normalizes draft inputs into actual merged M5 objects:
 
-## Quantitative ownership
+- `HestonEquityState`;
+- `HestonLaw`;
+- `HestonParameters`;
+- existing `EuropeanOption`;
+- existing flat money-market numeraire and pricing-measure semantics;
+- `PricingProblem`.
 
-The application layer orchestrates already-merged public M2 APIs. It does not reimplement their mathematics.
-
-Valuation plurality is:
+The same Heston pricing problem is evaluated by both authoritative M5 methods:
 
 ```text
-same M1 PricingProblem
-        ├── BlackScholesClosedForm
-        ├── CoxRossRubinstein
-        └── MonteCarloEuropeanOption
+same Heston PricingProblem
+        ├── HestonFourierEuropeanOption
+        └── HestonMonteCarloEuropeanOption
 ```
 
-Sensitivity remains separate:
+Method-specific result evidence remains specific.
+
+Fourier exposes:
+
+- present value;
+- integration bounds;
+- Simpson interval count;
+- characteristic-function evaluation count;
+- same-problem resolution-stability evidence.
+
+Monte Carlo exposes:
+
+- present value;
+- standard error and 95% sampling interval;
+- paths, timesteps, and seed;
+- variance scheme;
+- negative-variance proposal count.
+
+The Workbench interprets disagreement according to actual error mechanisms:
 
 ```text
-BlackScholesSensitivityProblem
-        ├── AnalyticBlackScholesSensitivity
-        └── FiniteDifferenceBlackScholesSensitivity
+Monte Carlo sampling uncertainty
+!= Heston time-discretization bias
+!= Fourier truncation/quadrature error
+!= financial-model error
+```
+
+The Feller discriminant/status is shown as diagnostic evidence only. It is not rendered as a universal valid/invalid model badge.
+
+### No fabricated paths
+
+Merged M5 valuation results do not retain authoritative Heston spot/variance trajectories. UI4 therefore does not synthesize decorative paths. A future path view requires a merged backend capability that owns those trajectories.
+
+## UI4 — Heston calibration as a separate inverse workflow
+
+Calibration is a separate workspace rather than a button embedded into the model-parameter editor.
+
+The authoritative M6 composition remains visible:
+
+```text
+HestonPriceCalibrationTarget(s)
++ fixed spot / rate / q
++ HestonCalibrationBounds
++ price-space residual / weighting semantics
++ Heston Fourier forward method
         ↓
-BlackScholesSensitivityResult
+HestonCalibrationProblem
+        +
+ScipyLeastSquaresHestonCalibration
+        ↓
+HestonCalibrationResult
 ```
 
-UI2 generates convergence and curve evidence by constructing fresh immutable requests/problems. It does not mutate a committed pricing problem in place.
-
-## Error and evidence semantics
-
-The desktop presentation must preserve the M2 distinctions:
+Protect:
 
 ```text
-financial-model limitation
-!= CRR approximation/discretization error
-!= Monte Carlo sampling uncertainty
-!= finite-difference truncation error
-!= finite-difference cancellation / floating-point error
+Heston model != calibrated parameter estimate
+calibration problem != optimizer
+observed target != model price != residual
+objective / weighting != optimizer configuration
+optimizer convergence != parameter identification != model validity
 ```
 
-A generic `error` field would erase quantitative meaning and is intentionally absent.
+M6 implements option-price-space calibration only. UI4 does not invent implied-volatility-space Heston calibration.
 
-## UI3 — dynamic hedging and observed-market inference
-
-UI3 adds a workflow home that asks the mathematical question before choosing a screen:
+The inferred direct financial coordinates are:
 
 ```text
-Valuation & Sensitivity
-Dynamic Hedging / Control
-Market Evidence / Implied Volatility
+(v0, kappa, theta, xi, rho)
 ```
 
-The existing UI2 valuation workspace remains intact. The two new workspaces are concrete downstream adapters over M3 and M4 rather than a universal workflow schema.
+Spot, risk-free accumulation, and `q` remain fixed problem inputs in this first consumer. There are no hidden transformed optimizer coordinates. The Feller condition remains diagnostic rather than an optimizer constraint.
 
-### Dynamic hedging
+## Synthetic recovery and identifiability laboratory
 
-The application layer constructs an immutable hedge request from the existing Black-Scholes financial composition plus explicit generating volatility, hedge-assumed volatility, rebalance cadence, seed, replicate count, and proportional transaction-cost rate. It preserves M3's zero-continuous-dividend execution boundary.
+UI4 includes two deterministic M6-backed experiments.
 
-One selected trajectory remains distinct from replicate evidence. Rebalance-frequency, volatility-misspecification, and transaction-cost comparisons reuse the same generated seeded paths across conditions, so displayed differences are controlled comparisons rather than unrelated Monte Carlo draws. QML receives only prepared path rows, aggregate rows, inspector values, and renderer-neutral plots; it never recomputes Delta, financing, trades, costs, payoff, or replication error.
+### Truth-known recovery
 
-The hedging mathematical inspector remains concrete:
+```text
+known Heston truth
+        ↓
+M5-generated option-price targets
+        ↓
+M6 calibration from explicit non-truth starts
+        ↓
+recovered coordinates + residuals + conditioning
+```
+
+The UI shows truth versus recovered coordinates, target/model prices, residuals, objectives, optimizer termination, and local conditioning evidence.
+
+### Thin non-identifiability counterexample
+
+A deliberately underdetermined three-target/five-coordinate calibration is first-class evidence. Multiple starts can achieve tiny loss while producing materially different parameter estimates and rank-deficient local Jacobians.
+
+The Workbench therefore teaches directly:
+
+```text
+small objective
+!= unique parameter estimate
+!= trustworthy parameter estimate
+```
+
+Local singular values/rank/condition evidence are not presented as posterior uncertainty or proof of global uniqueness.
+
+## Real-market M6 reference evidence
+
+UI4 exposes the committed derived M6 SPX calibration reference without redistributing raw source rows.
+
+The standalone package carries a reviewed value mirror of `docs/evidence/m6_spx_heston_calibration_reference.json`; tests compare that mirror against the committed artifact so the packaged display cannot silently drift. The repository evidence artifact and `scripts/m6_heston_calibration.py` remain authoritative for raw-artifact replay.
+
+The UI exposes:
+
+- market snapshot/source lineage and non-redistribution note;
+- target count and expiries;
+- half-spread price weighting;
+- three recorded starts and estimates;
+- best calibrated coordinates and objective;
+- standardized residuals;
+- Feller diagnostic;
+- optimizer termination;
+- Jacobian rank, singular values, and condition number;
+- explicit non-claims about identification/model validity.
+
+It does not fabricate a raw quote table, continuous surface, or observations absent from the committed evidence.
+
+## Mathematical inspectors
+
+The Heston pricing inspector is concrete:
 
 ```text
 State
-Generating law
-Sensitivity source
-Control policy
-Rebalance schedule
-Financing / transaction-cost convention
-Replication objective / error
+Stochastic law
+Parameters
+Pricing measure
+Contract
+Pricing problem
+Valuation methods
+Numerical assumptions
 ```
 
-### Market evidence and implied volatility
-
-The market workspace keeps the M4 lifecycle visible:
+The Heston calibration inspector is separately concrete:
 
 ```text
-raw observation + provenance
-        ↓
-explicit normalization
-        ↓
-normalized observed target
-        ↓
-Black-Scholes implied-volatility problem
-        +
-bracketed bisection method
-        ↓
-immutable inverse result + conditioning evidence
+Targets
+Unknown coordinates
+Forward operator
+Objective
+Weights
+Financial bounds
+Inverse method / optimizer
+Completed result
+Conditioning / identifiability evidence
 ```
 
-Synthetic deterministic M4 observations support the runnable raw-to-normalized-to-inferred laboratory. Invalid normalization remains explicit. Financial inconsistency, failure to bracket the admissible volatility domain, numerical convergence evidence, and poor inverse conditioning remain different concepts. Vega, local inverse price-to-volatility sensitivity, and first-order half-spread volatility shift come from authoritative M4 results.
+No universal metadata hierarchy is introduced merely to render these panels.
 
-The historical SPX panel is deliberately **derived empirical evidence only**. UI3 renders the pinned M4 strike/maturity implied-volatility and conditioning evidence plus source/non-redistribution provenance; it does not fabricate or redistribute upstream raw SPX rows that M4 intentionally did not retain. Static monotonicity/convexity findings remain diagnostics, not surface repair.
+## Execution boundary and stale-result safety
 
-The inverse-problem mathematical inspector is likewise concrete:
+UI1–UI3 established a local `QThread` worker boundary. UI4 reuses it for materially heavier Heston Monte Carlo and calibration work.
+
+UI4 adds only the behavior now required by a real interactive consumer:
 
 ```text
-Observed target
-Forward model
-Unknown parameter
-Admissible domain
-Inverse method
-Conditioning evidence
+one active heavy computation
++ concrete job id / workspace ownership
++ input invalidation
+        ↓
+stale completion cannot become active result
 ```
 
-### UI3 execution and presentation boundary
+If relevant draft inputs change while a UI4 computation is running, execution may finish, but its result is discarded instead of replacing the newer UI state.
 
-UI3 reuses the narrow QThread ownership pattern for one immutable M3 hedge request and one bundled M4 evidence request. It does not add cancellation, queues, progress protocols, a scheduler, or a generic job registry.
+This does **not** introduce:
 
-The existing `PlotData -> PlotSeries -> PlotPoint` value seam is sufficient for hedge time series, replicate/frequency evidence, discrete implied-volatility slices, and conditioning plots. Synchronized row selection remains a concrete controller/presentation responsibility. No universal visualization grammar is introduced.
+- a scheduler;
+- task graph;
+- queue;
+- cancellation protocol;
+- process pool;
+- persistence layer;
+- generic job registry;
+- synthetic progress protocol.
 
-M5 Heston pricing is merged but intentionally not surfaced by UI3. The next desktop milestone must consume actual merged M5/M6 contracts rather than retrofitting Heston or calibration semantics into UI3.
+Merged M6 exposes no optimizer progress stream, so UI4 shows busy/completed state only.
 
 ## Packaging and validation
-
-PySide6 remains an optional desktop dependency. The canonical core gate stays Qt-independent.
 
 Source launch:
 
@@ -328,31 +352,25 @@ QT_QPA_PLATFORM=offscreen python -m qf_platform.desktop.main --smoke-test
 
 Dedicated Desktop CI verifies:
 
-- pinned PySide6;
+- pinned PySide6 runtime;
 - desktop Ruff and strict Pyright;
 - application/presentation/controller behavior;
-- dependency direction;
-- QML load and offscreen startup;
+- Qt-free quantitative-core dependency direction;
+- isolated QML engine loading;
+- source launch smoke;
 - standalone `pyside6-deploy` build;
-- packaged offscreen launch smoke.
+- packaged offscreen launch smoke;
+- standalone artifact upload.
 
-## Extension rule
+## Extension rule / UI5 handoff
 
 Future UI milestones consume only capabilities actually merged on `main`.
 
-Do not infer a generic framework from the Workbench vocabulary. In particular UI2 does not create:
+M7 is currently an independent in-progress workstream. UI4 does not encode its not-yet-merged Black-Scholes-versus-Heston validation conclusions.
 
-- a valuation-method registry/plugin architecture;
-- a universal Problem/Method/Result UI schema;
-- reflection-driven forms;
-- a generic sensitivity framework;
-- a generic job system;
-- a universal plot grammar;
-- M3 control panels;
-- M4 market-data/implied-volatility panels;
-- Heston/calibration panels.
+UI5 should begin only from the actual merged M7 validation/model-risk evidence and the concrete M8 performance/release needs that exist at that time. Likely pressure includes comparative validation evidence, model-risk reporting, and performance visibility, but UI5 must not predefine those semantics before the backend work lands.
 
-The intended growth rule remains:
+The growth rule remains:
 
 ```text
 merged quantitative capability
@@ -363,3 +381,5 @@ curated controller values/actions
         ↓
 QML presentation
 ```
+
+UI4 still does not justify a universal model registry, inverse-problem framework, optimizer UI, workflow graph editor, chart grammar, or desktop job system.
