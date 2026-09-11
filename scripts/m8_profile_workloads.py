@@ -68,7 +68,10 @@ from qf_platform.validation import (
 )
 
 _FIXTURE_PATH = (
-    Path(__file__).parents[1] / "tests" / "fixtures" / "m7_spx_validation_observations.json"
+    Path(__file__).parents[1]
+    / "tests"
+    / "fixtures"
+    / "m7_spx_validation_observations.json"
 )
 _M7_TRAINING_HESTON = (
     0.044250145053,
@@ -230,7 +233,9 @@ def _calibration_problem(
 
 def _one_contract(validation_problem: BlackScholesHestonValidationProblem):
     observation = validation_problem.evaluation_observations[0]
-    return HestonPriceCalibrationTarget.from_normalized_observation(observation).contract
+    return HestonPriceCalibrationTarget.from_normalized_observation(
+        observation
+    ).contract
 
 
 def _black_scholes_problem(
