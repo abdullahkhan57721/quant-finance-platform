@@ -7,7 +7,11 @@ from dataclasses import dataclass
 from qf_platform.application.ui5_validation import UI5ValidationAnalysis
 from qf_platform.presentation.black_scholes import PresentationRow
 from qf_platform.presentation.plotting import PlotData, PlotPoint, PlotSeries
-from qf_platform.validation import ValidationModel, ValidationPartition
+from qf_platform.validation import (
+    ModelResidualEvidence,
+    ValidationModel,
+    ValidationPartition,
+)
 
 
 @dataclass(frozen=True, slots=True)
@@ -32,7 +36,6 @@ def build_ui5_validation_presentation(
 ) -> UI5ValidationPresentation:
     """Convert authoritative M7 evidence into renderer-neutral UI values."""
 
-    evidence = analysis.evidence
     return UI5ValidationPresentation(
         summary_rows=_summary_rows(analysis),
         training_metric_rows=_metric_rows(analysis, ValidationPartition.TRAINING),
@@ -142,7 +145,10 @@ def _metric_rows(
 
 
 def _residual_rows(analysis: UI5ValidationAnalysis) -> tuple[PresentationRow, ...]:
-    paired: dict[tuple[str, ValidationPartition], dict[ValidationModel, object]] = {}
+    paired: dict[
+        tuple[str, ValidationPartition],
+        dict[ValidationModel, ModelResidualEvidence],
+    ] = {}
     for residual in analysis.evidence.residuals:
         paired.setdefault((residual.contract_id, residual.partition), {})[residual.model] = residual
 
@@ -152,19 +158,17 @@ def _residual_rows(analysis: UI5ValidationAnalysis) -> tuple[PresentationRow, ..
         heston = models.get(ValidationModel.HESTON)
         if bs is None or heston is None:
             continue
-        bs_residual = bs  # type: ignore[assignment]
-        heston_residual = heston  # type: ignore[assignment]
         rows.append(
             PresentationRow(
                 contract_id,
                 (
-                    f"observed {bs_residual.observed_price:.3f} · "
-                    f"BS {bs_residual.model_price:.3f} · Heston {heston_residual.model_price:.3f}"
+                    f"observed {bs.observed_price:.3f} · "
+                    f"BS {bs.model_price:.3f} · Heston {heston.model_price:.3f}"
                 ),
                 (
-                    f"log-forward moneyness {bs_residual.log_forward_moneyness:+.4f} · "
-                    f"standardized residuals BS {bs_residual.standardized_residual:+.3f}, "
-                    f"Heston {heston_residual.standardized_residual:+.3f}"
+                    f"log-forward moneyness {bs.log_forward_moneyness:+.4f} · "
+                    f"standardized residuals BS {bs.standardized_residual:+.3f}, "
+                    f"Heston {heston.standardized_residual:+.3f}"
                 ),
                 "TRAIN" if partition is ValidationPartition.TRAINING else "HELD OUT",
             )
@@ -264,7 +268,6 @@ def _model_risk_rows(analysis: UI5ValidationAnalysis) -> tuple[PresentationRow, 
 
 
 def _inspector_rows(analysis: UI5ValidationAnalysis) -> tuple[PresentationRow, ...]:
-    evidence = analysis.evidence
     return (
         PresentationRow(
             "Observed quantities",
@@ -300,7 +303,10 @@ def _inspector_rows(analysis: UI5ValidationAnalysis) -> tuple[PresentationRow, .
 
 
 def _residual_plot(analysis: UI5ValidationAnalysis) -> PlotData:
-    def points(model: ValidationModel, partition: ValidationPartition) -> tuple[PlotPoint, ...]:
+    def points(
+        model: ValidationModel,
+        partition: ValidationPartition,
+    ) -> tuple[PlotPoint, ...]:
         items = [
             item
             for item in analysis.evidence.residuals
@@ -317,10 +323,26 @@ def _residual_plot(analysis: UI5ValidationAnalysis) -> PlotData:
         x_label="log(K / forward)",
         y_label="price residual / bid-ask half-spread",
         series=(
-            PlotSeries("bs_train", "Black-Scholes · TRAIN", points(ValidationModel.BLACK_SCHOLES, ValidationPartition.TRAINING)),
-            PlotSeries("heston_train", "Heston · TRAIN", points(ValidationModel.HESTON, ValidationPartition.TRAINING)),
-            PlotSeries("bs_eval", "Black-Scholes · HELD OUT", points(ValidationModel.BLACK_SCHOLES, ValidationPartition.EVALUATION)),
-            PlotSeries("heston_eval", "Heston · HELD OUT", points(ValidationModel.HESTON, ValidationPartition.EVALUATION)),
+            PlotSeries(
+                "bs_train",
+                "Black-Scholes · TRAIN",
+                points(ValidationModel.BLACK_SCHOLES, ValidationPartition.TRAINING),
+            ),
+            PlotSeries(
+                "heston_train",
+                "Heston · TRAIN",
+                points(ValidationModel.HESTON, ValidationPartition.TRAINING),
+            ),
+            PlotSeries(
+                "bs_eval",
+                "Black-Scholes · HELD OUT",
+                points(ValidationModel.BLACK_SCHOLES, ValidationPartition.EVALUATION),
+            ),
+            PlotSeries(
+                "heston_eval",
+                "Heston · HELD OUT",
+                points(ValidationModel.HESTON, ValidationPartition.EVALUATION),
+            ),
         ),
     )
 
@@ -344,7 +366,11 @@ def _held_out_error_plot(analysis: UI5ValidationAnalysis) -> PlotData:
         x_label="held-out contract index",
         y_label="absolute price error",
         series=(
-            PlotSeries("black_scholes", "Black-Scholes", points(ValidationModel.BLACK_SCHOLES)),
+            PlotSeries(
+                "black_scholes",
+                "Black-Scholes",
+                points(ValidationModel.BLACK_SCHOLES),
+            ),
             PlotSeries("heston", "Heston", points(ValidationModel.HESTON)),
         ),
     )
@@ -360,7 +386,10 @@ def _parameter_stability_plot(analysis: UI5ValidationAnalysis) -> PlotData:
             PlotSeries(
                 "shift",
                 "domain-scaled movement",
-                tuple(PlotPoint(float(index), shift) for index, shift in enumerate(shifts)),
+                tuple(
+                    PlotPoint(float(index), shift)
+                    for index, shift in enumerate(shifts)
+                ),
             ),
         ),
     )
