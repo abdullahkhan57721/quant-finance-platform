@@ -34,6 +34,10 @@ from qf_platform.presentation.ui4_heston import (
     build_heston_pricing_presentation,
     build_m6_market_reference_presentation,
 )
+from qf_platform.presentation.ui5_validation import (
+    UI5ValidationPresentation,
+    build_ui5_validation_presentation,
+)
 
 __all__ = [
     "BlackScholesPresentation",
@@ -53,6 +57,7 @@ __all__ = [
     "PlotPoint",
     "PlotSeries",
     "PresentationRow",
+    "UI5ValidationPresentation",
     "ValuationComparisonRow",
     "build_black_scholes_presentation",
     "build_hedge_workbench_presentation",
@@ -61,5 +66,6 @@ __all__ = [
     "build_m2_workbench_presentation",
     "build_m6_market_reference_presentation",
     "build_market_workbench_presentation",
+    "build_ui5_validation_presentation",
     "hedge_step_detail_rows",
 ]
