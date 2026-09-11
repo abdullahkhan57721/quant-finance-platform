@@ -107,18 +107,41 @@ def _problem() -> HestonCalibrationProblem:
     )
 
 
-def test_batched_calibration_residual_vector_matches_scalar_reference() -> None:
-    problem = _problem()
-    scalar = np.asarray(
+def _scalar_standardized_residuals(
+    problem: HestonCalibrationProblem,
+    coordinates: HestonCalibrationCoordinates,
+) -> np.ndarray:
+    return np.asarray(
         [
             item.standardized_residual
-            for item in evaluate_heston_calibration_residuals(problem, _EVALUATED)
+            for item in evaluate_heston_calibration_residuals(problem, coordinates)
         ],
         dtype=np.float64,
     )
+
+
+def test_batched_calibration_residual_vector_matches_scalar_reference() -> None:
+    problem = _problem()
+    scalar = _scalar_standardized_residuals(problem, _EVALUATED)
     batched = evaluate_heston_calibration_standardized_residual_vector_batched(
         problem,
         _EVALUATED,
     )
 
     assert batched == pytest.approx(scalar, abs=2.0e-11)
+
+
+def test_batched_calibration_preserves_xi_zero_reference_boundary() -> None:
+    problem = _problem()
+    deterministic_variance = HestonCalibrationCoordinates.from_vector(
+        (0.055, 1.6, 0.05, 0.0, -0.55),
+        continuous_dividend_yield=_Q,
+    )
+
+    scalar = _scalar_standardized_residuals(problem, deterministic_variance)
+    batched = evaluate_heston_calibration_standardized_residual_vector_batched(
+        problem,
+        deterministic_variance,
+    )
+
+    assert batched == pytest.approx(scalar, abs=1.0e-12)
