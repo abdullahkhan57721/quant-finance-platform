@@ -1,0 +1,24 @@
+{
+  "fixture_kind": "deterministic derived M7 review fixture reconstructed from published M4 option evidence; not raw market data",
+  "valuation_date": "2023-01-04",
+  "underlying": "SPX",
+  "spot": 3853.39,
+  "continuously_compounded_rate": 0.045,
+  "continuous_dividend_yield": 0.017,
+  "points": [
+    {"expiry": "2023-02-03", "strike": 3720.0, "right": "put", "midpoint": 44.25, "half_spread": 0.25},
+    {"expiry": "2023-02-03", "strike": 3800.0, "right": "put", "midpoint": 68.5, "half_spread": 1.1},
+    {"expiry": "2023-02-03", "strike": 3850.0, "right": "put", "midpoint": 88.25, "half_spread": 0.35},
+    {"expiry": "2023-02-03", "strike": 3870.0, "right": "call", "midpoint": 88.4, "half_spread": 0.3},
+    {"expiry": "2023-02-03", "strike": 3900.0, "right": "call", "midpoint": 73.75, "half_spread": 1.25},
+    {"expiry": "2023-02-03", "strike": 3970.0, "right": "call", "midpoint": 44.15, "half_spread": 0.25},
+    {"expiry": "2023-02-03", "strike": 4020.0, "right": "call", "midpoint": 29.05, "half_spread": 0.35},
+    {"expiry": "2023-04-28", "strike": 3720.0, "right": "put", "midpoint": 121.8273087015, "half_spread": 0.5},
+    {"expiry": "2023-04-28", "strike": 3800.0, "right": "put", "midpoint": 148.977073064, "half_spread": 0.45},
+    {"expiry": "2023-04-28", "strike": 3900.0, "right": "call", "midpoint": 177.5873583345, "half_spread": 0.55},
+    {"expiry": "2023-04-28", "strike": 3950.0, "right": "call", "midpoint": 151.3361240419, "half_spread": 0.5},
+    {"expiry": "2023-04-28", "strike": 4075.0, "right": "call", "midpoint": 94.7811299864, "half_spread": 0.45},
+    {"expiry": "2023-04-28", "strike": 4110.0, "right": "call", "midpoint": 82.1294428015, "half_spread": 1.7},
+    {"expiry": "2023-04-28", "strike": 4240.0, "right": "call", "midpoint": 44.5720752756, "half_spread": 0.35}
+  ]
+}

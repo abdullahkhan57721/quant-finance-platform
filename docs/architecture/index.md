@@ -4,74 +4,66 @@
 
 This document records durable architecture guardrails for the Quantitative Finance Research & Validation Platform.
 
-M0A establishes:
+Implemented pressure now includes:
 
-1. a production mathematical asset-pricing composition core; and
-2. a platform-wide mathematical taxonomy for organizing quantitative problems without pre-building their operational frameworks.
+- M0A — mathematical problem architecture and pricing foundation;
+- M1 — Black-Scholes / European-option specialization;
+- M2 — independent valuation and sensitivity;
+- M3 — control / dynamic replication;
+- M4 — observed-market boundary and scalar inverse problem;
+- M5 — Heston stochastic-volatility forward model with independent valuation;
+- M6 — noisy multi-parameter calibration and identifiability evidence; and
+- M7 — predeclared empirical validation / model-risk comparison.
 
-M1 provides the first concrete Black-Scholes/European-option specialization. M2 pressure-tests the pricing boundary with multiple valuation methods and establishes the first concrete sensitivity family. M3 establishes the first concrete control/dynamic-replication family. M4 establishes the first production observed-market boundary and scalar inverse specialization. M5 adds Heston as a two-factor stochastic-volatility forward model with independent Fourier and Monte Carlo valuation. M6 adds the first noisy multi-parameter calibration inverse problem and directly tests whether any shared inverse runtime abstraction is earned.
+ADR 0002 is the platform-wide mathematical architecture authority. ADR 0003 governs the native PySide6 + Qt Quick/QML workbench boundary.
 
-ADR 0002 remains the current authority for the platform-wide doctrine; ADR 0001 remains the historical pricing-specific decision. ADR 0003 governs the native PySide6 + Qt Quick/QML workbench boundary.
-
-The repository intentionally does **not** define a complete package hierarchy or universal finance framework in advance.
+The repository intentionally does **not** define a universal finance framework in advance.
 
 ## Governing extraction rule
 
-For ordinary application abstractions:
-
 ```text
-one consumer
-→ keep concrete/local
+one concrete consumer
+→ keep operational code local
 
 two real consumers
-→ compare semantics
+→ compare responsibilities
 
-same operational responsibility
-→ consider extracting shared abstraction
+same responsibility and lifecycle
+→ consider extraction
 
-different operational responsibility
+different responsibility
 → keep separate
 ```
 
-A future use case that can merely be imagined is not sufficient justification for an operational abstraction.
-
 ### Foundational mathematical exception
 
-Foundational mathematical domain distinctions may be represented explicitly from the outset when their distinctness follows from the mathematical question itself rather than speculative software reuse.
+Stable mathematical domain distinctions may be represented explicitly from the outset when their separation follows from the mathematics rather than speculative software reuse.
 
 ```text
-Foundational mathematical domain distinctions
-may be represented explicitly from the outset.
+Foundational mathematical distinctions
+may be explicit early.
 
-Problem-specific software frameworks
-should remain narrow and evidence-driven.
+Operational frameworks
+must remain evidence-driven.
 
 Mathematical generality
-does not imply
-universal operational APIs.
+!= universal runtime API.
 ```
 
 ## Mathematical taxonomy
 
 ```text
 FINANCIAL / MATHEMATICAL FOUNDATIONS
-
 state / state space
 stochastic law
 model parameters
-probability semantics
-physical measure P
-pricing measure Q^N
-numeraire N
+probability / measure semantics
+numeraire
 market observations + provenance
-financial contracts
-cash flows
+contracts / cash flows
 quantitative conventions
-
         ↓
-
 PROBLEM FAMILIES
-
 forward / pricing
 inverse / inference
 sensitivity
@@ -79,289 +71,73 @@ prediction
 control / optimization
 risk
 validation
-
         ↓
-
 SOLUTION METHODS
-
-analytic
-lattice / tree
-Monte Carlo
-Fourier
-finite difference / PDE
-root finding
-optimization
-regression / filtering
-scenario generation
-statistical tests
-and other problem-appropriate algorithms
-
+analytic / lattice / Monte Carlo / Fourier / finite difference
+root finding / optimization / regression / filtering / scenarios / tests
         ↓
-
 SPECIFIC IMMUTABLE RESULTS / EVIDENCE
 ```
 
-This is a mathematical responsibility map, not a required software inheritance tree.
-
-## Problem → Method → Result
-
-Across problem families:
+The reusable conceptual pattern is:
 
 ```text
-Problem
-   +
-supported Method
-   ↓
-specific immutable Result
+Problem + supported Method -> specific immutable Result / Evidence
 ```
 
-A **Problem** states the quantitative question and the domain semantics required to make it well-defined.
+Do not create universal `Problem`, `Method`, or `Result` base classes merely because the conceptual pattern is shared.
 
-A **Method** states how a supported instance of that problem is solved or approximated.
-
-A **Result** records the committed output/evidence of the execution.
-
-Do not create universal `Problem`, `Method`, or `Result` base classes merely because this conceptual pattern is shared. Shared software behavior must still be demonstrated by real consumers.
-
-Protect:
+## Protected distinctions
 
 ```text
 problem != solution method
 request/configuration != immutable result
-```
-
-## Problem families
-
-### Forward / pricing
-
-A pricing problem asks for financial value under specified contract, model, numeraire, and pricing-measure semantics.
-
-```math
-\mathfrak P_{\mathrm{price}}
-=
-(\mathcal X,\mathcal L_\theta,\mathcal C,N,\mathbb Q^N)
-```
-
-with theoretical valuation:
-
-```math
-\Pi_t
-=
-N_t E_t^{\mathbb Q^N}\left[
-    \sum_i \frac{C_i(X_{[0,\tau_i]})}{N_{\tau_i}}
-\right].
-```
-
-An analytic or numerical method is separate:
-
-```math
-\mathcal A(\mathfrak P_{\mathrm{price}})
-\approx
-\Pi_t.
-```
-
-The production `PricingProblem`, valuation methods, and method-specific valuation results implement this family today for Black-Scholes and Heston.
-
-Protect:
-
-```text
-pricing problem != valuation method
-stochastic law != valuation method
+market observation != modeled state
+raw observation != normalized observation != model output
+state != stochastic law != parameters != fitted estimate
+pricing != sensitivity != control != inverse != validation
 contract != pricing model
+numeraire != pricing measure
+Delta != hedge policy != realized hedge action
+calibration objective / weighting != optimizer configuration
+financial domain != numerical bound mechanism != transform
+calibration != validation
+training fit != held-out evaluation
+model residual != quote width != numerical error
+optimizer convergence != parameter identification != model validity
+same-date cross-sectional holdout != temporal forecasting
 ```
 
-### Inverse / inference
-
-An inverse problem asks which latent quantity or parameter/state vector makes a model consistent, under explicit comparison semantics, with observations or target quantities.
+## Pricing architecture
 
 ```text
-observations / targets
+ModeledState / StateSpace / StatePath
 +
-model structure / forward dependency
+StochasticLaw + separate parameters
 +
-unknown financial coordinates
+FinancialContract -> CashFlowStream
 +
-admissible domain
-+
-comparison / residual semantics
-+
-weighting / constraints when applicable
+Numeraire + PricingMeasureSemantics
         ↓
-financial inverse question
+PricingProblem
         +
-separate numerical method
+compatible ValuationMethod
         ↓
-immutable inferred result + diagnostics
+ValuationResult or specific subtype
 ```
 
-Protect:
+Black-Scholes and Heston are concrete stochastic-law specializations. Monte Carlo, Fourier, CRR, and closed form are valuation methods, not models.
 
-```text
-inverse problem != optimizer / root finder
-inverse problem != objective function implementation detail
-objective / weighting != optimizer configuration
-financial/model-domain constraint != numerical bound mechanism != parameter transform
-observations != inferred parameters
-model structure != fitted parameter values
-optimizer converged != reliable identification != model validity
-```
+M5 keeps Heston current variance in `HestonEquityState`, structural parameters in `HestonParameters`, and risk-free rate ownership in the money-market numeraire. M6 calibration returns fitted coordinates without mutating Heston law identity.
 
-Two concrete inverse consumers now exist.
-
-#### M4 scalar inversion
-
-```text
-NormalizedOptionObservation
-+
-BlackScholesImpliedVolatilityProblem
-+
-BisectionImpliedVolatility
-        ↓
-ImpliedVolatilityResult
-```
-
-M4 owns financial feasibility bounds, an admissible volatility interval, the observed target, and Black-Scholes forward semantics. Bisection owns scalar root-search mechanics. M2 analytic Vega supplies local conditioning evidence.
-
-#### M6 multi-parameter calibration
-
-```text
-synthetic price target
-or
-M4 NormalizedOptionObservation + provenance
-        ↓
-HestonPriceCalibrationTarget
-+
-fixed spot / rate / dividend yield
-+
-HestonCalibrationBounds
-+
-explicit price-space residual / weighting semantics
-        ↓
-HestonCalibrationProblem
-+
-ScipyLeastSquaresHestonCalibration
-        ↓
-HestonCalibrationResult
-+
-per-target residuals
-+
-domain-scaled Jacobian identifiability evidence
-```
-
-M6 estimates `(v0, kappa, theta, xi, rho)` while keeping `v0` state-like and separate from immutable structural `HestonParameters`. The first numerical method uses direct financial coordinates and bounded trust-region-reflective nonlinear least squares. The Feller condition remains a model diagnostic, not an optimizer constraint.
-
-M4 and M6 prove the **conceptual** inverse Problem → Method → Result split, but their operational responsibilities remain materially different: scalar feasibility/bracketing/root semantics versus weighted multi-target residuals, multidimensional bounds, nonlinear optimization, and identifiability diagnostics. Therefore no generic production `InverseProblem`, root/optimizer registry, or universal inference framework is extracted.
-
-### Sensitivity
-
-A sensitivity problem asks how a specified quantitative output changes under selected perturbations of states, inputs, parameters, or conventions.
-
-Protect:
-
-```text
-sensitivity problem != differentiation method
-analytic Greek != finite-difference algorithm
-sensitivity != risk by definition
-```
-
-M2 implements the first concrete sensitivity family:
-
-```text
-BlackScholesSensitivityProblem
-        +
-supported Black-Scholes sensitivity method
-        ↓
-BlackScholesSensitivityResult
-```
-
-with analytic and finite-difference methods for Delta, Gamma, Vega, Theta, and Rho. Pricing remains upstream of sensitivity.
-
-### Prediction
-
-A prediction problem asks for a future quantity or distribution conditional on specified information under explicit probability semantics.
-
-Protect:
-
-```text
-prediction problem != pricing problem
-physical measure P != pricing measure Q^N
-forecast target != financial contract
-```
-
-No generic production `PredictionProblem` framework exists yet.
-
-### Control / optimization
-
-A control problem asks which admissible action, policy, hedge, allocation, or stopping rule best achieves a stated objective subject to dynamics and constraints.
-
-Protect:
-
-```text
-control problem != optimizer
-objective/constraints != search algorithm
-sensitivity value != control policy
-policy != realized action / trajectory
-policy/result != mutable solver state
-```
-
-M3 provides the first concrete control pressure:
-
-```text
-Black-Scholes pricing problem
-+
-exact-transition model-generated path
-+
-rebalance schedule
-+
-AnalyticDeltaHedgePolicy consuming M2 Delta
-+
-stock/cash financing and cost convention
-        ↓
-DeltaHedgeResult
-        ↓
-ReplicationErrorSummary
-```
-
-This does not create a generic `ControlProblem`, trading strategy, portfolio, or execution framework.
-
-### Risk
-
-A risk problem asks for a specified characterization of loss, exposure, uncertainty, or adverse outcomes for a defined financial object, horizon, scenario/probability semantics, and conditioning information.
-
-Protect:
-
-```text
-risk problem != risk-measure implementation
-risk measure != stochastic law
-risk result != trade / portfolio by definition
-```
-
-No generic production `RiskProblem` framework exists yet.
-
-### Validation
-
-A validation problem asks whether a specified model, implementation, method, result, calibration, or empirical claim satisfies explicit criteria and what evidence supports that conclusion.
-
-Protect:
-
-```text
-validation problem != validation method
-validation evidence != model output itself
-self-agreement != independent validation
-```
-
-Validation may invoke pricing, inference, sensitivity, control, or later risk/prediction capabilities. M7 is the next major validation/model-risk pressure.
-
-## Observations and model boundary
-
-Observed information and modeled quantities remain distinguishable even when both use similar numeric values.
+## Observed-market boundary
 
 ```text
 real world
     ↓
 raw observations + provenance
     ↓
-normalization / cleaning / construction
+explicit normalization
     ↓
 problem-ready observed information
 
@@ -376,85 +152,186 @@ parameter values
 probability semantics
 ```
 
-Protect:
+M4 productionizes this boundary. M6 and M7 consume `NormalizedOptionObservation` rather than inventing calibration- or validation-specific market-data types.
+
+## Inverse / inference architecture
+
+Two concrete inverse consumers exist.
+
+### M4 scalar Black-Scholes inversion
 
 ```text
-market observation != modeled state
-observed quote != model-implied quantity
-raw observation != normalized input
-normalization != calibration / inference
-normalized target != calibrated parameter estimate
+NormalizedOptionObservation
++
+BlackScholesImpliedVolatilityProblem
++
+BisectionImpliedVolatility
+        ↓
+ImpliedVolatilityResult
 ```
 
-M4 productionizes this boundary. M6 consumes it: a market `HestonPriceCalibrationTarget` retains its `NormalizedOptionObservation` and therefore its raw observation/provenance lineage. Synthetic Heston targets carry a distinct explicit source and never masquerade as observations.
+The financial problem owns feasibility, model inputs, observed target, and admissible volatility domain. Bisection owns scalar root-search mechanics.
 
-Construction, interpolation, cleaning, convention application, or model fitting must not silently rewrite historical observations.
-
-## Production pricing composition
+### M6 Heston calibration
 
 ```text
-ModeledState / StateSpace / StatePath
+HestonPriceCalibrationTarget(s)
++ fixed financial inputs
++ HestonCalibrationBounds
++ price-space residual / weighting
++ Heston Fourier forward map
         ↓
-StochasticLaw + separate parameter values
+HestonCalibrationProblem
++
+ScipyLeastSquaresHestonCalibration
+        ↓
+HestonCalibrationResult
+```
+
+The financial problem owns residual/objective/weighting/domain meaning. The optimizer owns numerical search mechanics. Results retain objective/residual evidence and local Jacobian identification diagnostics.
+
+M4 and M6 share the conceptual inverse Problem → Method → Result distinction but do not share enough operational behavior to justify a universal runtime inverse/optimizer hierarchy.
+
+## Sensitivity architecture
+
+```text
+BlackScholesSensitivityProblem
++
+AnalyticBlackScholesSensitivity
+or FiniteDifferenceBlackScholesSensitivity
+        ↓
+BlackScholesSensitivityResult
+```
+
+Pricing is upstream. Sensitivity does not own hedging policy or risk semantics.
+
+## Control architecture
+
+M3 provides the first control specialization:
+
+```text
+Black-Scholes pricing problem
++
+exact-transition GBM path
++
+explicit rebalance schedule
++
+AnalyticDeltaHedgePolicy consuming M2 Delta
++
+stock/cash financing and transaction-cost semantics
+        ↓
+DeltaHedgeResult
+        ↓
+ReplicationErrorSummary
+```
+
+The path's Black-Scholes/GBM provenance is part of the evidence. M7 therefore cannot reuse an M3 `SimulatedEquityPath` while pretending it represents a Heston world.
+
+## Validation architecture — M7
+
+M7 is the first production specialization in which validation is the organizing mathematical problem family.
+
+```text
+NormalizedOptionObservation(s)
++ explicit TRAINING / EVALUATION partition
++ fixed rate/carry/spot semantics
++ fair Black-Scholes benchmark domain
++ Heston calibration domain / Fourier forward dependency
+        ↓
+BlackScholesHestonValidationProblem
         +
-FinancialContract → CashFlowStream
-        +
-Numeraire + PricingMeasureSemantics
+CrossSectionalBlackScholesHestonValidation
         ↓
-PricingProblem
-        ↓
-compatible ValuationMethod
-        ↓
-ValuationResult or specific subtype
+BlackScholesHestonValidationEvidence
 ```
 
-### State, law, and parameters
+### Problem ownership
 
-`StateSpace[T]` supplies membership semantics. `ModeledState[Time, T]` is an immutable current modeled state plus state-space semantics. `StochasticLaw[State, Parameters]` exposes the state space it governs and parameter compatibility without forcing every law into a universal drift/diffusion API.
+`BlackScholesHestonValidationProblem` owns:
 
-Protect:
+- normalized observations;
+- immutable training/evaluation contract identities;
+- numeraire and pricing-measure semantics;
+- fixed dividend/carry input;
+- Black-Scholes admissible volatility domain;
+- Heston calibration bounds; and
+- the Heston Fourier forward dependency.
+
+The partition is part of the validation question, not an after-the-fact reporting choice.
+
+### Method ownership
+
+`CrossSectionalBlackScholesHestonValidation` owns:
+
+- one Black-Scholes initial volatility;
+- explicit Heston initial guesses;
+- optimizer tolerances; and
+- maximum function-evaluation budget.
+
+It does not own market observations, financial model meaning, objective semantics, or presentation state.
+
+### Evidence ownership
+
+`BlackScholesHestonValidationEvidence` retains:
+
+- one fitted constant-volatility Black-Scholes benchmark;
+- every explicit Heston training start outcome;
+- selected Heston training calibration;
+- contract-level residuals for both models;
+- training and held-out metrics separately;
+- post-evaluation full-sample Heston stability calibration;
+- local Jacobian rank/condition evidence;
+- domain-scaled parameter-stability evidence;
+- structural M8 workload evidence; and
+- a bounded conclusion.
+
+This is validation evidence, not an optional extension of `ValuationResult` or `HestonCalibrationResult`.
+
+### No-leakage architecture
+
+The M7 execution order is semantically important:
 
 ```text
-current modeled state != stochastic law structure != parameter values
+predeclare partition
+        ↓
+fit both models on TRAIN only
+        ↓
+freeze fitted training estimates
+        ↓
+compute held-out predictions + metrics
+        ↓
+only then run full-sample Heston stability calibration
 ```
 
-M5 makes that distinction concrete under Heston. M6 reinforces it: calibrated `initial_variance` remains a state-like coordinate, while `(kappa, theta, xi, rho, q)` remain represented by immutable `HestonParameters`. A fitted parameter value does not create a new stochastic-law type.
+A regression test perturbs evaluation targets and proves that training estimates and held-out model prices do not change.
 
-### Financial contracts and cash flows
+### Why there is no generic validation framework
 
-`FinancialContract` maps a modeled path to a realized immutable `CashFlowStream`. The contract owns contingent payment semantics, not valuation, inference/calibration, observations, trade/portfolio ownership, hedging/P&L, plotting, or numerical algorithms.
+One validation consumer is enough to establish the mathematical distinction but not enough to justify universal software abstractions.
 
-### Numeraire and pricing-measure semantics
+M7 therefore does **not** add:
 
-`Numeraire[Time]` represents the strictly positive denomination process. `PhysicalMeasureSemantics` and `PricingMeasureSemantics[Time]` remain distinct. The architecture does not provide a generic change-of-measure engine.
+- `ValidationProblem` / `ValidationMethod` / `ValidationResult` base classes;
+- metric registries;
+- generic model registries;
+- scenario/risk engines; or
+- report/workflow frameworks.
 
-M1/M4/M5/M6 currently use the concrete flat money-market pricing specialization where appropriate. M6 keeps the risk-free input in the numeraire rather than adding it to Heston's calibrated structural parameters.
-
-### Pricing problem and valuation methods
-
-`PricingProblem` answers what financial value is being asked for. A `ValuationMethod` answers how a supported instance is evaluated. Structural validity and method support remain distinct.
-
-Black-Scholes currently has closed-form, CRR, and Monte Carlo valuation. Heston currently has Fourier and Monte Carlo valuation. M6 consumes the validated Heston Fourier method as its concrete forward map rather than embedding calibration into `HestonLaw` or the valuation method.
-
-### Results stay specific
-
-`ValuationResult` remains a narrow pricing result. Method-specific numerical evidence belongs in specific result subtypes. Sensitivity, control, inference/calibration, validation, and later risk evidence stay in their own result types.
-
-`HestonCalibrationResult` therefore contains only calibrated coordinates, objective/residual evidence, optimizer termination diagnostics, and local Jacobian conditioning evidence. It does not absorb Greeks, hedge trajectories, presentation state, or unrelated valuation diagnostics.
+Later validation consumers may reopen extraction only if repeated operational responsibilities appear.
 
 ## Dependency direction
 
-The durable quantitative direction is:
+The durable quantitative direction remains:
 
 ```text
-pricing foundations / stochastic laws / contracts
+pricing foundations / contracts / laws
         ↓
 pricing methods/results
         ↓
-consumer problem families where mathematically required
+consumer problem families as mathematically required
 ```
 
-Current concrete package relationships include:
+Current concrete relationships include:
 
 ```text
 qf_platform.pricing
@@ -464,132 +341,64 @@ qf_platform.sensitivity
 qf_platform.control
 ```
 
-for the M3 Delta-policy consumer, and:
+and:
 
 ```text
-qf_platform.market_data      qf_platform.pricing
-             \               /
-              \             /
+qf_platform.market_data       qf_platform.pricing
+             \                  /
+              \                /
                qf_platform.inference
+                         \
+                          \
+                    qf_platform.validation
 ```
 
-for M4/M6 inverse consumers.
+M7 validation consumes market observations, pricing, and inference. Those lower layers must not depend on validation.
 
 Guardrails:
 
-- low-level state, cash-flow, contract, measure, and stochastic-law modules must not depend on valuation implementations;
-- `PricingProblem` must not depend on valuation methods;
-- `qf_platform.pricing` must not depend on sensitivity, control, market-data, inference, or UI layers;
-- sensitivity may consume pricing but must not depend on control;
-- M3 control may consume pricing and sensitivity because its concrete policy uses both;
-- market observations/provenance must remain distinct from modeled state;
-- inference/calibration may consume observations and forward pricing, but pricing/law modules must not own inference orchestration;
-- numerical methods may use SciPy/NumPy but must not own finance-domain target/objective/weighting policy;
-- dynamic hedge or calibration evidence must not be pushed into pricing result contracts;
-- high-level research/UI code must consume public quantitative behavior rather than duplicate it.
+- `qf_platform.pricing` must not import sensitivity, control, market-data, inference, validation, application, presentation, or desktop layers;
+- sensitivity may consume pricing but not control/validation;
+- control may consume pricing/sensitivity because its concrete policy requires both;
+- inference may consume normalized market data and forward pricing;
+- validation may consume pricing, normalized observations, inference/calibration, and pre-existing evidence;
+- application/presentation/desktop code remains downstream of all quantitative semantics;
+- finance-domain objective/weighting/domain policy must not be hidden inside numerical optimizers; and
+- validation calculations must not be pushed into QML.
 
-## M6 optimizer and calibration boundary
+The M7 dependency-direction test explicitly prevents `qf_platform.validation` from importing application, presentation, or desktop modules.
 
-M6 makes the separation executable:
+## Identifiability and model-risk evidence
 
-```text
-HestonCalibrationProblem owns
-    targets
-    target source / observation lineage
-    unknown financial coordinates
-    fixed financial inputs
-    price-space residual definition
-    residual weighting / scale
-    admissible financial bounds
-    forward pricing dependency
-
-ScipyLeastSquaresHestonCalibration owns
-    initial guess
-    trust-region-reflective search
-    finite-difference Jacobian mechanics
-    numerical tolerances
-    maximum function evaluations
-    mutable optimizer state
-
-HestonCalibrationResult owns
-    completed immutable estimate
-    objective value
-    per-target raw/standardized residuals
-    optimizer termination diagnostics
-    local Jacobian rank / singular values / condition evidence
-```
-
-The first objective is option-price space. `UNIFORM_PRICE` and `BID_ASK_HALF_SPREAD` are concrete problem-owned weighting policies, not project-wide defaults. Implied-volatility-space calibration, likelihood weighting, parameter transforms, Bayesian inference, filtering, and physical-measure Heston estimation remain unimplemented.
-
-## Identifiability is architectural evidence
-
-M6 treats parameter identifiability as part of completed inverse evidence rather than a hidden optimizer concern.
-
-The local standardized-residual Jacobian `J` is column-scaled by the explicit financial-domain widths `D`:
+M6 established that a low Heston price objective can coexist with rank deficiency and materially different parameters. M7 retains that distinction while adding held-out pricing evidence.
 
 ```text
-J_scaled = J D
+better held-out prices
+!= globally identified parameters
+!= temporal forecasting success
+!= lower risk in every use case
 ```
 
-Singular values and numerical rank are retained. A finite five-parameter condition number is reported only for full column rank.
+M7's training calibration is full local rank but nontrivially conditioned. Stable multiple starts and small train→full movement are evidence, not proof of global uniqueness.
 
-A deterministic three-target/five-unknown experiment intentionally demonstrates that materially different Heston parameter vectors can achieve near-zero objective values. Thus the result contract and documentation protect:
+## Validation evidence ladder
 
-```text
-low objective != unique estimate
-optimizer convergence != trustworthy identification
-```
+The project now distinguishes:
 
-## Market-data and provenance direction
+1. software correctness;
+2. theoretical/financial identities and limits;
+3. numerical convergence/stability;
+4. stochastic sampling/reproducibility;
+5. independent cross-method validation;
+6. inverse/calibration recovery, residual, perturbation and identification evidence;
+7. predeclared held-out empirical validation;
+8. model-risk evidence and unsupported-comparison boundaries;
+9. future Python/C++ backend parity; and
+10. measured performance evidence.
 
-Observed-data research follows:
-
-```text
-external/raw data
-       ↓
-immutable raw observations + provenance
-       ↓
-explicit normalization
-       ↓
-problem-ready observed targets
-       ↓
-model-dependent inference / calibration
-```
-
-Core tests must not depend on live services. Research data should preserve provider/source, as-of/retrieval timestamps, raw artifact/content hash where permitted, normalization version, and licensing/redistribution notes.
-
-M6's SPX workflow reuses the M4 local pinned raw artifact and normalization lifecycle. It emits derived calibration evidence without redistributing raw source rows whose licensing is unclear.
-
-## Reproducibility and RNG
-
-Stochastic calculations use explicitly owned randomness rather than ambient global state. M2 valuation, M3 path simulation, and M5 Heston Monte Carlo each own their seed/configuration and retain relevant immutable evidence.
-
-M6's first optimizer is deterministic for a fixed target set, initial guess, bounds, forward configuration, and numerical library behavior. Multiple starts are represented as explicit separate calibrations rather than hidden random restarts.
-
-Equal integer seeds across future Python/C++ implementations are not a cross-language random-stream contract. Use shared pre-generated numeric/random inputs when strict kernel parity is required.
-
-## Validation as architecture
-
-Relevant evidence categories include:
-
-1. **Software correctness** — unit tests, typing, invariants, boundary behavior.
-2. **Theoretical/financial correctness** — identities, bounds, limiting cases, self-financing identities.
-3. **Numerical correctness** — convergence, stability, explicit method error behavior.
-4. **Stochastic correctness** — statistical error, confidence intervals, seeded reproducibility, replicate integrity.
-5. **Cross-method validation** — independent valuation/sensitivity methods.
-6. **Inference/calibration validation** — known-truth recovery, residuals, multiple starts, perturbation sensitivity, identifiability/conditioning, and failure semantics.
-7. **Empirical/out-of-sample validation** — observations not used to fit the model.
-8. **Model-risk evidence** — assumptions, instability, sensitivities, hedging/P&L effects, residual structure, failure modes.
-9. **Backend parity** — Python/C++ numerical/statistical equivalence.
-10. **Performance evidence** — profiling, runtime, memory, scaling.
-
-Independent implementations agreeing are useful evidence but are not automatically proof of conceptual correctness. Likewise, optimizer convergence and small calibration residuals are useful evidence but are not automatically proof of parameter trustworthiness or model validity.
-
-M7 should now compare Black-Scholes and calibrated Heston using this fuller evidence hierarchy.
+Self-agreement, optimizer convergence, or a small residual is never sufficient by itself.
 
 ## Native workbench boundary
-
-The UI dependency direction remains:
 
 ```text
 Qt Quick / QML
@@ -598,76 +407,53 @@ curated PySide6 controller / item-model boundary
         ↓
 frontend-neutral application + presentation semantics
         ↓
-public mathematical-finance APIs
+public quantitative APIs
         ↓
 production quantitative core
 ```
 
-QML must not own pricing formulas, observation normalization, calibration targets/objectives/weighting, financial bounds, optimization, Jacobian conditioning, or model-risk conclusions. UI4 may visualize authoritative M5/M6 outputs only after consuming the public backend contracts.
+UI4 may consume M5/M6 Heston and calibration behavior. It must not encode M7 validation calculations/conclusions inside QML. Later UI milestones may consume M7 evidence through downstream application/presentation adapters.
 
 ## Python/C++ execution boundary
 
-Long-term target:
+M8 is now the next quantitative pressure:
 
 ```text
-Python
-────────────────────────
-financial semantics
-market data
-configuration
-inference/calibration orchestration
-control/research orchestration
-validation
-presentation
-
+correct Python reference
         ↓
-
-narrow measured numerical boundary
-
+profile M7-defined representative workloads
         ↓
-
-Python reference kernel
-        OR
-C++ accelerated kernel
+identify measured hotspot
+        ↓
+choose narrow numerical boundary
+        ↓
+targeted C++ implementation
+        ↓
+Python/C++ parity evidence
 ```
 
-Rules:
-
-- Python remains the reference/correctness implementation.
-- Profile before selecting native work.
-- Accelerate measured numerical hotspots rather than rewriting financial orchestration in C++.
-- Do not introduce backend registries before a second real implementation exists.
-- Prefer primitive numeric arrays/scalars across a native boundary rather than exporting rich Python financial objects into C++.
-
-M8 owns this pressure after M7 identifies the empirical/model-risk workload worth optimizing.
+Python remains the semantic/correctness authority. Do not create backend registries or rewrite research orchestration in C++ before profiling proves a benefit.
 
 ## Explicit traps
 
 Avoid:
 
-- treating the mathematical taxonomy as permission to create universal runtime frameworks;
-- universal `FinancialModel`, `Problem`, `Method`, or `Result` inheritance trees before shared behavior exists;
-- god-model objects that price, calibrate, predict, simulate, hedge, plot, validate, and measure risk;
-- forcing all stochastic laws into one operational representation;
-- generic measure objects that pretend to transform arbitrary dynamics between P and Q;
-- conflating observations with modeled/implied values;
-- conflating pricing, sensitivity, control, inverse, and risk questions;
-- putting calibration objectives, weighting, bounds, or optimization inside `HestonLaw`;
-- treating optimizer convergence or small residual as proof of parameter identifiability;
-- treating every numerical optimizer bound as a financial/model-domain constraint;
-- treating Delta as synonymous with a hedge policy or realized hedge action;
-- treating a path observation grid as automatically synonymous with a numerical SDE grid;
-- treating every terminal hedging discrepancy as financial model error;
-- treating Monte Carlo/Fourier/PDE/optimization as financial models;
-- one giant result object with many optional unrelated fields;
-- generic experiment engines before multiple studies reveal shared semantics;
-- fake Python/C++ backend architectures before native code exists; and
-- optimization motivated by intuition rather than profiling evidence.
+- universal finance/problem/result inheritance trees;
+- god-model objects that price, calibrate, hedge, validate, and plot;
+- observations silently turned into modeled state;
+- pricing, sensitivity, control, inverse, risk, and validation conflation;
+- calibration methods hanging off stochastic-law objects;
+- optimizer convergence presented as parameter trustworthiness;
+- better in-sample fit presented as held-out adequacy;
+- a same-date holdout presented as temporal forecasting;
+- Heston pricing evidence presented as Heston hedge evidence;
+- Monte Carlo/Fourier/optimization treated as financial models;
+- validation metrics moved into QML;
+- generic experiment/risk/model registries before consumers justify them; and
+- C++ architecture selected by intuition rather than profiling.
 
 ## ADR policy
 
-Create a dedicated ADR only when a decision is durable, consequential, and difficult to infer from code plus this index.
+Create an ADR when a decision is durable, consequential, and difficult to infer from code plus this index. M2–M7 are concrete extensions of ADR 0002 rather than architectural contradictions requiring a superseding ADR.
 
-ADR 0001 is the historical pricing-specific foundation. ADR 0002 supersedes it as the current authority for the broader mathematical problem architecture. M2 through M6 are concrete extensions of ADR 0002 rather than contradictions requiring a superseding ADR. Their local method/problem conventions belong in code, tests, `docs/quantitative_conventions.md`, and model/evidence documents unless future evidence changes the architecture itself.
-
-Do not rewrite historical ADRs to hide later changes. Supersede them when architecture truly changes.
+Do not rewrite historical ADRs to hide evolution; supersede them only when architecture truly changes.
