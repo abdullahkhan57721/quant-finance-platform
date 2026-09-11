@@ -149,10 +149,10 @@ def canonical_m8_performance_reference() -> UI5PerformanceReference:
             "optimization"
         ),
         native_reason=(
-            "All heavy workloads improved by at least about 4.61x while representative "
-            "post-optimization absolute runtimes became small enough that a new compiler, "
-            "binding, cross-platform packaging, and native-parity surface would not justify "
-            "its auditability and maintenance cost."
+            "all heavy workloads improved by at least about 4.61x while representative "
+            "post-optimization absolute runtimes became small enough that a new "
+            "compiler/binding/cross-platform packaging and parity surface would not justify "
+            "its auditability and maintenance cost"
         ),
         minimum_heavy_workload_speedup_x=4.610210,
     )
