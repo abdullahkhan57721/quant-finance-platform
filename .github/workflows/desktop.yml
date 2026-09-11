@@ -66,14 +66,32 @@ jobs:
           python -m ruff check src/qf_platform/desktop tests/desktop
           python -m pyright --project pyrightconfig-desktop.json
 
-      # Keep QML-engine creation/teardown out of the same interpreter process as
-      # threaded controller tests. PySide6/Qt native object lifecycles can otherwise
-      # contaminate later worker-thread tests even when every individual test is valid.
-      - name: Native controller and frontend-neutral tests
+      # PySide6 owns native QObject/QThread lifetimes below Python. Reusing one
+      # interpreter across many independent controller tests has produced rare
+      # runner-only SIGBUS/SIGSEGV failures after otherwise successful Qt work.
+      # Execute every controller test node in a fresh process so each Qt object
+      # graph and worker thread is deterministically torn down by process exit.
+      - name: Native controller tests with process isolation
+        shell: bash
+        run: |
+          mapfile -t qt_tests < <(
+            python -m pytest --collect-only -q \
+              tests/desktop \
+              --ignore=tests/desktop/test_qml_smoke.py \
+              | grep '^tests/desktop/.*::'
+          )
+          if [[ ${#qt_tests[@]} -eq 0 ]]; then
+            echo "No desktop controller tests collected" >&2
+            exit 1
+          fi
+          for test_node in "${qt_tests[@]}"; do
+            echo "==> $test_node"
+            python -m pytest -q "$test_node"
+          done
+
+      - name: Frontend-neutral application and presentation tests
         run: |
           python -m pytest -q \
-            tests/desktop \
-            --ignore=tests/desktop/test_qml_smoke.py \
             tests/application \
             tests/presentation \
             tests/architecture/test_desktop_dependency_boundary.py
