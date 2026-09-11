@@ -70,7 +70,7 @@ def _simpson_integral(
     return value
 
 
-def _heston_characteristic_function(
+def heston_characteristic_function(
     argument: complex,
     *,
     log_spot: float,
@@ -80,6 +80,10 @@ def _heston_characteristic_function(
     initial_variance: float,
 ) -> complex:
     """Return the Heston characteristic function of terminal log spot.
+
+    This is the shared numerical kernel used by the scalar M5 Fourier reference and the
+    measured M8 maturity-batched pricing path. It intentionally accepts only numerical
+    Heston inputs; it is not a financial-model or backend abstraction.
 
     The implementation uses the stable ``g`` representation and chooses the complex
     square-root branch so the real part of ``d`` is non-negative. The exact ``xi=0``
@@ -117,8 +121,13 @@ def _heston_characteristic_function(
     xi_squared = xi * xi
     c_term = imaginary_argument * (log_spot + (rate - q) * year_fraction) + (
         kappa * theta / xi_squared
-    ) * ((beta - root) * year_fraction - 2.0 * cmath.log(one_minus_g_exp / one_minus_g))
-    d_term = ((beta - root) / xi_squared) * ((1.0 - exp_minus_root_t) / one_minus_g_exp)
+    ) * (
+        (beta - root) * year_fraction
+        - 2.0 * cmath.log(one_minus_g_exp / one_minus_g)
+    )
+    d_term = ((beta - root) / xi_squared) * (
+        (1.0 - exp_minus_root_t) / one_minus_g_exp
+    )
     try:
         value = cmath.exp(c_term + d_term * initial_variance)
     except OverflowError as exc:
@@ -322,7 +331,7 @@ class HestonFourierEuropeanOption:
         log_spot = log(spot)
         log_strike = log(strike)
         initial_variance = problem.current_state.value.instantaneous_variance
-        phi_minus_i = _heston_characteristic_function(
+        phi_minus_i = heston_characteristic_function(
             -1j,
             log_spot=log_spot,
             year_fraction=year_fraction,
@@ -336,7 +345,7 @@ class HestonFourierEuropeanOption:
 
         def p1_integrand(frequency: float) -> float:
             numerator = cmath.exp(-1j * frequency * log_strike) * (
-                _heston_characteristic_function(
+                heston_characteristic_function(
                     frequency - 1j,
                     log_spot=log_spot,
                     year_fraction=year_fraction,
@@ -353,7 +362,7 @@ class HestonFourierEuropeanOption:
 
         def p2_integrand(frequency: float) -> float:
             numerator = cmath.exp(-1j * frequency * log_strike) * (
-                _heston_characteristic_function(
+                heston_characteristic_function(
                     frequency,
                     log_spot=log_spot,
                     year_fraction=year_fraction,
