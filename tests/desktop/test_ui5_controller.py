@@ -27,11 +27,21 @@ def test_ui5_controller_exposes_empty_validation_state_without_fabricating_resul
         == 0
     )
     assert (
-        cast(PresentationRowModel, controller.validationEvaluationMetricModel).rowCount()
+        cast(
+            PresentationRowModel, controller.validationEvaluationMetricModel
+        ).rowCount()
         == 0
     )
-    assert cast(PresentationRowModel, controller.validationResidualModel).rowCount() == 0
-    assert cast(PresentationRowModel, controller.validationStabilityModel).rowCount() == 0
+    assert (
+        cast(PresentationRowModel, controller.validationResidualModel).rowCount() == 0
+    )
+    assert (
+        cast(PresentationRowModel, controller.validationStabilityModel).rowCount() == 0
+    )
     assert cast(PresentationRowModel, controller.validationRiskModel).rowCount() == 0
-    assert cast(PresentationRowModel, controller.validationWorkloadModel).rowCount() == 0
-    assert cast(PresentationRowModel, controller.validationInspectorModel).rowCount() == 0
+    assert (
+        cast(PresentationRowModel, controller.validationWorkloadModel).rowCount() == 0
+    )
+    assert (
+        cast(PresentationRowModel, controller.validationInspectorModel).rowCount() == 0
+    )
