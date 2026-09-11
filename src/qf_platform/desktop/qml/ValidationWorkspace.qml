@@ -113,7 +113,7 @@ Item {
                 }
                 Label {
                     Layout.fillWidth: true
-                    text: "Black-Scholes and Heston are fitted on the same TRAIN partition, frozen, then evaluated on the same held-out contracts. Better fit, parameter identification, hedging evidence, and runtime remain different questions."
+                    text: "Black-Scholes and Heston are fitted on the same TRAIN partition, frozen, then evaluated on the same held-out contracts. Better fit, parameter identification, hedging evidence, and measured computational cost remain different questions."
                     color: root.textMuted
                     wrapMode: Text.WordWrap
                 }
@@ -164,7 +164,7 @@ Item {
 
         Rectangle {
             Layout.fillWidth: true
-            visible: !controller.validationAnalysisReady && !controller.running
+            visible: !controller.validationAnalysisReady && !controller.running && tabs.currentIndex !== 4
             radius: 10
             color: root.panelColor
             border.color: root.borderColor
@@ -181,7 +181,7 @@ Item {
                 }
                 Label {
                     Layout.fillWidth: true
-                    text: "Run the deterministic M7 reference study. It uses the merged validation problem/method contracts, the predeclared 10/4 same-date holdout, and package-safe derived observations—not live or redistributed raw market rows."
+                    text: "Run the deterministic M7 reference study for pricing/model-risk evidence, or open Performance now to inspect the already-committed M8 before/after measurements and native decision."
                     color: root.textMuted
                     wrapMode: Text.WordWrap
                 }
@@ -191,7 +191,6 @@ Item {
         TabBar {
             id: tabs
             Layout.fillWidth: true
-            visible: controller.validationAnalysisReady
             currentIndex: 0
             focus: true
             Accessible.name: "Validation evidence sections"
@@ -199,14 +198,14 @@ Item {
             TabButton { text: "Residuals" }
             TabButton { text: "Stability" }
             TabButton { text: "Model Risk" }
-            TabButton { text: "M8 Handoff" }
+            TabButton { text: "Performance" }
             TabButton { text: "Report" }
         }
 
         StackLayout {
             Layout.fillWidth: true
             Layout.fillHeight: true
-            visible: controller.validationAnalysisReady
+            visible: controller.validationAnalysisReady || tabs.currentIndex === 4
             currentIndex: tabs.currentIndex
 
             ScrollView {
@@ -317,11 +316,38 @@ Item {
                     spacing: 12
                     Label {
                         Layout.fillWidth: true
-                        text: "M8 has not produced merged performance evidence yet. These are representative workload definitions and structural evaluation counts only. UI5 intentionally shows no runtime bars, C++ speedups, memory claims, or backend selector."
-                        color: root.warningColor
+                        text: "Merged M8 measured the predeclared M7 workloads on the same hosted runner before and after Python/NumPy optimization. Hosted timings are descriptive evidence, not CI thresholds. The scalar reference workloads were intentionally not optimized."
+                        color: root.textMuted
                         wrapMode: Text.WordWrap
                     }
-                    EvidenceList { sourceModel: controller.validationWorkloadModel }
+                    PlotCanvas {
+                        Layout.fillWidth: true
+                        Layout.preferredHeight: 390
+                        plotJson: controller.performanceRuntimePlotJson
+                    }
+                    Label { text: "Representative workloads"; color: root.textPrimary; font.bold: true; font.pixelSize: 17 }
+                    EvidenceList { sourceModel: controller.performanceWorkloadModel }
+                    Label { text: "Correctness / parity"; color: root.textPrimary; font.bold: true; font.pixelSize: 17 }
+                    EvidenceList { sourceModel: controller.performanceParityModel }
+                    Label { text: "Native acceleration decision"; color: root.textPrimary; font.bold: true; font.pixelSize: 17 }
+                    EvidenceList { sourceModel: controller.performanceNativeDecisionModel }
+                    Rectangle {
+                        Layout.fillWidth: true
+                        radius: 8
+                        color: "#102318"
+                        border.color: root.goodColor
+                        implicitHeight: nativeBoundary.implicitHeight + 24
+                        Label {
+                            id: nativeBoundary
+                            anchors.fill: parent
+                            anchors.margins: 12
+                            text: "M8's measured conclusion is not 'C++ failed' or 'C++ is never useful.' The heavy v0.1 workloads became fast enough in Python/NumPy that the compiler, binding, packaging, and extra parity surface is not currently justified. Larger future workloads must profile again."
+                            color: root.goodColor
+                            wrapMode: Text.WordWrap
+                        }
+                    }
+                    Label { text: "Evidence provenance"; color: root.textPrimary; font.bold: true; font.pixelSize: 17 }
+                    EvidenceList { sourceModel: controller.performanceProvenanceModel }
                 }
             }
 
@@ -341,7 +367,7 @@ Item {
                         }
                         Button {
                             text: "Copy Evidence Report"
-                            Accessible.name: "Copy validation evidence report to clipboard"
+                            Accessible.name: "Copy UI5 validation and performance evidence report to clipboard"
                             onClicked: {
                                 reportArea.selectAll()
                                 reportArea.copy()
@@ -351,7 +377,7 @@ Item {
                     }
                     Label {
                         Layout.fillWidth: true
-                        text: "This is a concrete export surface over values the Workbench already owns. Copy the evidence report to the clipboard; UI5 does not introduce a generic report-generation framework, arbitrary file export system, or project persistence model."
+                        text: "This concrete export surface combines already-owned M7 validation evidence with the committed M8 performance reference. UI5 does not introduce a generic report generator, arbitrary file-export framework, or project persistence model."
                         color: root.textMuted
                         wrapMode: Text.WordWrap
                     }
@@ -362,12 +388,12 @@ Item {
                         readOnly: true
                         selectByMouse: true
                         wrapMode: TextEdit.Wrap
-                        text: controller.validationReportText
+                        text: controller.ui5EvidenceReportText
                         color: root.textPrimary
                         selectionColor: "#264f78"
                         selectedTextColor: "#ffffff"
                         background: Rectangle { color: root.panelColor; border.color: root.borderColor; radius: 8 }
-                        Accessible.name: "Validation evidence report text"
+                        Accessible.name: "UI5 validation and performance evidence report text"
                     }
                 }
             }
