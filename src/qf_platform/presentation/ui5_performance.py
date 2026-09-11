@@ -45,7 +45,9 @@ def build_ui5_performance_presentation(
     parity_rows = (
         PresentationRow(
             label="Deterministic parity",
-            value="PASS" if reference.parity.deterministic_checks_all_passed else "FAIL",
+            value="PASS"
+            if reference.parity.deterministic_checks_all_passed
+            else "FAIL",
             detail=(
                 "Black-Scholes value, scalar Heston Fourier value, calibration objectives, "
                 "and M7 held-out RMSE checks."
@@ -80,7 +82,9 @@ def build_ui5_performance_presentation(
             label="C++ kernel added",
             value="Yes" if reference.cpp_added else "No",
             detail=reference.native_reason,
-            status="Measured negative native decision" if not reference.cpp_added else "Native path",
+            status="Measured negative native decision"
+            if not reference.cpp_added
+            else "Native path",
         ),
         PresentationRow(
             label="Minimum heavy-workload speedup",
@@ -174,7 +178,11 @@ def build_ui5_performance_presentation(
         (
             f"- {workload.label}: {workload.baseline_median_seconds:.6f} s -> "
             f"{workload.optimized_median_seconds:.6f} s; {workload.speedup_x:.2f}x"
-            + (" measured speedup" if workload.heavy_workload else " (no speedup claim)")
+            + (
+                " measured speedup"
+                if workload.heavy_workload
+                else " (no speedup claim)"
+            )
         )
         for workload in reference.workloads
     )
