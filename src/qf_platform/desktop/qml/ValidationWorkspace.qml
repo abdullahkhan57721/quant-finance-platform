@@ -317,7 +317,7 @@ Item {
                     spacing: 12
                     Label {
                         Layout.fillWidth: true
-                        text: "M8 has not produced measured performance evidence yet. These are representative workload definitions and structural evaluation counts only. UI5 intentionally shows no runtime bars, C++ speedups, memory claims, or backend selector."
+                        text: "M8 has not produced merged performance evidence yet. These are representative workload definitions and structural evaluation counts only. UI5 intentionally shows no runtime bars, C++ speedups, memory claims, or backend selector."
                         color: root.warningColor
                         wrapMode: Text.WordWrap
                     }
@@ -330,19 +330,33 @@ Item {
                 ColumnLayout {
                     width: parent.width
                     spacing: 10
-                    Label {
-                        text: "Evidence report"
-                        color: root.textPrimary
-                        font.pixelSize: 18
-                        font.bold: true
+                    RowLayout {
+                        Layout.fillWidth: true
+                        Label {
+                            Layout.fillWidth: true
+                            text: "Evidence report"
+                            color: root.textPrimary
+                            font.pixelSize: 18
+                            font.bold: true
+                        }
+                        Button {
+                            text: "Copy Evidence Report"
+                            Accessible.name: "Copy validation evidence report to clipboard"
+                            onClicked: {
+                                reportArea.selectAll()
+                                reportArea.copy()
+                                reportArea.deselect()
+                            }
+                        }
                     }
                     Label {
                         Layout.fillWidth: true
-                        text: "This is a concrete report surface over values the Workbench already owns. Select/copy the text; UI5 does not introduce a generic report-generation framework or file persistence model."
+                        text: "This is a concrete export surface over values the Workbench already owns. Copy the evidence report to the clipboard; UI5 does not introduce a generic report-generation framework, arbitrary file export system, or project persistence model."
                         color: root.textMuted
                         wrapMode: Text.WordWrap
                     }
                     TextArea {
+                        id: reportArea
                         Layout.fillWidth: true
                         Layout.preferredHeight: 520
                         readOnly: true
