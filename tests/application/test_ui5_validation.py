@@ -36,7 +36,10 @@ def test_ui5_validation_runs_real_m7_evidence_and_keeps_limits_explicit() -> Non
     analysis = _analysis()
     evidence = analysis.evidence
 
-    assert evidence.black_scholes_fit.annualized_volatility == pytest.approx(0.209, abs=0.005)
+    assert evidence.black_scholes_fit.annualized_volatility == pytest.approx(
+        0.209,
+        abs=0.005,
+    )
     assert evidence.heston_evaluation_metrics.root_mean_square_error < (
         0.25 * evidence.black_scholes_evaluation_metrics.root_mean_square_error
     )
@@ -46,7 +49,10 @@ def test_ui5_validation_runs_real_m7_evidence_and_keeps_limits_explicit() -> Non
     assert evidence.heston_stability.training_jacobian_rank == 5
     assert evidence.heston_stability.training_condition_number is not None
     assert len(analysis.workloads) == 6
-    assert all("runtime" not in workload.detail.lower() for workload in analysis.workloads[:-1])
+    assert all(
+        "runtime" not in workload.detail.lower()
+        for workload in analysis.workloads[:-1]
+    )
     assert "not runtime" in analysis.workloads[-1].detail.lower()
 
 
@@ -57,7 +63,10 @@ def test_ui5_presentation_separates_training_evaluation_and_workload_structure()
     assert any("HELD-OUT" in row.label for row in presentation.evaluation_metric_rows)
     assert len(presentation.residual_rows) == 14
     assert {row.status for row in presentation.residual_rows} == {"TRAIN", "HELD OUT"}
-    assert any("Heston hedging advantage" == row.label for row in presentation.model_risk_rows)
+    assert any(
+        row.label == "Heston hedging advantage"
+        for row in presentation.model_risk_rows
+    )
     assert all(row.status == "Profile in M8" for row in presentation.workload_rows)
     assert len(presentation.residual_plot.series) == 4
     assert len(presentation.held_out_error_plot.series) == 2
