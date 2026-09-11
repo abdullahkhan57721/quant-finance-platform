@@ -10,7 +10,7 @@ Foundational mathematical distinctions may be explicit from the outset; operatio
 
 ## Status
 
-**M0 through M7 are complete.**
+**M0 through M8 are complete.**
 
 The implemented research progression is now:
 
@@ -31,12 +31,12 @@ M6 Heston calibration + identifiability
                ↓
 M7 predeclared empirical validation / model risk
                ↓
-M8 profiling + targeted C++ acceleration       ← next
+M8 measured performance engineering
                ↓
-M9 portfolio-quality v0.1 release
+M9 portfolio-quality v0.1 release               ← next
 ```
 
-The native desktop workbench is a parallel downstream track. **UI1–UI4 are complete.** UI5 may now consume authoritative M7 validation/model-risk evidence; performance/release presentation should consume M8 only after that evidence exists.
+The native desktop workbench is a parallel downstream track. **UI1–UI4 are complete.** UI5 is active and may consume authoritative M7/M8 validation, model-risk, and measured-performance evidence while remaining downstream of the finance core.
 
 ## Read first
 
@@ -56,9 +56,11 @@ Model/evidence documents:
 - [`docs/models/m5_heston_stochastic_volatility.md`](docs/models/m5_heston_stochastic_volatility.md)
 - [`docs/models/m6_heston_calibration.md`](docs/models/m6_heston_calibration.md)
 - [`docs/models/m7_empirical_validation_and_model_risk.md`](docs/models/m7_empirical_validation_and_model_risk.md)
+- [`docs/models/m8_performance_engineering.md`](docs/models/m8_performance_engineering.md)
 - [`docs/evidence/m4_spx_implied_volatility_evidence.json`](docs/evidence/m4_spx_implied_volatility_evidence.json)
 - [`docs/evidence/m6_spx_heston_calibration_reference.json`](docs/evidence/m6_spx_heston_calibration_reference.json)
 - [`docs/evidence/m7_spx_bs_vs_heston_validation_reference.json`](docs/evidence/m7_spx_bs_vs_heston_validation_reference.json)
+- [`docs/evidence/m8_performance_reference.json`](docs/evidence/m8_performance_reference.json)
 
 ## Mathematical problem architecture
 
@@ -117,6 +119,7 @@ training fit != held-out evaluation
 model residual != quote width != numerical error
 optimizer converged != parameter identified != model valid
 same-date holdout != temporal forecasting
+Python financial semantics != accelerated numerical execution
 production library != research study != presentation
 ```
 
@@ -329,8 +332,9 @@ The repository now contains evidence across:
 - synthetic Heston parameter recovery;
 - multiple-start, perturbation, rank and condition diagnostics;
 - real SPX calibration residual evidence;
-- predeclared held-out Black-Scholes vs Heston pricing comparison; and
-- explicit model-risk limitations and unsupported-comparison boundaries.
+- predeclared held-out Black-Scholes vs Heston pricing comparison;
+- explicit model-risk limitations and unsupported-comparison boundaries; and
+- profiled/reproducible before-and-after performance evidence.
 
 Keep distinct:
 
@@ -347,20 +351,41 @@ parameter non-identifiability
 calibration residual
 held-out validation error
 model validity
+performance overhead
 ```
 
-## M8 — profile before accelerating
+## M8 — measured performance engineering
 
-M7 hands M8 six representative workloads:
+M8 profiled the exact six representative workloads frozen by M7 before changing implementation strategy. The measured hotspots were scalar Heston Monte Carlo path/RNG overhead and repeated strike-independent Heston characteristic-function work inside calibration.
 
-1. one Black-Scholes closed-form valuation;
-2. one Heston Fourier valuation (`upper=100`, `intervals=256`);
-3. one seeded Heston Monte Carlo valuation (`20,000` paths, `252` timesteps, seed `20260910`);
-4. 10-target / 3-start Heston training calibration;
-5. 14-target / 3-start Heston stability calibration; and
-6. the complete M7 validation study.
+Python/NumPy optimization removed those dominant costs while preserving finance ownership:
 
-M8 must profile before selecting any C++ boundary. Python reference implementations remain the correctness authority. Any native kernel must demonstrate numerical/statistical parity and measured value.
+```text
+Heston MC
+scalar path loop + 10.08M scalar Gaussian draws
+        ↓
+NumPy path-state propagation + fresh local PCG64
+
+Heston calibration
+repeated scalar Fourier prices across same maturity
+        ↓
+stateless maturity-batched characteristic-function work
+```
+
+Same-run reference medians:
+
+| Workload | Baseline | Optimized | Speedup |
+| --- | ---: | ---: | ---: |
+| Heston MC, 20k × 252 | 3.3673 s | 0.1230 s | **27.38×** |
+| 10-target / 3-start calibration | 2.2919 s | 0.4971 s | **4.61×** |
+| 14-target / 3-start calibration | 3.2752 s | 0.5454 s | **6.01×** |
+| complete M7 validation study | 5.4136 s | 1.0819 s | **5.00×** |
+
+Deterministic financial parity checks pass. The Monte Carlo RNG algorithm changed, so old/new evidence is statistical rather than streamwise: the reference estimates differ by about `0.853` combined standard errors.
+
+**M8 does not add C++.** After the measured Python/algorithmic improvements, the remaining absolute latency does not justify a compiler/binding/cross-platform packaging and native-parity surface for v0.1. The scalar Python implementations remain correctness references, and no backend registry or generic compiled execution framework was introduced.
+
+See [`docs/models/m8_performance_engineering.md`](docs/models/m8_performance_engineering.md) and [`docs/evidence/m8_performance_reference.json`](docs/evidence/m8_performance_reference.json).
 
 ## Python/C++ direction
 
@@ -371,13 +396,15 @@ market-data / inference orchestration
 control / validation / research composition
 presentation adapters
         ↓
-measured narrow numerical boundary
+profile actual workload
         ↓
-Python reference kernel
-or targeted C++ accelerated kernel
+optimize algorithm / Python numerical path first
+        ↓
+only if still justified:
+narrow numerical C++ kernel
 ```
 
-No generic native backend registry should precede a second real implementation.
+M8 found no v0.1 workload that still earns that final native boundary after Python/NumPy optimization. Future materially larger workloads must profile again rather than inheriting either a mandatory-C++ or never-C++ assumption.
 
 ## Native workbench direction
 
@@ -393,7 +420,7 @@ public quantitative APIs
 production quantitative core
 ```
 
-The finance core remains Qt-independent. UI4 is complete and exposes authoritative M5/M6 Heston/calibration behavior without inventing M7 validation calculations or conclusions in QML. UI5 may now consume merged M7 evidence through downstream application/presentation adapters.
+The finance core remains Qt-independent. UI4 is complete and exposes authoritative M5/M6 Heston/calibration behavior. UI5 is active and may consume merged M7/M8 validation, model-risk, and performance evidence; it must present M8’s measured no-C++ conclusion truthfully rather than invent a native numerical path.
 
 ## Local development
 
@@ -425,7 +452,8 @@ The repository intentionally still has no production implementation of:
 - Bayesian Heston inference;
 - generic quote-cleaning or arbitrage-free surface repair;
 - Heston dynamic hedging;
-- generic model/plugin registries; or
-- an unprofiled C++ backend abstraction.
+- generic model/plugin registries;
+- generic numerical-backend registries; or
+- a C++ numerical kernel for the current v0.1 representative workloads, because M8 profiling did not justify one.
 
 Those capabilities should be added only when concrete mathematical and empirical pressure earns them.

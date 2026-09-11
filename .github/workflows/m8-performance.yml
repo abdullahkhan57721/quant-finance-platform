@@ -1,0 +1,101 @@
+name: M8 Performance Evidence
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/m8-performance.yml"
+      - "scripts/m8_profile_workloads.py"
+      - "scripts/m8_compare_performance.py"
+      - "src/qf_platform/pricing/heston_fourier.py"
+      - "src/qf_platform/pricing/heston_fourier_batch.py"
+      - "src/qf_platform/pricing/heston_monte_carlo.py"
+      - "src/qf_platform/inference/heston_calibration.py"
+      - "src/qf_platform/inference/heston_calibration_batch.py"
+      - "src/qf_platform/inference/heston_calibration_scipy.py"
+      - "src/qf_platform/validation/model_comparison.py"
+      - "tests/fixtures/m7_spx_validation_observations.json"
+  workflow_dispatch:
+
+jobs:
+  profile:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      BASELINE_REVISION: 4d80014786810389c324434d7cccab95cf647803
+      OPTIMIZED_REVISION: ${{ github.event.pull_request.head.sha || github.sha }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install optimized package
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev]"
+
+      - name: Prepare frozen M7 baseline worktree
+        run: |
+          git worktree add /tmp/m8-baseline "$BASELINE_REVISION"
+          cp scripts/m8_profile_workloads.py /tmp/m8-baseline/scripts/m8_profile_workloads.py
+          python -m venv /tmp/m8-baseline-venv
+          /tmp/m8-baseline-venv/bin/python -m pip install --upgrade pip
+          /tmp/m8-baseline-venv/bin/python -m pip install -e "/tmp/m8-baseline[dev]"
+
+      - name: Profile frozen M7 baseline
+        working-directory: /tmp/m8-baseline
+        run: |
+          /tmp/m8-baseline-venv/bin/python scripts/m8_profile_workloads.py \
+            --repetitions 3 \
+            --profile-top 15 \
+            --output "$GITHUB_WORKSPACE/m8-baseline-performance.json"
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          path = Path(os.environ["GITHUB_WORKSPACE"]) / "m8-baseline-performance.json"
+          payload = json.loads(path.read_text(encoding="utf-8"))
+          payload["environment"]["git_sha"] = os.environ["BASELINE_REVISION"]
+          path.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+          PY
+
+      - name: Profile optimized M8 head
+        run: |
+          python scripts/m8_profile_workloads.py \
+            --repetitions 3 \
+            --profile-top 15 \
+            --output m8-optimized-performance.json
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          path = Path("m8-optimized-performance.json")
+          payload = json.loads(path.read_text(encoding="utf-8"))
+          payload["environment"]["git_sha"] = os.environ["OPTIMIZED_REVISION"]
+          path.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+          PY
+
+      - name: Compare same-run evidence
+        run: |
+          python scripts/m8_compare_performance.py \
+            --baseline m8-baseline-performance.json \
+            --optimized m8-optimized-performance.json \
+            --output m8-performance-comparison.json
+
+      - name: Upload performance evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: m8-performance-evidence-${{ github.event.pull_request.head.sha || github.sha }}
+          path: |
+            m8-baseline-performance.json
+            m8-optimized-performance.json
+            m8-performance-comparison.json
+          if-no-files-found: error
