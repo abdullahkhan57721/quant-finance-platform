@@ -15,7 +15,10 @@ def test_ui5_performance_reference_matches_committed_m8_evidence() -> None:
 
     assert reference.evidence_kind == artifact["evidence_kind"]
     assert reference.baseline_revision == artifact["baseline_revision"]
-    assert reference.optimized_reference_revision == artifact["optimized_reference_revision"]
+    assert (
+        reference.optimized_reference_revision
+        == artifact["optimized_reference_revision"]
+    )
     assert reference.workflow_run_id == artifact["workflow_run_id"]
     assert reference.runner_os == artifact["environment"]["runner_os"]
     assert reference.runner_architecture == artifact["environment"]["runner_arch"]
@@ -24,9 +27,10 @@ def test_ui5_performance_reference_matches_committed_m8_evidence() -> None:
     assert reference.scipy_version == artifact["environment"]["scipy"]
     assert reference.warmup_samples == artifact["methodology"]["warmup_samples"]
     assert reference.timing_repetitions == artifact["methodology"]["timing_repetitions"]
-    assert reference.timings_are_ci_thresholds is artifact["methodology"][
-        "timings_are_ci_thresholds"
-    ]
+    assert (
+        reference.timings_are_ci_thresholds
+        is artifact["methodology"]["timings_are_ci_thresholds"]
+    )
 
     assert len(reference.workloads) == len(artifact["workloads"]) == 6
     for workload in reference.workloads:
@@ -40,19 +44,22 @@ def test_ui5_performance_reference_matches_committed_m8_evidence() -> None:
         assert workload.speedup_x == pytest.approx(recorded["speedup_x"])
 
     mc_parity = artifact["parity"]["heston_monte_carlo"]
-    assert reference.parity.deterministic_checks_all_passed is artifact["parity"][
-        "deterministic_checks"
-    ]["all_passed"]
+    assert (
+        reference.parity.deterministic_checks_all_passed
+        is artifact["parity"]["deterministic_checks"]["all_passed"]
+    )
     assert reference.parity.monte_carlo_parity_kind == mc_parity["parity_kind"]
     assert reference.parity.monte_carlo_difference_in_combined_standard_errors == (
         pytest.approx(mc_parity["absolute_difference_in_combined_standard_errors"])
     )
-    assert reference.parity.monte_carlo_within_four_combined_standard_errors is mc_parity[
-        "within_four_combined_standard_errors"
-    ]
-    assert reference.parity.identical_rng_stream_claimed is mc_parity[
-        "identical_rng_stream_claimed"
-    ]
+    assert (
+        reference.parity.monte_carlo_within_four_combined_standard_errors
+        is mc_parity["within_four_combined_standard_errors"]
+    )
+    assert (
+        reference.parity.identical_rng_stream_claimed
+        is mc_parity["identical_rng_stream_claimed"]
+    )
 
     native = artifact["native_decision"]
     assert reference.cpp_added is native["cpp_added"]
@@ -65,8 +72,12 @@ def test_ui5_performance_reference_matches_committed_m8_evidence() -> None:
 
 def test_ui5_performance_reference_keeps_scalar_and_heavy_claims_distinct() -> None:
     reference = canonical_m8_performance_reference()
-    scalar = tuple(workload for workload in reference.workloads if not workload.heavy_workload)
-    heavy = tuple(workload for workload in reference.workloads if workload.heavy_workload)
+    scalar = tuple(
+        workload for workload in reference.workloads if not workload.heavy_workload
+    )
+    heavy = tuple(
+        workload for workload in reference.workloads if workload.heavy_workload
+    )
 
     assert {workload.workload_id for workload in scalar} == {
         "bs_closed_form_single",
