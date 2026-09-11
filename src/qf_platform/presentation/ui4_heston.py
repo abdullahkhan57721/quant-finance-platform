@@ -89,7 +89,9 @@ def build_heston_pricing_presentation(
     if not isinstance(contract, EuropeanOption):
         raise TypeError("UI4 Heston presentation requires a EuropeanOption")
     if not isinstance(numeraire, FlatMoneyMarketNumeraire):
-        raise TypeError("UI4 Heston presentation requires a flat money-market numeraire")
+        raise TypeError(
+            "UI4 Heston presentation requires a flat money-market numeraire"
+        )
 
     state = problem.current_state.value
     parameters = problem.parameters
@@ -225,9 +227,8 @@ def build_heston_pricing_presentation(
         ),
     )
     mc_lower, mc_upper = monte_carlo.confidence_interval_95
-    proposal_rate = (
-        monte_carlo.negative_variance_proposals
-        / (monte_carlo.paths * monte_carlo.time_steps)
+    proposal_rate = monte_carlo.negative_variance_proposals / (
+        monte_carlo.paths * monte_carlo.time_steps
     )
     monte_carlo_rows = (
         PresentationRow(
