@@ -18,7 +18,7 @@ def create_engine() -> tuple[QQmlApplicationEngine, WorkbenchController]:
     engine = QQmlApplicationEngine()
     controller = WorkbenchController()
     engine.rootContext().setContextProperty("workbenchController", controller)
-    qml_path = Path(__file__).resolve().parent / "qml" / "UI4Main.qml"
+    qml_path = Path(__file__).resolve().parent / "qml" / "UI5Main.qml"
     engine.load(QUrl.fromLocalFile(str(qml_path)))
     if not engine.rootObjects():
         raise RuntimeError(f"Failed to load Quant Workbench QML from {qml_path}.")
