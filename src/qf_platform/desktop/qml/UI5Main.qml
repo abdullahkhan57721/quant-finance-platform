@@ -207,7 +207,7 @@ ApplicationWindow {
                     id: m8Label
                     anchors.fill: parent
                     anchors.margins: 12
-                    text: "Performance status: M8 has not started. UI5 can show M7's representative workload definitions and structural evaluation counts, but no runtime chart, C++ speedup, memory comparison, progress percentage, cancellation control, backend selector, signing, or installer claim is authoritative yet."
+                    text: "Performance status: M8 is active independently, but no M8 performance evidence is merged into repository truth yet. UI5 can show M7's representative workload definitions and structural evaluation counts, but no runtime chart, C++ speedup, memory comparison, progress percentage, cancellation control, backend selector, signing, or installer claim is authoritative yet."
                     color: hub.warning
                     wrapMode: Text.WordWrap
                 }
