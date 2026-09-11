@@ -100,7 +100,9 @@ def test_ui4_calibration_worker_exposes_rank_deficient_thin_evidence() -> None:
     _finish(controller)
 
     assert controller.calibrationAnalysisReady
-    assert cast(PresentationRowModel, controller.calibrationProblemModel).rowCount() >= 7
+    assert (
+        cast(PresentationRowModel, controller.calibrationProblemModel).rowCount() >= 7
+    )
     assert cast(PresentationRowModel, controller.calibrationRunModel).rowCount() == 2
     assert (
         cast(PresentationRowModel, controller.calibrationConditioningModel).rowCount()
@@ -114,7 +116,9 @@ def test_ui4_real_market_reference_is_available_without_raw_replay() -> None:
     controller = _controller()
 
     assert cast(PresentationRowModel, controller.m6MarketSummaryModel).rowCount() >= 5
-    assert cast(PresentationRowModel, controller.m6MarketProvenanceModel).rowCount() >= 4
+    assert (
+        cast(PresentationRowModel, controller.m6MarketProvenanceModel).rowCount() >= 4
+    )
     assert cast(PresentationRowModel, controller.m6MarketStartModel).rowCount() == 3
     residuals = json.loads(cast(str, controller.m6MarketResidualPlotJson))
     assert len(residuals["series"][0]["points"]) == 14
