@@ -21,7 +21,7 @@ from qf_platform.pricing.equity import EuropeanOption, OptionRight
 from qf_platform.pricing.heston import HestonEquityState, HestonParameters
 from qf_platform.pricing.heston_fourier import (
     HestonFourierEuropeanOption,
-    _heston_characteristic_function,
+    heston_characteristic_function,
 )
 from qf_platform.pricing.measures import validated_numeraire_value
 from qf_platform.pricing.numeraire import FlatMoneyMarketNumeraire
@@ -118,7 +118,7 @@ def _expiry_values(
         dtype=np.float64,
     )
     complex_frequencies = frequencies.astype(np.complex128)
-    phi_minus_i = _heston_characteristic_function(
+    phi_minus_i = heston_characteristic_function(
         -1j,
         log_spot=log_spot,
         year_fraction=year_fraction,
@@ -132,7 +132,7 @@ def _expiry_values(
 
     phi_p1 = np.asarray(
         [
-            _heston_characteristic_function(
+            heston_characteristic_function(
                 complex(frequency - 1j),
                 log_spot=log_spot,
                 year_fraction=year_fraction,
@@ -146,7 +146,7 @@ def _expiry_values(
     )
     phi_p2 = np.asarray(
         [
-            _heston_characteristic_function(
+            heston_characteristic_function(
                 complex(frequency),
                 log_spot=log_spot,
                 year_fraction=year_fraction,
