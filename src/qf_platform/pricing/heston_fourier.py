@@ -121,13 +121,8 @@ def heston_characteristic_function(
     xi_squared = xi * xi
     c_term = imaginary_argument * (log_spot + (rate - q) * year_fraction) + (
         kappa * theta / xi_squared
-    ) * (
-        (beta - root) * year_fraction
-        - 2.0 * cmath.log(one_minus_g_exp / one_minus_g)
-    )
-    d_term = ((beta - root) / xi_squared) * (
-        (1.0 - exp_minus_root_t) / one_minus_g_exp
-    )
+    ) * ((beta - root) * year_fraction - 2.0 * cmath.log(one_minus_g_exp / one_minus_g))
+    d_term = ((beta - root) / xi_squared) * ((1.0 - exp_minus_root_t) / one_minus_g_exp)
     try:
         value = cmath.exp(c_term + d_term * initial_variance)
     except OverflowError as exc:
