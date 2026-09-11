@@ -22,6 +22,9 @@ from qf_platform.inference.heston_calibration import (
     InvalidHestonCalibrationInitialGuess,
     evaluate_heston_calibration_residuals,
 )
+from qf_platform.inference.heston_calibration_batch import (
+    evaluate_heston_calibration_standardized_residual_vector_batched,
+)
 
 
 @dataclass(frozen=True, slots=True)
@@ -76,10 +79,9 @@ class ScipyLeastSquaresHestonCalibration:
                 _financial_vector(values),
                 continuous_dividend_yield=problem.continuous_dividend_yield,
             )
-            residuals = evaluate_heston_calibration_residuals(problem, coordinates)
-            return np.asarray(
-                [item.standardized_residual for item in residuals],
-                dtype=np.float64,
+            return evaluate_heston_calibration_standardized_residual_vector_batched(
+                problem,
+                coordinates,
             )
 
         optimizer_result = least_squares(
