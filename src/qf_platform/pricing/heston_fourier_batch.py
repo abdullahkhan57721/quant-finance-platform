@@ -45,7 +45,9 @@ def _validate_common_problem(
     method: HestonFourierEuropeanOption,
 ) -> None:
     if not method.supports(candidate):
-        msg = "every batch item must be supported by the configured Heston Fourier method"
+        msg = (
+            "every batch item must be supported by the configured Heston Fourier method"
+        )
         raise IncompatibleHestonFourierBatch(msg)
     if candidate.valuation_time != reference.valuation_time:
         msg = "batch items must share one valuation time"
@@ -157,7 +159,9 @@ def _expiry_values(
         dtype=np.complex128,
     )
 
-    contracts = [cast(EuropeanOption, problem.contract) for _, problem in indexed_problems]
+    contracts = [
+        cast(EuropeanOption, problem.contract) for _, problem in indexed_problems
+    ]
     strikes = np.asarray([item.strike for item in contracts], dtype=np.float64)
     if np.any(strikes <= 0.0):
         msg = "M8 Heston Fourier batching requires positive strikes"
@@ -207,7 +211,9 @@ def batch_heston_fourier_present_values(
         return ()
     reference = problems[0]
     if not method.supports(reference):
-        msg = "every batch item must be supported by the configured Heston Fourier method"
+        msg = (
+            "every batch item must be supported by the configured Heston Fourier method"
+        )
         raise IncompatibleHestonFourierBatch(msg)
     for problem in problems[1:]:
         _validate_common_problem(reference, problem, method)
