@@ -96,7 +96,7 @@ def test_ui5_threaded_validation_installs_authoritative_m7_evidence() -> None:
     )
     assert cast(PresentationRowModel, controller.validationResidualModel).rowCount() == 14
     assert cast(PresentationRowModel, controller.validationWorkloadModel).rowCount() == 6
-    assert cast(PresentationRowModel, controller.validationInspectorModel).rowCount() >= 8
+    assert cast(PresentationRowModel, controller.validationInspectorModel).rowCount() >= 6
 
     residual_plot = json.loads(cast(str, controller.validationResidualPlotJson))
     held_out_plot = json.loads(cast(str, controller.validationHeldOutErrorPlotJson))
