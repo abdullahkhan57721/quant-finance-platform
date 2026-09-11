@@ -1,0 +1,87 @@
+{
+  "authority_note": "Compact derived reference reconstructed from the already-published M4/M6 SPX evidence and the M7 production equations. scripts/m7_model_validation.py remains the authoritative raw-artifact replay path; raw source rows are not redistributed.",
+  "black_scholes_training_fit": {
+    "annualized_volatility": 0.208906978911,
+    "function_evaluations": 4,
+    "objective_value": 5114.040715335584,
+    "termination_message": "`ftol` termination condition is satisfied.",
+    "termination_status": 2
+  },
+  "conclusion": {
+    "heston_hedge_comparison_supported": false,
+    "heston_lower_evaluation_price_rmse": true,
+    "heston_lower_evaluation_standardized_rmse": true,
+    "heston_lower_training_price_rmse": true,
+    "statement": "Under this predeclared same-date cross-sectional holdout, explicit rate/carry convention, price-space objective, and selected observations, Heston improves held-out price and half-spread-standardized RMSE relative to the one-volatility Black-Scholes benchmark. This does not establish temporal generalization or model validity; calibration conditioning, limited date/maturity coverage, numerical cost, and unsupported Heston hedging remain material limitations.",
+    "temporal_out_of_sample_tested": false
+  },
+  "evidence_kind": "M7 reference Black-Scholes vs Heston same-date cross-sectional validation",
+  "financial_inputs": {
+    "continuous_dividend_yield": 0.017,
+    "continuously_compounded_rate": 0.045,
+    "residual_scale": "bid/ask half-spread",
+    "target": "bid/ask midpoint",
+    "time_basis": "ACT/365F"
+  },
+  "hedging_evidence_boundary": {
+    "heston_generated_world_compared": false,
+    "heston_hedge_compared": false,
+    "m3_evidence_integrated": true,
+    "reason": "M3 path provenance is explicitly Black-Scholes/GBM and no authoritative Heston Delta/hedge-execution contract exists."
+  },
+  "held_out_contract_residuals": [
+    {"contract_id":"SPXW-2023-02-03-put-3850","expiry":"2023-02-03","half_spread":0.35,"log_forward_moneyness":-0.003181501914,"model":"black_scholes","model_minus_observed_price":-2.449938359831,"model_price":85.800061640169,"observed_price":88.25,"partition":"evaluation","relative_absolute_error":0.027761341188,"right":"put","standardized_residual":-6.999823885232,"strike":3850.0},
+    {"contract_id":"SPXW-2023-02-03-put-3850","expiry":"2023-02-03","half_spread":0.35,"log_forward_moneyness":-0.003181501914,"model":"heston","model_minus_observed_price":-0.653184038383,"model_price":87.596815961617,"observed_price":88.25,"partition":"evaluation","relative_absolute_error":0.007401518849,"right":"put","standardized_residual":-1.866240109664,"strike":3850.0},
+    {"contract_id":"SPXW-2023-02-03-call-3970","expiry":"2023-02-03","half_spread":0.25,"log_forward_moneyness":0.027511444486,"model":"black_scholes","model_minus_observed_price":5.054155508309,"model_price":49.204155508309,"observed_price":44.15,"partition":"evaluation","relative_absolute_error":0.114476908455,"right":"call","standardized_residual":20.216622033235,"strike":3970.0},
+    {"contract_id":"SPXW-2023-02-03-call-3970","expiry":"2023-02-03","half_spread":0.25,"log_forward_moneyness":0.027511444486,"model":"heston","model_minus_observed_price":0.234129475475,"model_price":44.384129475475,"observed_price":44.15,"partition":"evaluation","relative_absolute_error":0.005303045877,"right":"call","standardized_residual":0.936517901901,"strike":3970.0},
+    {"contract_id":"SPXW-2023-04-28-put-3800","expiry":"2023-04-28","half_spread":0.45,"log_forward_moneyness":-0.022697419097,"model":"black_scholes","model_minus_observed_price":-12.242542181463,"model_price":136.734530882537,"observed_price":148.977073064,"partition":"evaluation","relative_absolute_error":0.082177357426,"right":"put","standardized_residual":-27.20564929214,"strike":3800.0},
+    {"contract_id":"SPXW-2023-04-28-put-3800","expiry":"2023-04-28","half_spread":0.45,"log_forward_moneyness":-0.022697419097,"model":"heston","model_minus_observed_price":0.247310472415,"model_price":149.224383536415,"observed_price":148.977073064,"partition":"evaluation","relative_absolute_error":0.001660057265,"right":"put","standardized_residual":0.549578827588,"strike":3800.0},
+    {"contract_id":"SPXW-2023-04-28-call-4075","expiry":"2023-04-28","half_spread":0.45,"log_forward_moneyness":0.047172260863,"model":"black_scholes","model_minus_observed_price":10.079255439783,"model_price":104.860385426183,"observed_price":94.7811299864,"partition":"evaluation","relative_absolute_error":0.106342427456,"right":"call","standardized_residual":22.398345421741,"strike":4075.0},
+    {"contract_id":"SPXW-2023-04-28-call-4075","expiry":"2023-04-28","half_spread":0.45,"log_forward_moneyness":0.047172260863,"model":"heston","model_minus_observed_price":1.122317428803,"model_price":95.903447415203,"observed_price":94.7811299864,"partition":"evaluation","relative_absolute_error":0.011841148433,"right":"call","standardized_residual":2.494038730673,"strike":4075.0}
+  ],
+  "heston_full_sample_stability_starts": [
+    {"condition_number_domain_scaled":403.917218971745,"estimate":[0.044466830783,3.257510081628,0.06622409849,0.627148109513,-0.779374182026],"function_evaluations":18,"initial_guess":[0.04,2.0,0.04,0.5,-0.7],"jacobian_evaluations":13,"jacobian_rank":5,"objective_value":12.557496286613},
+    {"condition_number_domain_scaled":403.909508438988,"estimate":[0.044466831089,3.257516839608,0.066224050428,0.627148049367,-0.779374477804],"function_evaluations":18,"initial_guess":[0.06,1.0,0.06,0.8,-0.4],"jacobian_evaluations":16,"jacobian_rank":5,"objective_value":12.55749628686},
+    {"condition_number_domain_scaled":403.904575773324,"estimate":[0.044466826819,3.257470863685,0.066224353515,0.62714778472,-0.779372825693],"function_evaluations":17,"initial_guess":[0.02,5.0,0.02,0.3,-0.85],"jacobian_evaluations":14,"jacobian_rank":5,"objective_value":12.557496290331}
+  ],
+  "heston_parameter_stability": {
+    "failed_training_starts": 0,
+    "interpretation": "Multiple starts are tightly clustered and the local Jacobian is full rank, but conditioning remains nontrivial and does not establish global identification.",
+    "maximum_train_to_full_domain_scaled_shift": 0.016914324748,
+    "maximum_training_start_domain_scaled_spread": 8.8735e-07,
+    "successful_training_starts": 3,
+    "train_to_full_domain_scaled_shifts": [0.0002167074,0.01600412519,0.001859571162,0.006316655076,0.016914324748]
+  },
+  "heston_training_starts": [
+    {"condition_number_domain_scaled":424.927228172009,"estimate":[0.044250146282,3.496781209218,0.06436467945,0.595566163068,-0.813168786174],"function_evaluations":22,"initial_guess":[0.04,2.0,0.04,0.5,-0.7],"jacobian_evaluations":15,"jacobian_rank":5,"objective_value":4.771246724706},
+    {"condition_number_domain_scaled":424.891811336791,"estimate":[0.044250145053,3.496771753215,0.064364713285,0.595565465797,-0.813169002873],"function_evaluations":25,"initial_guess":[0.06,1.0,0.06,0.8,-0.4],"jacobian_evaluations":20,"jacobian_rank":5,"objective_value":4.771246724193},
+    {"condition_number_domain_scaled":424.937653315001,"estimate":[0.044250145993,3.496785019098,0.064364643647,0.595565696108,-0.813169326184],"function_evaluations":16,"initial_guess":[0.02,5.0,0.02,0.3,-0.85],"jacobian_evaluations":13,"jacobian_rank":5,"objective_value":4.771246724441}
+  ],
+  "m8_representative_workloads": [
+    {"id":"bs_closed_form_single","operation":"one BlackScholesClosedForm European-option valuation"},
+    {"id":"heston_fourier_single","integration_upper_bound":100.0,"intervals":256,"operation":"one HestonFourierEuropeanOption valuation"},
+    {"id":"heston_mc_reference","operation":"one seeded HestonMonteCarloEuropeanOption valuation","paths":20000,"seed":20260910,"time_steps":252},
+    {"id":"heston_training_calibration","operation":"10-target price-space Heston calibration","starts":3},
+    {"id":"heston_full_sample_stability_calibration","operation":"14-target price-space Heston calibration","starts":3},
+    {"id":"m7_end_to_end_cross_sectional_validation","operation":"full 10-train/4-evaluation M7 study"}
+  ],
+  "market_snapshot": {"expiries":["2023-02-03","2023-04-28"],"observation_count":14,"observed_spot":3853.39,"quote_date":"2023-01-04","underlying":"SPX"},
+  "metrics": {
+    "black_scholes_evaluation": {"maximum_absolute_standardized_residual":27.20564929214,"mean_absolute_error":7.456472872347,"mean_residual":0.1102326017,"observation_count":4,"relative_mean_absolute_error":0.082689508631,"root_mean_square_error":8.411568152765,"standardized_mean_absolute_error":19.205110158087,"standardized_root_mean_square_error":20.61275437622},
+    "black_scholes_training": {"maximum_absolute_standardized_residual":49.446177230973,"mean_absolute_error":7.298839340404,"mean_residual":0.060372185399,"observation_count":10,"relative_mean_absolute_error":0.119543338374,"root_mean_square_error":9.50397804032,"standardized_mean_absolute_error":15.731433568411,"standardized_root_mean_square_error":22.614244880905},
+    "heston_evaluation": {"maximum_absolute_standardized_residual":2.494038730673,"mean_absolute_error":0.564235353769,"mean_residual":0.237643334578,"observation_count":4,"relative_mean_absolute_error":0.006551442606,"root_mean_square_error":0.671234847137,"standardized_mean_absolute_error":1.461593892457,"standardized_root_mean_square_error":1.649407772909},
+    "heston_training": {"maximum_absolute_standardized_residual":1.501402208954,"mean_absolute_error":0.300243310828,"mean_residual":0.005428976382,"observation_count":10,"relative_mean_absolute_error":0.004416101567,"root_mean_square_error":0.37619288494,"standardized_mean_absolute_error":0.548008309636,"standardized_root_mean_square_error":0.69074211716}
+  },
+  "predeclared_partition": {
+    "evaluation_contract_ids": ["SPXW-2023-02-03-put-3850","SPXW-2023-02-03-call-3970","SPXW-2023-04-28-put-3800","SPXW-2023-04-28-call-4075"],
+    "evaluation_count": 4,
+    "rule": "sort by (expiry, strike); evaluation iff zero-based index % 3 == 2",
+    "temporal_out_of_sample": false,
+    "training_contract_ids": ["SPXW-2023-02-03-put-3720","SPXW-2023-02-03-put-3800","SPXW-2023-02-03-call-3870","SPXW-2023-02-03-call-3900","SPXW-2023-02-03-call-4020","SPXW-2023-04-28-put-3720","SPXW-2023-04-28-call-3900","SPXW-2023-04-28-call-3950","SPXW-2023-04-28-call-4110","SPXW-2023-04-28-call-4240"],
+    "training_count": 10
+  },
+  "selected_heston_full_sample_estimate": {"condition_number_domain_scaled":403.917218971745,"correlation":-0.779374182026,"function_evaluations":18,"initial_variance":0.044466830783,"jacobian_evaluations":13,"jacobian_rank":5,"long_run_variance":0.06622409849,"mean_reversion_speed":3.257510081628,"objective_value":12.557496286613,"singular_values_domain_scaled":[9338.216917264359,2133.81223853639,563.25711922577,74.564254321096,23.119135502658],"termination_message":"`ftol` termination condition is satisfied.","termination_status":2,"volatility_of_variance":0.627148109513},
+  "selected_heston_training_estimate": {"condition_number_domain_scaled":424.891811336791,"correlation":-0.813169002873,"function_evaluations":25,"initial_variance":0.044250145053,"jacobian_evaluations":20,"jacobian_rank":5,"long_run_variance":0.064364713285,"mean_reversion_speed":3.496771753215,"objective_value":4.771246724193,"singular_values_domain_scaled":[7173.304196400069,1763.350439273496,494.461549551732,58.191504929774,16.882660491459],"termination_message":"`ftol` termination condition is satisfied.","termination_status":2,"volatility_of_variance":0.595565465797},
+  "source_lineage": {"commit":"428531599bf3945f5d51691fdd21b1667eb14958","git_blob_sha1":"8d1db0f2710c4707555c8263f9b7f8f527974836","license_note":"No source-repository license file was identified in the M4/M6 study; raw rows are not redistributed.","m4_evidence":"docs/evidence/m4_spx_implied_volatility_evidence.json","m6_evidence":"docs/evidence/m6_spx_heston_calibration_reference.json","path":"data/data.csv","repository":"IceCurrent/local_volatility_model"},
+  "structural_computation_evidence": {"black_scholes_training_function_evaluations":4,"heston_fourier_intervals":256,"heston_fourier_upper_bound":100.0,"heston_full_sample_function_evaluations":[18,18,17],"heston_full_sample_jacobian_evaluations":[13,16,14],"heston_full_sample_start_count":3,"heston_full_sample_target_count":14,"heston_training_function_evaluations":[22,25,16],"heston_training_jacobian_evaluations":[15,20,13],"heston_training_start_count":3,"heston_training_target_count":10}
+}

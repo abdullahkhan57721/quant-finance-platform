@@ -2,7 +2,7 @@
 
 ## Status
 
-The quantitative and native-desktop tracks are now coherent through Heston calibration and its Workbench presentation.
+The quantitative-finance platform has completed **M0, M0A, M1, M2, M3, M4, M5, M6, and M7**.
 
 Completed quantitative milestones:
 
@@ -11,9 +11,10 @@ Completed quantitative milestones:
 - **M1 — European Options & Black-Scholes Reference Vertical**;
 - **M2 — Independent Valuation and Sensitivity/Greeks**;
 - **M3 — Dynamic Hedging / Control**;
-- **M4 — Market Evidence / Inverse Problems**;
-- **M5 — Heston Model and Independent Valuation**;
-- **M6 — Heston Calibration / Multi-Parameter Inverse Problem**.
+- **M4 — Market Evidence / Implied-Volatility Inference**;
+- **M5 — Heston Stochastic Volatility & Independent Valuation**;
+- **M6 — Heston Calibration / Multi-Parameter Inverse Problem**;
+- **M7 — Empirical Validation, Model Risk & Black-Scholes vs Heston**.
 
 Completed native milestones:
 
@@ -22,163 +23,185 @@ Completed native milestones:
 - **UI3 — Dynamic Hedging, Market Evidence & Scalar Inference**;
 - **UI4 — Heston Forward Valuation, Calibration & Identifiability Workbench**.
 
-ADR 0002 remains the platform-wide mathematical architecture authority. ADR 0003 remains the native PySide6 + Qt Quick/QML boundary authority.
+ADR 0002 remains the mathematical architecture authority. ADR 0003 remains the native PySide6 + Qt Quick/QML authority.
 
-**M7 — Empirical Validation, Model Risk & Black-Scholes vs Heston** is an independent active workstream but is not authoritative until squash-merged to `main`. UI4 intentionally consumes only merged M5/M6 behavior.
+The next quantitative milestone is **M8 — Profiling & Targeted C++ Acceleration**. M8 must profile the representative workloads defined by M7 before selecting any native boundary. **UI5** may now consume authoritative M7 validation/model-risk evidence; performance/release presentation should consume M8 only after that evidence exists.
 
-The next desktop milestone, **UI5**, is gated on actual merged M7 evidence and concrete M8 performance/release pressure rather than on speculative validation conclusions.
-
-## Current mathematical architecture
-
-The platform-wide conceptual pattern remains:
+## Mathematical organization
 
 ```text
-Problem + supported Method -> specific immutable Result
+FINANCIAL / MATHEMATICAL FOUNDATIONS
+state / state space
+stochastic law
+parameters
+probability / measure semantics
+numeraire
+market observations + provenance
+contracts / cash flows
+quantitative conventions
+        ↓
+PROBLEM FAMILIES
+pricing
+inverse / inference
+sensitivity
+prediction
+control / optimization
+risk
+validation
+        ↓
+METHODS
+analytic / tree / Monte Carlo / Fourier / finite difference
+root finding / optimization / filtering / regression / scenarios / tests
+        ↓
+SPECIFIC IMMUTABLE RESULTS / EVIDENCE
 ```
 
-This is a mathematical responsibility pattern, not a universal runtime inheritance tree.
+The durable execution pattern is:
+
+```text
+Problem + supported Method -> specific immutable Result / Evidence
+```
 
 Protect:
 
 ```text
-state != stochastic law != parameter values
-financial contract != pricing model
-problem != solution method
-pricing != sensitivity != control != inverse inference != validation
-market observation != modeled state
-raw observation != normalized observation != model-implied value
-inverse problem != root finder / optimizer
-objective / weighting != optimizer configuration
-optimizer converged != identified parameters != valid model
-request / draft != immutable completed result
+financial state != market observation
+raw observation != normalized observation != modeled value
+state != stochastic law != parameters != calibrated estimate
+contract != cash-flow stream
+numeraire != pricing measure
+pricing != sensitivity != control != inverse != validation
+Delta sensitivity != hedge policy != realized hedge action
+calibration != validation
+training fit != held-out evaluation
+model residual != quote width != numerical error
+optimizer convergence != parameter identification != model validity
+same-date holdout != temporal forecasting
 ```
 
-## Forward pricing capabilities
+## Quantitative capabilities
 
-### Black-Scholes
+### Black-Scholes / M1–M2
 
-```text
-EquityState
-+ BlackScholesLaw / BlackScholesParameters
-+ EuropeanOption
-+ money-market numeraire / pricing measure
-        ↓
-PricingProblem
-        ├── BlackScholesClosedForm
-        ├── CoxRossRubinstein
-        └── MonteCarloEuropeanOption
-```
+The first pricing vertical supports European calls/puts, ACT/365F, a flat continuously compounded money-market numeraire, Black-Scholes closed form, CRR, seeded Monte Carlo, and analytic/finite-difference Delta, Gamma, Vega, Theta, and Rho.
 
-M1/M2 establish analytic reference valuation, independent lattice and Monte Carlo evidence, explicit uncertainty/discretization semantics, and the first sensitivity family.
+### Dynamic hedging / M3
 
-### Heston
+M3 consumes analytic Delta as a hedge-policy input over exact-transition pricing-measure GBM paths with explicit rebalance schedules, stock/cash self-financing accounting, volatility misspecification, proportional transaction costs, and replication-error summaries. These are model-generated replication experiments, not historical trading backtests.
 
-```text
-HestonEquityState(spot, instantaneous variance)
-+ HestonLaw / HestonParameters(kappa, theta, xi, rho, q)
-+ existing EuropeanOption
-+ existing money-market numeraire / pricing measure
-        ↓
-PricingProblem
-        ├── HestonFourierEuropeanOption
-        └── HestonMonteCarloEuropeanOption
-```
+### Market evidence / M4
 
-M5 keeps current variance `v0`, structural law, immutable parameter values, valuation method, and future calibrated estimates distinct. The Feller condition is diagnostic rather than universally enforced.
+M4 establishes provenance-bearing raw option/underlying observations, explicit midpoint normalization, Black-Scholes implied-volatility inversion with separate bisection, conditioning evidence, static quote diagnostics, and pinned January 4, 2023 SPX evidence showing strike skew and maturity dependence.
 
-Fourier results retain integration/resolution and characteristic-function work evidence. Heston Monte Carlo results retain sampling uncertainty, paths/timesteps/seed, variance scheme, and negative-variance proposal diagnostics.
+### Heston forward model / M5
 
-## Sensitivity and control
+M5 adds `HestonEquityState`, `HestonLaw`, immutable `HestonParameters`, independent characteristic-function/Fourier valuation, seeded full-truncation Euler Monte Carlo, Feller diagnostics, exact deterministic-variance handling at `xi=0`, and Fourier↔Monte-Carlo validation.
 
-M2 provides Black-Scholes analytic and finite-difference Delta, Gamma, Vega, Theta, and Rho through a separate `BlackScholesSensitivityProblem` family.
+### Heston calibration / M6
 
-M3 consumes analytic Delta as a policy input for explicit dynamic replication:
+M6 calibrates direct financial coordinates `(v0, kappa, theta, xi, rho)` in option-price space while keeping spot, flat rate and `q` explicit and fixed for the first consumer.
 
 ```text
-model-generated GBM path
-+ rebalance schedule
-+ analytic-Delta hedge policy
-+ stock / money-market accounting
-+ optional proportional transaction cost
-        ↓
-DeltaHedgeResult / ReplicationErrorSummary
-```
-
-Sensitivity values, hedge policies, realized actions, and realized hedge error remain separate responsibilities.
-
-## Observed market evidence and scalar inference
-
-M4 establishes the production observation lifecycle:
-
-```text
-RawOptionQuote + RawUnderlyingObservation + provenance
-        ↓
-explicit midpoint normalization
-        ↓
-NormalizedOptionObservation
-        ↓
-BlackScholesImpliedVolatilityProblem
-+ BisectionImpliedVolatility
-        ↓
-ImpliedVolatilityResult + conditioning evidence
-```
-
-The pinned January 4, 2023 SPX evidence exhibits strike skew and maturity dependence that one constant Black-Scholes volatility cannot reconcile under the explicit input conventions.
-
-## Heston calibration / multi-parameter inverse inference
-
-M6 calibrates the five direct financial coordinates:
-
-```text
-(v0, kappa, theta, xi, rho)
-```
-
-while preserving `v0` as state-like and keeping spot, risk-free accumulation, and continuous dividend yield as fixed explicit inputs for the first calibration consumer.
-
-The production composition is:
-
-```text
-synthetic Heston price target
-or
-NormalizedOptionObservation + provenance
-        ↓
-HestonPriceCalibrationTarget
+HestonPriceCalibrationTarget(s)
 + financial bounds
 + price-space residual / weighting semantics
-+ M5 Heston Fourier forward map
++ Heston Fourier forward map
         ↓
 HestonCalibrationProblem
 + ScipyLeastSquaresHestonCalibration
         ↓
 HestonCalibrationResult
-+ per-target residual evidence
-+ local Jacobian conditioning / identifiability evidence
 ```
 
-M6 implements option-price-space calibration only. The problem owns mismatch/weighting semantics; the SciPy method owns numerical search configuration/state.
+Synthetic truth recovery, multiple starts, target perturbation, per-target residuals, and local domain-scaled Jacobian diagnostics establish that small objective and optimizer convergence do not imply unique or trustworthy parameters.
 
-Synthetic evidence includes:
+The committed full-sample SPX reference clusters near `v0≈0.04447`, `kappa≈3.2575`, `theta≈0.06622`, `xi≈0.62715`, `rho≈-0.77937`, with a full-rank but nontrivially conditioned local Jacobian.
 
-- known-truth recovery over four maturities and five strikes;
-- multiple materially different starts;
-- controlled target perturbation;
-- a deliberately underdetermined three-target/five-coordinate example with tiny loss, materially different estimates, and rank-deficient local Jacobians.
+## M7 validation / model-risk specialization
 
-The committed real-market M6 reference reuses M4 SPX observation/provenance semantics and 14 pinned OTM-side contracts. Its three starts cluster near:
+M7 is the first production specialization organized explicitly around **validation**.
 
 ```text
-v0      ≈ 0.04447
-kappa   ≈ 3.2575
-theta   ≈ 0.06622
-xi      ≈ 0.62715
-rho     ≈ -0.77937
+NormalizedOptionObservation(s)
++ predeclared TRAINING / EVALUATION partition
++ fixed financial inputs
++ one-volatility Black-Scholes benchmark domain
++ Heston calibration domain / Fourier forward map
+        ↓
+BlackScholesHestonValidationProblem
+        +
+CrossSectionalBlackScholesHestonValidation
+        ↓
+BlackScholesHestonValidationEvidence
 ```
 
-with half-spread-standardized objective about `12.56` and a full-rank domain-scaled local Jacobian condition number about `404`. This is calibration evidence, not a conclusion that Heston is valid or superior.
+No universal validation/risk/metric framework was introduced.
+
+### Predeclared empirical design
+
+The current real sample contains 14 selected SPX/SPXW contracts from one market date across two expiries, so M7 uses a same-date cross-sectional holdout rather than claiming temporal forecasting.
+
+```text
+sort by (expiry, strike)
+evaluation iff zero-based index % 3 == 2
+```
+
+This yields **10 training / 4 held-out evaluation** observations. Both models consume the same training prices and bid/ask-half-spread residual scaling. Black-Scholes fits one constant annualized volatility; Heston uses the M6 five-coordinate calibration with three predeclared starts. Both fitted training models are frozen before held-out evaluation.
+
+A regression test changes only held-out targets and verifies that the fitted training models and held-out model prices do not change.
+
+### Reference result
+
+The fitted Black-Scholes training volatility is approximately `0.20891`.
+
+A representative selected Heston training estimate is approximately:
+
+```text
+v0      = 0.04425
+kappa   = 3.4968
+theta   = 0.06436
+xi      = 0.59557
+rho     = -0.81317
+```
+
+Held-out price-space evidence:
+
+```text
+                         Black-Scholes      Heston
+price RMSE                   8.412           0.671
+half-spread std. RMSE       20.613           1.649
+relative MAE                 8.27%            0.66%
+```
+
+Within this predeclared sample and explicit assumptions, Heston materially improves held-out pricing metrics relative to the fairly fitted one-volatility Black-Scholes benchmark.
+
+The conclusion is deliberately bounded. It does not establish temporal generalization, physical-measure forecasting skill, global Heston identification, historical trading profitability, or Heston hedge superiority.
+
+### Stability / identification
+
+The three Heston training starts converge to a tight cluster. The selected training Jacobian is full rank with domain-scaled condition number around `425`. A post-evaluation full-sample stability fit has condition number around `404`, with maximum train→full movement about `0.017` of the corresponding explicit M6 domain width.
+
+This evidence must be read together with M6's deliberately rank-deficient thin-slice counterexample.
+
+### M3 hedge boundary
+
+M7 integrates M3 misspecification evidence but does not fabricate a Heston hedge study. M3 `SimulatedEquityPath` has explicit Black-Scholes/GBM provenance and the production backend does not yet own an authoritative Heston path + Delta + hedge-accounting composition.
+
+```text
+Heston held-out pricing advantage
+!= demonstrated Heston hedging advantage
+```
+
+### Reproducible evidence
+
+- `scripts/m7_model_validation.py` replays the pinned M4/M6 local raw-artifact path without network retrieval or raw-row redistribution;
+- `docs/evidence/m7_spx_bs_vs_heston_validation_reference.json` is the compact derived reference artifact;
+- `docs/models/m7_empirical_validation_and_model_risk.md` records design, evidence, limitations and the M8 handoff;
+- deterministic CI fixtures cover the partition, comparison, no-leakage invariant, immutability and dependency direction.
 
 ## Native Workbench through UI4
 
-The durable dependency direction is:
+The durable dependency direction remains:
 
 ```text
 Qt Quick / QML
@@ -192,115 +215,33 @@ public quantitative APIs
 production quantitative core
 ```
 
-The core remains Qt-independent and PySide6 remains optional.
+UI4 is complete and consumes authoritative M5/M6 Heston pricing and calibration contracts. It exposes separate Heston forward-valuation and calibration/identifiability workspaces, method-specific numerical evidence, stale-result rejection for heavy jobs, and the committed M6 SPX reference without inventing M7 conclusions or absent Heston paths.
 
-The current Workbench exposes four mathematical workflow families:
+`docs/architecture/native_quant_workbench.md` is authoritative for the detailed UI4 architecture.
 
-```text
-Forward valuation / sensitivity
-    ├── Black-Scholes valuation & Greeks
-    └── Heston forward valuation
+## M8 next: profile before accelerating
 
-Control / replication
-    └── Black-Scholes dynamic Delta hedging
+M7 leaves six representative workloads:
 
-Observed-market scalar inverse inference
-    └── Black-Scholes implied volatility / market evidence
+1. one Black-Scholes closed-form valuation;
+2. one Heston Fourier valuation (`upper=100`, `intervals=256`);
+3. one seeded Heston Monte Carlo valuation (`20,000` paths, `252` timesteps, seed `20260910`);
+4. 10-target / 3-start Heston training calibration;
+5. 14-target / 3-start Heston stability calibration; and
+6. the complete M7 validation study.
 
-Multi-parameter inverse inference
-    └── Heston calibration / identifiability
-```
+M8 must measure these workloads before choosing any C++ boundary. Python remains the correctness authority, and any native implementation must earn its existence through measured performance pressure and numerical/statistical parity evidence.
 
-### UI4 Heston valuation
+## Deliberately absent
 
-The Heston workspace makes the model change explicit:
+The repository intentionally still lacks:
 
-```text
-Black-Scholes: S_t + constant volatility
-Heston:        (S_t, v_t) + stochastic variance + correlated shocks
-```
-
-The European option contract and forward-pricing question remain recognizable across both models.
-
-The same authoritative Heston `PricingProblem` is run through Fourier and Monte Carlo. The UI exposes method-specific evidence, MC confidence intervals, variance-boundary diagnostics, and Fourier-resolution stability without collapsing them into a generic error field.
-
-Merged M5 valuation results do not retain authoritative Heston paths, so UI4 deliberately has no fabricated path display.
-
-### UI4 Heston calibration
-
-Calibration is a separate inverse-problem workspace rather than a model-parameter-panel action.
-
-UI4 exposes:
-
-- direct financial coordinates and bounds;
-- price-space target/objective/weighting semantics;
-- explicit optimizer initial guesses/configuration;
-- synthetic truth recovery;
-- multiple-start results;
-- target/model-price residuals;
-- optimizer termination evidence;
-- Jacobian rank/singular values/condition evidence;
-- the thin rank-deficient counterexample;
-- the committed derived M6 SPX reference and M4 source lineage.
-
-It does not invent IV-space Heston calibration, hidden parameter transforms, Bayesian/posterior uncertainty, or optimizer progress absent from M6.
-
-### UI4 execution safety
-
-Heston Monte Carlo and calibration reuse the established local `QThread` boundary. UI4 adds only concrete stale-result protection:
-
-```text
-one active heavy job
-+ job/workspace identity
-+ relevant input invalidation
-        ↓
-stale completion is discarded
-```
-
-No universal scheduler, queue, cancellation framework, persistence system, or progress protocol is introduced.
-
-## Validation and packaging
-
-Core validation remains:
-
-```text
-./scripts/check_all
-```
-
-which enforces Ruff lint/format, strict Pyright, and pytest.
-
-Dedicated Desktop CI independently verifies:
-
-- pinned PySide6;
-- desktop Ruff and strict Pyright;
-- application/presentation/controller tests;
-- the Qt-free core dependency boundary;
-- isolated QML load;
-- source startup smoke;
-- standalone `pyside6-deploy` build;
-- packaged offscreen startup smoke;
-- standalone artifact upload.
-
-## Authoritative references
-
-Use these durable sources rather than conversation memory:
-
-- `AGENTS.md` — operating rules;
-- `docs/architecture/index.md` — platform architecture;
-- `docs/architecture/native_quant_workbench.md` — desktop architecture through UI4;
-- `docs/quantitative_conventions.md` — quantitative conventions;
-- `docs/decisions/0002-mathematical-problem-architecture.md` — mathematical architecture doctrine;
-- `docs/decisions/0003-native-desktop-workbench.md` — native UI boundary;
-- `docs/models/m3_dynamic_delta_hedging.md`;
-- `docs/models/m4_market_evidence_and_implied_volatility.md`;
-- `docs/models/m5_heston_stochastic_volatility.md`;
-- `docs/models/m6_heston_calibration.md`;
-- `docs/evidence/m4_spx_implied_volatility_evidence.json`;
-- `docs/evidence/m6_spx_heston_calibration_reference.json`;
-- current source/tests/Issues/PRs/CI.
-
-## Next pressure
-
-M7 is responsible for actual empirical Black-Scholes-versus-Heston validation/model-risk conclusions. It must remain independent of UI4 presentation convenience.
-
-UI5 should consume M7 only after M7 is merged and verified. It may also consume concrete M8 profiling/release evidence once that exists, but it should not pre-build generic validation, risk, performance, model-plugin, or reporting frameworks.
+- a generic validation/model-risk engine;
+- generic VaR/ES/scenario/portfolio infrastructure;
+- physical-measure Heston filtering/forecasting;
+- Bayesian Heston inference;
+- a generic optimizer/inverse hierarchy;
+- arbitrage-free surface construction/repair infrastructure;
+- Heston dynamic-hedging evidence;
+- a generic model/plugin registry; and
+- an unprofiled C++ backend abstraction.
