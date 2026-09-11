@@ -17,6 +17,7 @@ from qf_platform.inference.heston_calibration import (
     HestonCalibrationCoordinates,
     HestonCalibrationProblem,
     InvalidHestonCalibrationProblem,
+    evaluate_heston_calibration_residuals,
 )
 from qf_platform.pricing.heston import HestonEquityState, HestonLaw, HestonParameters
 from qf_platform.pricing.heston_fourier_batch import batch_heston_fourier_present_values
@@ -29,7 +30,12 @@ def evaluate_heston_calibration_standardized_residual_vector_batched(
     coordinates: HestonCalibrationCoordinates,
     /,
 ) -> NDArray[np.float64]:
-    """Evaluate the M6 standardized residual vector with stateless batch pricing."""
+    """Evaluate the M6 standardized residual vector with stateless batch pricing.
+
+    Positive volatility-of-variance uses the measured M8 maturity-batched numerical
+    path. The exact ``xi=0`` deterministic-variance boundary remains delegated to the
+    scalar M5/M6 reference so performance work does not narrow the financial domain.
+    """
 
     if (
         coordinates.parameters.continuous_dividend_yield
@@ -37,6 +43,15 @@ def evaluate_heston_calibration_standardized_residual_vector_batched(
     ):
         msg = "calibration coordinates must use the problem's fixed dividend yield"
         raise InvalidHestonCalibrationProblem(msg)
+
+    if coordinates.parameters.volatility_of_variance == 0.0:
+        return np.asarray(
+            [
+                item.standardized_residual
+                for item in evaluate_heston_calibration_residuals(problem, coordinates)
+            ],
+            dtype=np.float64,
+        )
 
     law = HestonLaw()
     pricing_problems: list[
