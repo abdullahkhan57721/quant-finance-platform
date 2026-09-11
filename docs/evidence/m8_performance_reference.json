@@ -1,0 +1,101 @@
+{
+  "evidence_kind": "M8 same-run baseline-versus-optimized performance reference",
+  "baseline_revision": "4d80014786810389c324434d7cccab95cf647803",
+  "optimized_reference_revision": "15d3b6c83a16ed660f00e7a6bf085cb57b76c411",
+  "workflow_run_id": 34640269472,
+  "environment": {
+    "runner_name": "GitHub Actions 1000009505",
+    "runner_os": "Linux",
+    "runner_arch": "X64",
+    "logical_cpu_count": 4,
+    "python": "3.12.14",
+    "numpy": "2.5.3",
+    "scipy": "1.18.1"
+  },
+  "methodology": {
+    "same_runner": true,
+    "timer": "time.perf_counter",
+    "warmup_samples": 1,
+    "timing_repetitions": 3,
+    "summary": "median with min/max/population-standard-deviation",
+    "profiling": "one cProfile execution per nontrivial workload",
+    "timings_are_ci_thresholds": false
+  },
+  "workloads": {
+    "bs_closed_form_single": {
+      "baseline_median_seconds": 0.000002083384,
+      "optimized_median_seconds": 0.000002271688,
+      "speedup_x": 0.917108,
+      "interpretation": "unoptimized scalar reference; microbenchmark difference is not a performance claim"
+    },
+    "heston_fourier_single": {
+      "integration_upper_bound": 100.0,
+      "intervals": 256,
+      "baseline_median_seconds": 0.0007491704,
+      "optimized_median_seconds": 0.00081811415,
+      "speedup_x": 0.915733,
+      "interpretation": "readable scalar reference intentionally retained"
+    },
+    "heston_mc_reference": {
+      "paths": 20000,
+      "time_steps": 252,
+      "path_step_transitions": 5040000,
+      "normal_draws": 10080000,
+      "seed": 20260910,
+      "baseline_median_seconds": 3.367340221,
+      "optimized_median_seconds": 0.122979639,
+      "speedup_x": 27.381282
+    },
+    "heston_training_calibration": {
+      "target_count": 10,
+      "start_count": 3,
+      "baseline_median_seconds": 2.291878464,
+      "optimized_median_seconds": 0.497131053,
+      "speedup_x": 4.610210
+    },
+    "heston_full_sample_stability_calibration": {
+      "target_count": 14,
+      "start_count": 3,
+      "baseline_median_seconds": 3.275180944,
+      "optimized_median_seconds": 0.545351821,
+      "speedup_x": 6.005629
+    },
+    "m7_end_to_end_cross_sectional_validation": {
+      "training_target_count": 10,
+      "evaluation_target_count": 4,
+      "baseline_median_seconds": 5.413630502,
+      "optimized_median_seconds": 1.081868411,
+      "speedup_x": 5.003964
+    }
+  },
+  "parity": {
+    "deterministic_checks": {
+      "black_scholes_value_close": true,
+      "scalar_heston_fourier_value_close": true,
+      "training_objectives_close": true,
+      "full_sample_objectives_close": true,
+      "m7_black_scholes_rmse_close": true,
+      "m7_heston_rmse_close": true,
+      "all_passed": true
+    },
+    "heston_monte_carlo": {
+      "parity_kind": "statistical",
+      "baseline_present_value": 88.4228456093,
+      "baseline_standard_error": 1.0690186763,
+      "optimized_present_value": 87.1337370597,
+      "optimized_standard_error": 1.0686958736,
+      "absolute_difference_in_combined_standard_errors": 0.852814878,
+      "within_four_combined_standard_errors": true,
+      "same_paths": true,
+      "same_time_steps": true,
+      "same_seed_configuration": true,
+      "identical_rng_stream_claimed": false
+    }
+  },
+  "native_decision": {
+    "cpp_added": false,
+    "decision": "not justified for the v0.1 representative workloads after Python/algorithmic optimization",
+    "reason": "all heavy workloads improved by at least about 4.61x while representative post-optimization absolute runtimes became small enough that a new compiler/binding/cross-platform packaging and parity surface would not justify its auditability and maintenance cost",
+    "minimum_heavy_workload_speedup_x": 4.610210
+  }
+}
