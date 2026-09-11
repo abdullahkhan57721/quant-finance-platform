@@ -12,7 +12,7 @@ A convention is either:
 
 Consequential conventions must not remain implicit.
 
-ADR 0002 is the mathematical architecture authority. M1–M7 specialize it without turning the conceptual taxonomy into universal runtime APIs.
+ADR 0002 is the mathematical architecture authority. M1–M8 specialize it without turning the conceptual taxonomy into universal runtime APIs.
 
 ## Committed cross-cutting conventions
 
@@ -124,6 +124,8 @@ Examples:
 - `HestonCalibrationResult` adds calibration residual/termination/conditioning evidence;
 - `BlackScholesHestonValidationEvidence` adds fitted benchmark/calibration, partitioned residual/metric, stability, workload, and bounded-conclusion evidence.
 
+M8 performance artifacts are study/evidence outputs rather than finance-domain result classes; no generic benchmark-result hierarchy is introduced.
+
 ### Volatility / variance units
 
 A public value named **annualized volatility** is a decimal annualized standard deviation unless explicitly documented otherwise:
@@ -150,7 +152,9 @@ There is no project-wide magic numerical tolerance. Tolerances must be justified
 
 Production stochastic methods own explicit RNG configuration and must not depend on ambient global RNG state.
 
-M2 Black-Scholes Monte Carlo, M3 path simulation, and M5 Heston Monte Carlo use explicit integer seeds and fresh local RNG state. Equal seeds across future Python/C++ implementations do not promise identical random streams.
+M2 Black-Scholes Monte Carlo and M3 path simulation use explicit integer seeds and fresh local RNG state. M8 changed M5 Heston Monte Carlo's numerical RNG implementation to a fresh local NumPy `Generator(PCG64(seed))` so path propagation can be vectorized without ambient NumPy RNG dependence.
+
+An integer seed identifies reproducible stochastic configuration **within the relevant implementation/revision**. Equal integer seeds do not promise identical streams across Python RNG algorithms, historical implementations, NumPy/C++, or other future backends. Cross-implementation stochastic validation should use statistical parity unless strict shared-input kernel parity is explicitly required.
 
 ### Reproducible core tests
 
@@ -268,6 +272,8 @@ Local conventions:
 - negative raw variance proposals are discretization-pressure evidence, not continuous-model negative variance;
 - Monte Carlo confidence interval is sampling uncertainty only and does not cover timestep bias or model error.
 
+M8 changes only the numerical execution of Heston Monte Carlo for `xi>0`; it does not change these financial/discretization conventions.
+
 See `docs/models/m5_heston_stochastic_volatility.md`.
 
 ## M6 local Heston calibration conventions
@@ -314,6 +320,8 @@ Additional conventions:
 - a finite five-coordinate condition number is reported only for full column rank;
 - synthetic truth recovery precedes market calibration;
 - multiple starts and controlled perturbations are evidence, not proof of global uniqueness.
+
+M8 may accelerate repeated forward-map residual evaluation but does not alter the M6 calibration problem, bounds, weighting, optimizer semantics, or authoritative completed-result reconstruction.
 
 See `docs/models/m6_heston_calibration.md`.
 
@@ -430,7 +438,7 @@ No Heston hedge comparison is supported until an authoritative Heston path + Del
 
 M7 records structural workload definitions and optimizer evaluation counts. Environment-dependent wall-clock timing from the research script is exploratory only and is **not** a CI threshold or portable benchmark.
 
-M8, not M7, owns profiling and acceleration decisions.
+M8 owns profiling and acceleration decisions.
 
 ### Bounded conclusion rule
 
@@ -447,17 +455,101 @@ It does not establish:
 
 See `docs/models/m7_empirical_validation_and_model_risk.md` and `docs/evidence/m7_spx_bs_vs_heston_validation_reference.json`.
 
+## M8 local performance-engineering conventions
+
+M8 is an engineering/evidence specialization, not a new financial problem family.
+
+### Frozen representative workloads
+
+Performance claims use the workload definitions predeclared by M7:
+
+```text
+Black-Scholes scalar valuation
+Heston Fourier scalar valuation, upper=100, intervals=256
+Heston MC, 20,000 paths, 252 timesteps, seed=20260910
+10-target / 3-start Heston training calibration
+14-target / 3-start Heston stability calibration
+complete 10-training / 4-evaluation M7 validation study
+```
+
+Changing workload scale or mathematical method creates new performance evidence; it must not be silently compared as the same benchmark.
+
+### Timing methodology
+
+The committed M8 comparison uses:
+
+- baseline and optimized revisions on the same runner;
+- one warmup sample;
+- three measured repetitions;
+- `time.perf_counter`;
+- median plus min/max/population standard deviation;
+- cProfile attribution for nontrivial workloads; and
+- structural counts alongside wall-clock time.
+
+Hosted wall-clock values are descriptive evidence, **not CI thresholds**.
+
+### Heston Fourier batching
+
+The M8 fast path is local to compatible Heston European-option Fourier problems.
+
+It may share numerical work only when the relevant financial/numerical invariants agree, including valuation time, state, Heston parameters, numeraire/pricing-measure semantics, expiry grouping, and Fourier method configuration.
+
+The batch is stateless. No cache or invalidation semantics are introduced.
+
+The scalar `HestonFourierEuropeanOption` remains the readable correctness reference. The scalar and batched paths share one narrow characteristic-function numerical implementation rather than duplicating financial mathematics.
+
+The exact `xi=0` deterministic-variance boundary remains on the scalar reference path.
+
+### Heston Monte Carlo execution
+
+For the current M8 implementation:
+
+```text
+path axis = one NumPy element per simulated path
+one explicit loop remains over timesteps
+one local PCG64 generator owns random draws for the valuation
+```
+
+Vectorization changes execution/data layout but not the M5 full-truncation Euler financial/discretization semantics.
+
+No project-wide public array axis/order convention is inferred from this internal implementation detail.
+
+### Parity
+
+Deterministic optimized paths are checked against the readable scalar reference with explicit tight tolerances appropriate to floating-point summation/order differences.
+
+The pre-M8 and M8 Heston Monte Carlo implementations use different RNG algorithms. Their comparison is therefore statistical:
+
+```text
+equal seed configuration
+!= equal random stream
+```
+
+Strict stochastic kernel parity, if a later C++ implementation needs it, must use shared pre-generated numeric/random inputs.
+
+### Native decision
+
+M8 adds no C++ numerical kernel and no backend abstraction.
+
+This is a measured decision: after Python/NumPy optimization, every heavy representative workload improved by at least about `4.61x`, while the complete M7 study is about `1.08 s` and the representative Heston MC about `0.12 s` on the same-run reference environment.
+
+The current workload therefore does not justify new compiler/binding/cross-platform packaging and parity obligations.
+
+Future workloads may reopen native acceleration only after new profiling.
+
+See `docs/models/m8_performance_engineering.md` and `docs/evidence/m8_performance_reference.json`.
+
 ## Explicitly deferred conventions
 
 These remain deferred until real consumers force decisions:
 
 | Convention | Guidance |
 | --- | --- |
-| General business-day/calendar framework | M1–M7 use local date/ACT-365F semantics; do not universalize. |
+| General business-day/calendar framework | M1–M8 use local date/ACT-365F semantics; do not universalize. |
 | General discount/dividend curves | Current studies use a flat money-market numeraire and continuous `q`; no curve hierarchy yet. |
 | Discrete dividends/corporate actions | Do not reinterpret continuous `q` as a discrete schedule. |
 | Generic forward-market observations | M4/M7 construct model forwards from explicit `r/q`; these are not observed forward quotes. |
-| Generic array axis/order conventions | Wait for M8 measured vectorized/native-kernel boundary. |
+| Generic array axis/order conventions | M8 vectorization is an internal local implementation detail; wait for a real public/native array boundary. |
 | Intraday/exchange-session timestamps | Current market studies are date-valued; no generic session framework. |
 | Generic quote cleaning | M4 midpoint normalization remains concrete/local. |
 | Heston implied-volatility-space calibration | Must define separate target/weighting/conditioning semantics if added. |
@@ -468,7 +560,7 @@ These remain deferred until real consumers force decisions:
 | Risk horizon / loss / scenario semantics | A future risk consumer must make all three explicit. |
 | Generic validation thresholds | Each validation consumer must justify its own evidence and error/statistical rationale. |
 | Heston dynamic hedging | Requires authoritative Heston path, hedge sensitivity/policy, and accounting semantics. |
-| Native backend array/random conventions | M8 must profile first and define only the boundary actually required. |
+| Native backend array/random conventions | M8 did not justify a native boundary, so no project-wide C++ array/RNG convention is committed. |
 
 ## Formula / evidence traceability
 
@@ -484,7 +576,7 @@ Important quantitative implementations and studies should document enough inform
 - observation/provenance lineage where empirical data is involved; and
 - tests/evidence that distinguish plausible wrong interpretations.
 
-M1–M7 each have dedicated model/evidence documentation following this rule.
+M1–M8 each have dedicated model/evidence documentation following this rule.
 
 ## Market-data provenance
 
