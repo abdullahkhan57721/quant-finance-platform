@@ -2,11 +2,13 @@
 
 from __future__ import annotations
 
-import random
 from dataclasses import dataclass
 from datetime import date
 from math import exp, isfinite, log, sqrt
 from typing import cast
+
+import numpy as np
+from numpy.typing import NDArray
 
 from qf_platform.pricing.dates import actual_365_fixed_year_fraction
 from qf_platform.pricing.equity import EuropeanOption, OptionRight
@@ -53,6 +55,32 @@ def _positive_finite_exp(exponent: float, *, name: str) -> float:
         msg = f"{name} must be positive and finite"
         raise ValueError(msg)
     return value
+
+
+def _discounted_payoffs(
+    right: OptionRight,
+    terminal_spots: NDArray[np.float64],
+    *,
+    strike: float,
+    discount: float,
+) -> NDArray[np.float64]:
+    signed = terminal_spots - strike
+    payoffs = np.maximum(signed, 0.0) if right is OptionRight.CALL else np.maximum(-signed, 0.0)
+    discounted = discount * payoffs
+    if not np.all(np.isfinite(discounted)):
+        msg = "discounted simulated Heston payoff must be finite"
+        raise ValueError(msg)
+    return discounted
+
+
+def _sample_moments(values: NDArray[np.float64]) -> tuple[float, float]:
+    mean = float(np.mean(values))
+    centered = values - mean
+    sum_squared_deviations = float(np.dot(centered, centered))
+    if not isfinite(mean) or not isfinite(sum_squared_deviations):
+        msg = "Heston Monte Carlo sample moments must be finite"
+        raise ValueError(msg)
+    return mean, sum_squared_deviations
 
 
 @dataclass(frozen=True, slots=True)
@@ -110,6 +138,12 @@ class HestonMonteCarloEuropeanOption:
     Euler variance state may cross below zero, while drift/diffusion coefficients use
     its positive part. Negative raw proposals are counted as discretization-pressure
     evidence. This scheme belongs to the numerical method, not ``HestonLaw``.
+
+    Paths are evolved as NumPy arrays while the timestep loop remains explicit. The
+    method owns a fresh local PCG64 generator for every application, so equal method
+    configuration and seed remain reproducible without depending on ambient RNG state.
+    The NumPy stream is not asserted to match the pre-M8 scalar ``random.Random`` stream
+    or any future C++ RNG stream from the same integer seed.
 
     At exactly ``xi=0``, variance is deterministic and terminal log spot is sampled
     exactly from the integrated variance. That boundary has sampling error but no
@@ -239,29 +273,24 @@ class HestonMonteCarloEuropeanOption:
         ) * year_fraction - 0.5 * integrated_variance
         diffusion = sqrt(integrated_variance)
         log_spot = log(problem.current_state.value.spot)
-        rng = random.Random(self.seed)
-        mean = 0.0
-        sum_squared_deviations = 0.0
-
-        for sample_number in range(1, self.paths + 1):
-            terminal_log_spot = log_spot + drift + diffusion * rng.gauss(0.0, 1.0)
-            try:
-                terminal_spot = exp(terminal_log_spot)
-            except OverflowError as exc:
-                msg = "simulated terminal Heston spot must be finite"
-                raise ValueError(msg) from exc
-            discounted_payoff = discount * _payoff(
-                contract.right,
-                terminal_spot,
-                contract.strike,
-            )
-            if not isfinite(discounted_payoff):
-                msg = "discounted simulated Heston payoff must be finite"
-                raise ValueError(msg)
-            difference = discounted_payoff - mean
-            mean += difference / sample_number
-            sum_squared_deviations += difference * (discounted_payoff - mean)
-
+        rng = np.random.Generator(np.random.PCG64(self.seed))
+        shocks = rng.standard_normal(self.paths)
+        terminal_log_spots = log_spot + drift + diffusion * shocks
+        if not np.all(np.isfinite(terminal_log_spots)):
+            msg = "simulated terminal Heston log spot must be finite"
+            raise ValueError(msg)
+        with np.errstate(over="ignore", invalid="ignore"):
+            terminal_spots = np.exp(terminal_log_spots)
+        if not np.all(np.isfinite(terminal_spots)):
+            msg = "simulated terminal Heston spot must be finite"
+            raise ValueError(msg)
+        discounted_payoffs = _discounted_payoffs(
+            contract.right,
+            terminal_spots,
+            strike=contract.strike,
+            discount=discount,
+        )
+        mean, sum_squared_deviations = _sample_moments(discounted_payoffs)
         return self._sample_result(
             mean,
             sum_squared_deviations,
@@ -284,61 +313,61 @@ class HestonMonteCarloEuropeanOption:
         step = year_fraction / self.time_steps
         sqrt_step = sqrt(step)
         correlation_scale = sqrt(max(1.0 - parameters.correlation**2, 0.0))
-        rng = random.Random(self.seed)
-        mean = 0.0
-        sum_squared_deviations = 0.0
+        rng = np.random.Generator(np.random.PCG64(self.seed))
+        log_spots = np.full(
+            self.paths,
+            log(problem.current_state.value.spot),
+            dtype=np.float64,
+        )
+        raw_variances = np.full(
+            self.paths,
+            problem.current_state.value.instantaneous_variance,
+            dtype=np.float64,
+        )
         negative_variance_proposals = 0
-        initial_log_spot = log(problem.current_state.value.spot)
-        initial_variance = problem.current_state.value.instantaneous_variance
 
-        for sample_number in range(1, self.paths + 1):
-            log_spot = initial_log_spot
-            raw_variance = initial_variance
-            for _ in range(self.time_steps):
-                variance = max(raw_variance, 0.0)
-                variance_shock = rng.gauss(0.0, 1.0)
-                independent_shock = rng.gauss(0.0, 1.0)
-                spot_shock = (
-                    parameters.correlation * variance_shock
-                    + correlation_scale * independent_shock
-                )
-                sqrt_variance = sqrt(variance)
-                log_spot += (
-                    rate - parameters.continuous_dividend_yield - 0.5 * variance
-                ) * step + sqrt_variance * sqrt_step * spot_shock
-                next_raw_variance = raw_variance + (
-                    parameters.mean_reversion_speed
-                    * (parameters.long_run_variance - variance)
-                    * step
-                    + parameters.volatility_of_variance
-                    * sqrt_variance
-                    * sqrt_step
-                    * variance_shock
-                )
-                if next_raw_variance < 0.0:
-                    negative_variance_proposals += 1
-                raw_variance = next_raw_variance
-
-            if not isfinite(log_spot):
-                msg = "simulated terminal Heston log spot must be finite"
-                raise ValueError(msg)
-            try:
-                terminal_spot = exp(log_spot)
-            except OverflowError as exc:
-                msg = "simulated terminal Heston spot must be finite"
-                raise ValueError(msg) from exc
-            discounted_payoff = discount * _payoff(
-                contract.right,
-                terminal_spot,
-                contract.strike,
+        for _ in range(self.time_steps):
+            variances = np.maximum(raw_variances, 0.0)
+            shocks = rng.standard_normal((2, self.paths))
+            variance_shocks = shocks[0]
+            independent_shocks = shocks[1]
+            spot_shocks = (
+                parameters.correlation * variance_shocks
+                + correlation_scale * independent_shocks
             )
-            if not isfinite(discounted_payoff):
-                msg = "discounted simulated Heston payoff must be finite"
-                raise ValueError(msg)
-            difference = discounted_payoff - mean
-            mean += difference / sample_number
-            sum_squared_deviations += difference * (discounted_payoff - mean)
+            sqrt_variances = np.sqrt(variances)
+            log_spots += (
+                rate - parameters.continuous_dividend_yield - 0.5 * variances
+            ) * step + sqrt_variances * sqrt_step * spot_shocks
+            next_raw_variances = raw_variances + (
+                parameters.mean_reversion_speed
+                * (parameters.long_run_variance - variances)
+                * step
+                + parameters.volatility_of_variance
+                * sqrt_variances
+                * sqrt_step
+                * variance_shocks
+            )
+            negative_variance_proposals += int(
+                np.count_nonzero(next_raw_variances < 0.0)
+            )
+            raw_variances = next_raw_variances
 
+        if not np.all(np.isfinite(log_spots)):
+            msg = "simulated terminal Heston log spot must be finite"
+            raise ValueError(msg)
+        with np.errstate(over="ignore", invalid="ignore"):
+            terminal_spots = np.exp(log_spots)
+        if not np.all(np.isfinite(terminal_spots)):
+            msg = "simulated terminal Heston spot must be finite"
+            raise ValueError(msg)
+        discounted_payoffs = _discounted_payoffs(
+            contract.right,
+            terminal_spots,
+            strike=contract.strike,
+            discount=discount,
+        )
+        mean, sum_squared_deviations = _sample_moments(discounted_payoffs)
         return self._sample_result(
             mean,
             sum_squared_deviations,
