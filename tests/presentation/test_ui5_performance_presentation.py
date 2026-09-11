@@ -26,7 +26,10 @@ def test_ui5_performance_presentation_keeps_runtime_parity_and_native_decision_s
     assert presentation.parity_rows[2].value == "No"
 
     assert presentation.native_decision_rows[0].value == "No"
-    assert presentation.native_decision_rows[0].status == "Measured negative native decision"
+    assert (
+        presentation.native_decision_rows[0].status
+        == "Measured negative native decision"
+    )
     assert "4.61×" in presentation.native_decision_rows[1].value
     assert "not justified" in presentation.native_decision_rows[2].value
 
