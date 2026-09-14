@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import json
 from functools import lru_cache
+from pathlib import Path
 
 import pytest
 
@@ -34,17 +36,59 @@ def test_ui5_reference_request_preserves_m7_predeclared_holdout() -> None:
     assert len(request.method.heston_initial_guesses) == 3
 
 
+def test_ui5_validation_matches_committed_m7_reference_evidence() -> None:
+    evidence = _analysis().evidence
+    artifact = json.loads(
+        Path("docs/evidence/m7_spx_bs_vs_heston_validation_reference.json").read_text(
+            encoding="utf-8"
+        )
+    )
+
+    assert evidence.black_scholes_fit.annualized_volatility == pytest.approx(
+        artifact["black_scholes_training_fit"]["annualized_volatility"],
+        abs=1.0e-9,
+    )
+    metric_pairs = (
+        (evidence.black_scholes_training_metrics, "black_scholes_training"),
+        (evidence.black_scholes_evaluation_metrics, "black_scholes_evaluation"),
+        (evidence.heston_training_metrics, "heston_training"),
+        (evidence.heston_evaluation_metrics, "heston_evaluation"),
+    )
+    for metrics, key in metric_pairs:
+        recorded = artifact["metrics"][key]
+        assert metrics.root_mean_square_error == pytest.approx(
+            recorded["root_mean_square_error"], abs=1.0e-8
+        )
+        assert metrics.standardized_root_mean_square_error == pytest.approx(
+            recorded["standardized_root_mean_square_error"], abs=1.0e-8
+        )
+        assert metrics.relative_mean_absolute_error == pytest.approx(
+            recorded["relative_mean_absolute_error"], abs=1.0e-8
+        )
+
+    expected_training = artifact["selected_heston_training_estimate"]
+    training = evidence.selected_heston_training_result.estimate
+    assert training.initial_variance == pytest.approx(
+        expected_training["initial_variance"], abs=1.0e-8
+    )
+    assert training.mean_reversion_speed == pytest.approx(
+        expected_training["mean_reversion_speed"], abs=1.0e-7
+    )
+    assert training.long_run_variance == pytest.approx(
+        expected_training["long_run_variance"], abs=1.0e-8
+    )
+    assert training.volatility_of_variance == pytest.approx(
+        expected_training["volatility_of_variance"], abs=1.0e-7
+    )
+    assert training.correlation == pytest.approx(
+        expected_training["correlation"], abs=1.0e-7
+    )
+
+
 def test_ui5_validation_runs_real_m7_evidence_and_keeps_limits_explicit() -> None:
     analysis = _analysis()
     evidence = analysis.evidence
 
-    assert evidence.black_scholes_fit.annualized_volatility == pytest.approx(
-        0.209,
-        abs=0.005,
-    )
-    assert evidence.heston_evaluation_metrics.root_mean_square_error < (
-        0.25 * evidence.black_scholes_evaluation_metrics.root_mean_square_error
-    )
     assert evidence.conclusion.heston_lower_evaluation_price_rmse
     assert not evidence.conclusion.temporal_out_of_sample_tested
     assert not evidence.conclusion.heston_hedge_comparison_supported
