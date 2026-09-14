@@ -74,9 +74,12 @@ def test_ui5_validation_matches_committed_m7_reference_evidence() -> None:
         expected_training["volatility_of_variance"],
         expected_training["correlation"],
     )
-    assert evidence.selected_heston_training_result.estimate.as_vector() == pytest.approx(
-        expected_vector,
-        abs=1.0e-7,
+    assert (
+        evidence.selected_heston_training_result.estimate.as_vector()
+        == pytest.approx(
+            expected_vector,
+            abs=1.0e-7,
+        )
     )
 
 
