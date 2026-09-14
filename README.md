@@ -1,44 +1,50 @@
 # Quantitative Finance Research & Validation Platform
 
-A **validation-first quantitative-finance research platform** for implementing, challenging, calibrating, and empirically evaluating financial models.
+A **validation-first equity-derivatives research and model-risk platform** for pricing, inference, hedging, calibration, empirical validation, and measured performance engineering.
 
 The first specialization is **Equity Derivatives & Volatility Modeling**.
 
 > Don’t just implement quantitative models—show how to determine whether they are correct, stable, useful, and trustworthy.
 
-Foundational mathematical distinctions may be explicit from the outset; operational frameworks still need concrete behavior and evidence.
+## 30-second overview
+
+| Question | Answer |
+| --- | --- |
+| **What is this?** | A Python quantitative-finance platform plus a native **PySide6 / Qt Quick** research workbench, built around reproducible model evidence rather than isolated formula demos. |
+| **What quantitative problems does it solve?** | European-option pricing, Greeks, dynamic delta hedging, implied-volatility inversion, Heston valuation, Heston calibration/identifiability, Black-Scholes vs Heston validation, and performance analysis. |
+| **What makes it technically interesting?** | Independent valuation methods, explicit **Problem → Method → Result/Evidence** boundaries, observation provenance, no-leakage held-out validation, calibration-conditioning diagnostics, and profiling-driven optimization instead of speculative native code. |
+| **What empirical result did it produce?** | On a pinned **January 4, 2023 SPX/SPXW** sample with a predeclared **10-train / 4-held-out** split, Heston reduced held-out price RMSE from **8.412 to 0.671** and relative MAE from **8.27% to 0.66%** versus a fairly fitted one-volatility Black-Scholes benchmark. This is a same-date cross-sectional result, not a claim of temporal forecasting skill. |
+| **What can I run / see?** | A native desktop workbench for pricing, Greeks, hedging, implied volatility, Heston calibration, validation/model risk, and measured performance evidence; plus reproducible scripts, tests, and committed evidence artifacts. |
+
+## Run the native workbench
+
+```bash
+python -m pip install -e ".[desktop]"
+python -m qf_platform.desktop.main
+```
+
+The committed evidence includes the [SPX Black-Scholes vs Heston held-out comparison](docs/evidence/m7_spx_bs_vs_heston_validation_reference.json) and the [measured performance study](docs/evidence/m8_performance_reference.json). M8 improved representative heavy workloads by **4.61×–27.38×** through Python/NumPy and algorithmic changes; after profiling, a C++ kernel was deliberately **not** retained for v0.1 because the remaining absolute cost did not justify the added binding, packaging, and parity surface.
 
 ## Status
 
-**M0 through M8 are complete.**
+**M0–M8 and UI1–UI5 are complete. M9 — Portfolio-Quality v0.1 Release is next.**
 
-The implemented research progression is now:
+The implemented research arc is:
 
 ```text
-M0A mathematical problem architecture
-        ↓
-M1 Black-Scholes / European options
-        ↓
-M2 independent valuation + Greeks
-        ├───────────────┐
-        ↓               ↓
-M3 dynamic hedging   M4 market evidence / implied vol
-        └──────┬────────┘
-               ↓
-M5 Heston + independent valuation
-               ↓
-M6 Heston calibration + identifiability
-               ↓
-M7 predeclared empirical validation / model risk
-               ↓
-M8 measured performance engineering
-               ↓
-M9 portfolio-quality v0.1 release               ← next
+Black-Scholes theory
+→ independent valuation + Greeks
+→ dynamic hedging
+→ observed SPX evidence + implied volatility
+→ Heston forward valuation
+→ calibration + identifiability
+→ predeclared held-out model comparison
+→ measured performance engineering
+→ native validation/model-risk workbench
+→ v0.1 release
 ```
 
-The native desktop workbench is a parallel downstream track. **UI1–UI4 are complete.** UI5 is active and may consume authoritative M7/M8 validation, model-risk, and measured-performance evidence while remaining downstream of the finance core.
-
-## Read first
+## Deep documentation
 
 - [`AGENTS.md`](AGENTS.md) — repository workflow and guardrails
 - [`docs/development/current_state.md`](docs/development/current_state.md) — current project truth
@@ -420,7 +426,7 @@ public quantitative APIs
 production quantitative core
 ```
 
-The finance core remains Qt-independent. UI4 is complete and exposes authoritative M5/M6 Heston/calibration behavior. UI5 is active and may consume merged M7/M8 validation, model-risk, and performance evidence; it must present M8’s measured no-C++ conclusion truthfully rather than invent a native numerical path.
+The finance core remains Qt-independent. UI4 is complete and exposes authoritative M5/M6 Heston/calibration behavior. UI5 is complete and consumes authoritative M7/M8 validation, model-risk, and performance evidence while presenting M8’s measured no-C++ conclusion truthfully rather than inventing a native numerical path.
 
 ## Local development
 
