@@ -22,11 +22,12 @@ Completed native milestones:
 - **UI1 — Native Workbench Architecture & Black-Scholes Vertical**;
 - **UI2 — Valuation Comparison, Numerical Evidence & Greeks**;
 - **UI3 — Dynamic Hedging, Market Evidence & Scalar Inference**;
-- **UI4 — Heston Forward Valuation, Calibration & Identifiability Workbench**.
+- **UI4 — Heston Forward Valuation, Calibration & Identifiability Workbench**; and
+- **UI5 — Validation, Model Risk & Product Hardening**.
 
 ADR 0002 remains the mathematical architecture authority. ADR 0003 remains the native PySide6 + Qt Quick/QML authority.
 
-The next quantitative milestone is **M9 — Portfolio-Quality v0.1 Release**. M8 profiling established that a C++ numerical kernel is **not justified for the current v0.1 representative workloads** after Python/NumPy algorithmic optimization. **UI5** is an active parallel workstream and may consume authoritative M7/M8 validation, model-risk, and measured-performance evidence; it must not invent a native backend because M8 deliberately did not add one.
+The next milestone is **M9 — Portfolio-Quality v0.1 Release**. M8 profiling established that a C++ numerical kernel is **not justified for the current v0.1 representative workloads** after Python/NumPy algorithmic optimization. UI5 now presents the authoritative M7 validation/model-risk evidence and the revision-pinned M8 before/after performance/parity evidence while preserving that measured no-C++ result rather than fabricating a native backend.
 
 ## Mathematical organization
 
@@ -240,7 +241,7 @@ Deterministic financial parity checks pass. Because the MC implementation now us
 
 See `docs/models/m8_performance_engineering.md`, `docs/evidence/m8_performance_reference.json`, `scripts/m8_profile_workloads.py`, and `scripts/m8_compare_performance.py`.
 
-## Native Workbench through UI4
+## Native Workbench through UI5
 
 The durable dependency direction remains:
 
@@ -251,20 +252,24 @@ curated PySide6 controller / item models
         ↓
 frontend-neutral application + presentation semantics
         ↓
-public quantitative APIs
+public quantitative APIs + committed derived evidence
         ↓
 production quantitative core
 ```
 
-UI4 is complete and consumes authoritative M5/M6 Heston pricing and calibration contracts. It exposes separate Heston forward-valuation and calibration/identifiability workspaces, method-specific numerical evidence, stale-result rejection for heavy jobs, and the committed M6 SPX reference without inventing M7 conclusions or absent Heston paths.
+UI4 remains the authoritative Heston forward-valuation and calibration/identifiability workspace. UI5 adds a validation-first shell over M7, keeping training versus held-out evidence, residual structure, Heston stability/conditioning, unsupported Heston-hedging claims, and the mathematics inspector explicit.
 
-UI5 is an active parallel workstream. It may now reconcile against merged M8 performance evidence but must preserve the measured no-C++ result rather than fabricating a native numerical backend.
+UI5 also presents the merged M8 performance story through a package-safe mirror of the committed reference evidence: before/after representative workload timings, parity semantics, revision/environment provenance, and the measured negative C++ decision. It exposes no backend selector because M8 deliberately did not add a native backend.
 
-`docs/architecture/native_quant_workbench.md` is authoritative for the detailed desktop architecture.
+Product hardening includes keyboard navigation, accessibility names, responsive layouts, explicit empty/running/result/warning/error boundaries, truthful busy-state-only long-running UX, a concrete copyable M7/M8 evidence report, process-isolated Qt controller tests, and continued standalone package/build/launch proof.
+
+Generic saved-project/fork/document infrastructure remains absent because the repository still has no authoritative persisted study/workspace identity. Signing, notarization, installers and cross-platform release guarantees remain M9 release-target decisions.
+
+`docs/architecture/native_quant_workbench.md` is authoritative for the detailed desktop architecture; `docs/models/ui5_validation_model_risk_and_product_hardening.md` records the UI5 scientific/product boundary.
 
 ## M9 next: portfolio-quality v0.1 release
 
-M9 should consume the already-earned quantitative and engineering evidence rather than add broad new model scope. Its performance story is now fixed:
+M9 should consume the already-earned quantitative, validation, performance, and native-product evidence rather than add broad new model scope. Its performance story is fixed:
 
 ```text
 representative M7 workloads
@@ -280,7 +285,7 @@ parity retained
 C++ not justified for v0.1
 ```
 
-M9 should package the flagship research narrative, reproducibility/provenance instructions, validation/model-risk conclusions and non-claims, measured M8 evidence, polished downstream UI integration, and release documentation.
+M9 should package the flagship research narrative, reproducibility/provenance instructions, validation/model-risk conclusions and non-claims, measured M8 evidence, the completed UI5 Workbench, and release documentation.
 
 ## Deliberately absent
 
@@ -294,5 +299,7 @@ The repository intentionally still lacks:
 - arbitrage-free surface construction/repair infrastructure;
 - Heston dynamic-hedging evidence;
 - a generic model/plugin registry;
-- a generic numerical-backend registry; and
-- a C++ numerical kernel for the current v0.1 workloads, because M8 measurements did not justify one.
+- a generic numerical-backend registry;
+- a C++ numerical kernel for the current v0.1 workloads, because M8 measurements did not justify one;
+- a generic persisted study/workspace/fork document model; and
+- signed/notarized multi-platform installers before M9 selects a concrete release target.

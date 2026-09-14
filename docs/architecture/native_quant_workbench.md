@@ -9,9 +9,10 @@ The implemented desktop milestones are:
 - **UI1** — Black-Scholes analytical vertical and native desktop architecture;
 - **UI2** — independent M2 valuation methods, convergence/uncertainty, and Greeks;
 - **UI3** — M3 dynamic hedging/control plus M4 observed-market/implied-volatility workflows;
-- **UI4** — M5 Heston forward valuation plus M6 Heston calibration/identifiability workflows.
+- **UI4** — M5 Heston forward valuation plus M6 Heston calibration/identifiability workflows; and
+- **UI5** — M7 validation/model-risk evidence, M8 measured performance evidence, and product hardening.
 
-ADR 0003 remains the authority for the native desktop boundary. UI4 extends that boundary; it does not replace it.
+ADR 0003 remains the authority for the native desktop boundary. UI5 extends that boundary; it does not replace it.
 
 ## Dependency direction
 
@@ -22,7 +23,7 @@ curated PySide6 controller / item models
         ↓
 frontend-neutral application + presentation semantics
         ↓
-public quantitative APIs
+public quantitative APIs / committed derived evidence
         ↓
 production quantitative core
 ```
@@ -37,13 +38,16 @@ Protect:
 QML presentation != quantitative authority
 UI draft state != committed finance state
 Qt object != immutable quantitative result
+training fit != held-out evaluation
+measured runtime != model quality
+measured optimization != justification for a native backend
 ```
 
-QML does not calculate prices, Greeks, payoff semantics, residuals, objective values, financial bounds, calibration, conditioning, discounting, day count, or method compatibility.
+QML does not calculate prices, Greeks, payoff semantics, residuals, objective values, financial bounds, calibration, conditioning, validation metrics, performance measurements, discounting, day count, or method compatibility.
 
-## Product organization
+## Product organization through UI5
 
-The Workbench starts from the mathematical question rather than from a generic plugin/model browser.
+The Workbench starts from the mathematical/research question rather than from a generic plugin/model browser.
 
 Current concrete workflows are:
 
@@ -60,9 +64,15 @@ Observed-market inverse inference
 
 Multi-parameter inverse inference
     └── Heston calibration / identifiability
+
+Validation / model risk
+    └── fair Black-Scholes vs Heston train/held-out comparison
+
+Performance engineering evidence
+    └── revision-pinned M7 baseline vs M8 optimized workloads
 ```
 
-These are concrete downstream adapters over merged quantitative behavior. They are not instances of a universal workflow framework.
+These are concrete downstream adapters over merged quantitative behavior and committed derived evidence. They are not instances of a universal workflow framework.
 
 ## Draft state and normalization
 
@@ -105,7 +115,7 @@ Monte Carlo paths / timesteps / seed
 
 ## Renderer-neutral presentation seam
 
-The repeated plot responsibility earned through UI1–UI3 remains intentionally small:
+The repeated plot responsibility remains intentionally small:
 
 ```text
 PlotData
@@ -115,7 +125,7 @@ PlotData
 
 UI4 reuses this seam for Heston method comparison, Fourier-resolution stability, calibration parameter error, residuals, multiple-start objectives, and committed M6 SPX derived evidence.
 
-Styling, layout, pixel transforms, legends, and interaction remain renderer-owned. There is still no generic chart DSL or quantitative visualization framework.
+UI5 reuses the same seam for M7 residual/held-out/stability views and M8 revision-pinned baseline-versus-optimized workload timing evidence. Styling, layout, pixel transforms, legends, and interaction remain renderer-owned. There is still no generic chart DSL or quantitative visualization framework.
 
 ## UI4 — Heston forward valuation
 
@@ -275,9 +285,81 @@ The UI exposes:
 
 It does not fabricate a raw quote table, continuous surface, or observations absent from the committed evidence.
 
-## Mathematical inspectors
+## UI5 — validation and model-risk workspace
 
-The Heston pricing inspector is concrete:
+UI5 consumes the merged M7 validation specialization rather than re-implementing model comparison in QML.
+
+The authoritative composition remains:
+
+```text
+NormalizedOptionObservation(s)
++ predeclared TRAINING / EVALUATION partition
++ fixed financial inputs
++ Black-Scholes benchmark fit domain
++ Heston calibration domain / Fourier forward map
+        ↓
+BlackScholesHestonValidationProblem
+        +
+CrossSectionalBlackScholesHestonValidation
+        ↓
+BlackScholesHestonValidationEvidence
+```
+
+The native validation workspace preserves the M7 distinctions directly:
+
+```text
+training fit != held-out evaluation
+same-date cross-sectional holdout != temporal forecasting
+better held-out pricing != universal model validity
+optimizer convergence != parameter identification
+conditioning != posterior uncertainty
+Heston pricing advantage != demonstrated Heston hedging advantage
+```
+
+The Workbench displays training and evaluation metrics separately, contract-level residuals, Heston training/full-sample stability, local Jacobian diagnostics, the bounded M7 conclusion, and explicit non-claims.
+
+The M7 validation run executes off the GUI thread. Because the production method exposes no progress stream or cancellation contract, UI5 shows truthful busy/completed/error state only—no invented percentage or cancel button.
+
+## UI5 — committed M8 performance evidence
+
+M8 is merged and the Workbench presents its measured result directly. The standalone package carries a reviewed value mirror of `docs/evidence/m8_performance_reference.json`; regression tests compare the mirror with the committed artifact so the packaged display cannot silently drift.
+
+The performance surface exposes all six representative workloads, including:
+
+```text
+Heston MC, 20k x 252                 3.3673 s -> 0.1230 s   27.38x
+10-target / 3-start calibration      2.2919 s -> 0.4971 s    4.61x
+14-target / 3-start calibration      3.2752 s -> 0.5454 s    6.01x
+complete M7 validation study         5.4136 s -> 1.0819 s    5.00x
+```
+
+The two scalar reference workloads remain explicitly marked as non-speedup claims. Hosted-runner timings are revision/environment-pinned descriptive evidence, not CI thresholds or universal latency guarantees.
+
+Parity remains first-class evidence:
+
+- deterministic financial comparison checks pass;
+- Heston Monte Carlo parity is statistical because M8 intentionally changed RNG implementation;
+- equal integer seed does not imply identical old/new random streams.
+
+Most importantly, UI5 preserves M8's measured negative native decision:
+
+```text
+profile representative workloads
+        ↓
+remove scalar Python/RNG and repeated Fourier work
+        ↓
+4.61x–27.38x heavy-workload reference improvement
+        ↓
+parity retained
+        ↓
+C++ not justified for v0.1
+```
+
+There is therefore no native-backend selector, generic backend registry, or fictitious C++ execution path in UI5.
+
+## Mathematical inspectors and reporting
+
+The Heston pricing inspector remains concrete:
 
 ```text
 State
@@ -290,7 +372,7 @@ Valuation methods
 Numerical assumptions
 ```
 
-The Heston calibration inspector is separately concrete:
+The Heston calibration inspector remains separately concrete:
 
 ```text
 Targets
@@ -304,13 +386,19 @@ Completed result
 Conditioning / identifiability evidence
 ```
 
-No universal metadata hierarchy is introduced merely to render these panels.
+UI5 adds a validation inspector over observed quantities, predeclared partition, validation problem/method, training fits, immutable evidence, and stability/conditioning. It also provides a concrete copy/select evidence report over already-owned M7/M8 values.
 
-## Execution boundary and stale-result safety
+No universal metadata hierarchy, report-generation framework, persisted-study model, or arbitrary file-export system is introduced merely to render these panels.
 
-UI1–UI3 established a local `QThread` worker boundary. UI4 reuses it for materially heavier Heston Monte Carlo and calibration work.
+## Execution boundary and worker lifetime
 
-UI4 adds only the behavior now required by a real interactive consumer:
+UI1–UI4 established a local one-active-`QThread` worker boundary for materially expensive computations. UI5 reuses it for the M7 validation study.
+
+The desktop gate now executes native controller tests in separate Python processes. This isolates Qt/PySide object lifetimes between test nodes and prevents one test's native runtime teardown from contaminating another.
+
+UI5 also hardens the inherited worker cleanup path after process isolation exposed a PySide wrapper-lifetime race around `QThread.finished`/`deleteLater`. Product semantics remain unchanged: one active heavy computation, explicit status, and completed immutable evidence installation.
+
+UI4 stale-result protection remains:
 
 ```text
 one active heavy computation
@@ -320,20 +408,40 @@ one active heavy computation
 stale completion cannot become active result
 ```
 
-If relevant draft inputs change while a UI4 computation is running, execution may finish, but its result is discarded instead of replacing the newer UI state.
-
 This does **not** introduce:
 
 - a scheduler;
 - task graph;
 - queue;
-- cancellation protocol;
+- generic cancellation protocol;
 - process pool;
 - persistence layer;
 - generic job registry;
 - synthetic progress protocol.
 
-Merged M6 exposes no optimizer progress stream, so UI4 shows busy/completed state only.
+## Product hardening and deliberate limits
+
+UI5 adds concrete accessibility/product improvements without creating a generic desktop framework:
+
+- keyboard launch/workspace shortcuts;
+- accessible names for primary controls;
+- explicit focus flow for principal controls;
+- responsive layouts;
+- empty/running/result/warning/error states;
+- bounded unsupported-claim warnings;
+- copy/select evidence reporting;
+- continued standalone package proof.
+
+The project still deliberately does not claim:
+
+- temporal out-of-sample validation;
+- authoritative Heston hedge superiority;
+- posterior parameter uncertainty;
+- generic saved-study/fork/project persistence;
+- arbitrary report/document infrastructure;
+- Windows/macOS installer certification;
+- code signing/notarization; or
+- a C++ quantitative backend for v0.1.
 
 ## Packaging and validation
 
@@ -354,32 +462,31 @@ Dedicated Desktop CI verifies:
 
 - pinned PySide6 runtime;
 - desktop Ruff and strict Pyright;
-- application/presentation/controller behavior;
+- process-isolated native controller behavior;
+- frontend-neutral application/presentation behavior;
 - Qt-free quantitative-core dependency direction;
 - isolated QML engine loading;
 - source launch smoke;
 - standalone `pyside6-deploy` build;
-- packaged offscreen launch smoke;
+- packaged offscreen launch smoke; and
 - standalone artifact upload.
 
-## Extension rule / UI5 handoff
+## Extension rule / M9 handoff
 
-Future UI milestones consume only capabilities actually merged on `main`.
+Future UI/release work consumes only capabilities and evidence actually merged on `main`.
 
-M7 is currently an independent in-progress workstream. UI4 does not encode its not-yet-merged Black-Scholes-versus-Heston validation conclusions.
-
-UI5 should begin only from the actual merged M7 validation/model-risk evidence and the concrete M8 performance/release needs that exist at that time. Likely pressure includes comparative validation evidence, model-risk reporting, and performance visibility, but UI5 must not predefine those semantics before the backend work lands.
-
-The growth rule remains:
+With M7, M8, and UI5 complete, M9 should consolidate the earned v0.1 research/product narrative rather than add broad new model or backend scope:
 
 ```text
-merged quantitative capability
+merged quantitative capability / committed evidence
         ↓
 concrete frontend-neutral application/presentation semantics
         ↓
 curated controller values/actions
         ↓
 QML presentation
+        ↓
+reproducible release evidence
 ```
 
-UI4 still does not justify a universal model registry, inverse-problem framework, optimizer UI, workflow graph editor, chart grammar, or desktop job system.
+The growth rule remains consumer-driven. UI5 still does not justify a universal model registry, inverse-problem framework, optimizer UI, workflow graph editor, chart grammar, desktop job system, generic report engine, or numerical-backend registry.
