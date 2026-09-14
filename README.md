@@ -1,44 +1,56 @@
 # Quantitative Finance Research & Validation Platform
 
-A **validation-first quantitative-finance research platform** for implementing, challenging, calibrating, and empirically evaluating financial models.
+A **validation-first equity-derivatives research and model-risk platform** for pricing, inference, hedging, calibration, empirical validation, and measured performance engineering.
 
 The first specialization is **Equity Derivatives & Volatility Modeling**.
 
 > Don’t just implement quantitative models—show how to determine whether they are correct, stable, useful, and trustworthy.
 
-Foundational mathematical distinctions may be explicit from the outset; operational frameworks still need concrete behavior and evidence.
+## 30-second overview
+
+| Question | Answer |
+| --- | --- |
+| **What is this?** | A Python quantitative-finance platform plus a native **PySide6 / Qt Quick** research workbench, built around reproducible model evidence rather than isolated formula demos. |
+| **What quantitative problems does it solve?** | European-option pricing, Greeks, dynamic delta hedging, implied-volatility inversion, Heston valuation, Heston calibration/identifiability, Black-Scholes vs Heston validation, and performance analysis. |
+| **What makes it technically interesting?** | Independent valuation methods, explicit **Problem → Method → Result/Evidence** boundaries, observation provenance, no-leakage held-out validation, calibration-conditioning diagnostics, and profiling-driven optimization instead of speculative native code. |
+| **What empirical result did it produce?** | On a pinned **January 4, 2023 SPX/SPXW** sample with a predeclared **10-train / 4-held-out** split, Heston reduced held-out price RMSE from **8.412 to 0.671** and relative MAE from **8.27% to 0.66%** versus a fairly fitted one-volatility Black-Scholes benchmark. This is a same-date cross-sectional result, not a claim of temporal forecasting skill. |
+| **What can I run / see?** | A native desktop workbench for pricing, Greeks, hedging, implied volatility, Heston calibration, validation/model risk, and measured performance evidence; plus reproducible scripts, tests, and committed evidence artifacts. |
+
+## Run the native workbench
+
+```bash
+python -m pip install -e ".[desktop]"
+python -m qf_platform.desktop.main
+```
+
+Run the repository quality gate with:
+
+```bash
+./scripts/check_all
+```
+
+The committed evidence includes the [SPX Black-Scholes vs Heston held-out comparison](docs/evidence/m7_spx_bs_vs_heston_validation_reference.json) and the [measured performance study](docs/evidence/m8_performance_reference.json). M8 improved representative heavy workloads by **4.61×–27.38×** through Python/NumPy and algorithmic changes; after profiling, a C++ kernel was deliberately **not** retained for v0.1 because the remaining absolute cost did not justify the added binding, packaging, and parity surface.
 
 ## Status
 
-**M0 through M8 are complete.**
+**M0–M8 and UI1–UI5 are complete. M9 — Portfolio-Quality v0.1 Release is next.**
 
-The implemented research progression is now:
+The implemented research arc is:
 
 ```text
-M0A mathematical problem architecture
-        ↓
-M1 Black-Scholes / European options
-        ↓
-M2 independent valuation + Greeks
-        ├───────────────┐
-        ↓               ↓
-M3 dynamic hedging   M4 market evidence / implied vol
-        └──────┬────────┘
-               ↓
-M5 Heston + independent valuation
-               ↓
-M6 Heston calibration + identifiability
-               ↓
-M7 predeclared empirical validation / model risk
-               ↓
-M8 measured performance engineering
-               ↓
-M9 portfolio-quality v0.1 release               ← next
+Black-Scholes theory
+→ independent valuation + Greeks
+→ dynamic hedging
+→ observed SPX evidence + implied volatility
+→ Heston forward valuation
+→ calibration + identifiability
+→ predeclared held-out model comparison
+→ measured performance engineering
+→ native validation/model-risk workbench
+→ v0.1 release
 ```
 
-The native desktop workbench is a parallel downstream track. **UI1–UI4 are complete.** UI5 is active and may consume authoritative M7/M8 validation, model-risk, and measured-performance evidence while remaining downstream of the finance core.
-
-## Read first
+## Deep documentation
 
 - [`AGENTS.md`](AGENTS.md) — repository workflow and guardrails
 - [`docs/development/current_state.md`](docs/development/current_state.md) — current project truth
@@ -218,242 +230,3 @@ PricingProblem
         ├── HestonFourierEuropeanOption
         └── HestonMonteCarloEuropeanOption
 ```
-
-Current variance stays state-like rather than becoming a structural parameter. The Feller condition is diagnostic, not silently imposed as universal validity. Fourier quadrature and Monte Carlo timestep/RNG/full-truncation semantics remain method-owned.
-
-## Heston calibration / inverse problem
-
-M6 estimates:
-
-```text
-(v0, kappa, theta, xi, rho)
-```
-
-in option-price space with fixed spot/rate/q:
-
-```text
-HestonPriceCalibrationTarget(s)
-+ financial bounds
-+ explicit residual / weighting semantics
-+ Heston Fourier forward map
-        ↓
-HestonCalibrationProblem
-        +
-ScipyLeastSquaresHestonCalibration
-        ↓
-HestonCalibrationResult
-```
-
-Synthetic truth recovery verifies the pipeline before noisy market fitting. Multiple-start, perturbation, rank, singular-value and condition-number evidence protect:
-
-```text
-small objective
-!= unique parameters
-!= trustworthy model
-```
-
-The real M6 SPX fit is stable across the three recorded starts but remains nontrivially conditioned.
-
-## M7 — empirical validation and model risk
-
-M7 introduces the first concrete production validation specialization:
-
-```text
-NormalizedOptionObservation(s)
-+ predeclared train/evaluation partition
-+ fair one-volatility Black-Scholes benchmark
-+ Heston calibration domain / forward map
-        ↓
-BlackScholesHestonValidationProblem
-        +
-CrossSectionalBlackScholesHestonValidation
-        ↓
-BlackScholesHestonValidationEvidence
-```
-
-The 14 existing SPX observations come from one market date, so M7 explicitly uses a **same-date cross-sectional holdout**, not a temporal forecasting test:
-
-```text
-sort by (expiry, strike)
-evaluation iff zero-based index % 3 == 2
-```
-
-This gives 10 training and 4 held-out contracts. Both models see exactly the same training prices and half-spread-standardized price residual scale. Black-Scholes fits one constant volatility; Heston uses three predeclared M6-style starts. Both estimates are frozen before evaluation.
-
-A regression test changes only held-out prices and verifies that neither training fit nor held-out model predictions change.
-
-### Reference evidence
-
-The fair Black-Scholes fit gives approximately:
-
-```text
-sigma_BS = 0.20891
-```
-
-The selected Heston training fit is approximately:
-
-```text
-v0      = 0.04425
-kappa   = 3.4968
-theta   = 0.06436
-xi      = 0.59557
-rho     = -0.81317
-```
-
-Held-out evidence:
-
-| Metric | Black-Scholes | Heston |
-| --- | ---: | ---: |
-| price RMSE | 8.412 | 0.671 |
-| half-spread-standardized RMSE | 20.613 | 1.649 |
-| relative MAE | 8.27% | 0.66% |
-
-On this predeclared sample, Heston materially improves held-out pricing metrics. The training Heston Jacobian is full rank but has condition number around `425`; a post-evaluation full-sample stability fit has condition number around `404`. M6’s thin-slice rank-deficiency evidence remains a necessary counterweight to any temptation to equate good prices with globally identified parameters.
-
-The supported conclusion is intentionally bounded:
-
-> Under this predeclared same-date cross-sectional holdout, explicit rate/carry convention, price-space objective, and selected observations, Heston improves held-out price and half-spread-standardized RMSE relative to the one-volatility Black-Scholes benchmark. This does not establish temporal generalization or model validity; calibration conditioning, limited date/maturity coverage, numerical cost, and unsupported Heston hedging remain material limitations.
-
-M7 does not fake a Heston hedge study: M3 paths have explicit Black-Scholes/GBM provenance and the production backend does not yet own a Heston path + Delta + hedge-accounting composition.
-
-## Validation evidence ladder
-
-The repository now contains evidence across:
-
-- analytical identities, parity, bounds, and limiting cases;
-- independent numerical valuation methods;
-- analytic ↔ finite-difference Greeks;
-- seeded stochastic uncertainty;
-- dynamic replication/accounting/no-lookahead tests;
-- volatility misspecification and transaction-cost studies;
-- observed-market provenance and quote normalization;
-- implied-volatility feasibility and conditioning;
-- Heston Fourier ↔ Monte Carlo validation;
-- synthetic Heston parameter recovery;
-- multiple-start, perturbation, rank and condition diagnostics;
-- real SPX calibration residual evidence;
-- predeclared held-out Black-Scholes vs Heston pricing comparison;
-- explicit model-risk limitations and unsupported-comparison boundaries; and
-- profiled/reproducible before-and-after performance evidence.
-
-Keep distinct:
-
-```text
-financial model misspecification
-numerical valuation error
-Monte Carlo sampling error
-Heston time-discretization bias
-quote / data-quality uncertainty
-inverse conditioning
-calibration objective / weighting choice
-optimizer convergence failure
-parameter non-identifiability
-calibration residual
-held-out validation error
-model validity
-performance overhead
-```
-
-## M8 — measured performance engineering
-
-M8 profiled the exact six representative workloads frozen by M7 before changing implementation strategy. The measured hotspots were scalar Heston Monte Carlo path/RNG overhead and repeated strike-independent Heston characteristic-function work inside calibration.
-
-Python/NumPy optimization removed those dominant costs while preserving finance ownership:
-
-```text
-Heston MC
-scalar path loop + 10.08M scalar Gaussian draws
-        ↓
-NumPy path-state propagation + fresh local PCG64
-
-Heston calibration
-repeated scalar Fourier prices across same maturity
-        ↓
-stateless maturity-batched characteristic-function work
-```
-
-Same-run reference medians:
-
-| Workload | Baseline | Optimized | Speedup |
-| --- | ---: | ---: | ---: |
-| Heston MC, 20k × 252 | 3.3673 s | 0.1230 s | **27.38×** |
-| 10-target / 3-start calibration | 2.2919 s | 0.4971 s | **4.61×** |
-| 14-target / 3-start calibration | 3.2752 s | 0.5454 s | **6.01×** |
-| complete M7 validation study | 5.4136 s | 1.0819 s | **5.00×** |
-
-Deterministic financial parity checks pass. The Monte Carlo RNG algorithm changed, so old/new evidence is statistical rather than streamwise: the reference estimates differ by about `0.853` combined standard errors.
-
-**M8 does not add C++.** After the measured Python/algorithmic improvements, the remaining absolute latency does not justify a compiler/binding/cross-platform packaging and native-parity surface for v0.1. The scalar Python implementations remain correctness references, and no backend registry or generic compiled execution framework was introduced.
-
-See [`docs/models/m8_performance_engineering.md`](docs/models/m8_performance_engineering.md) and [`docs/evidence/m8_performance_reference.json`](docs/evidence/m8_performance_reference.json).
-
-## Python/C++ direction
-
-```text
-Python owns
-financial semantics
-market-data / inference orchestration
-control / validation / research composition
-presentation adapters
-        ↓
-profile actual workload
-        ↓
-optimize algorithm / Python numerical path first
-        ↓
-only if still justified:
-narrow numerical C++ kernel
-```
-
-M8 found no v0.1 workload that still earns that final native boundary after Python/NumPy optimization. Future materially larger workloads must profile again rather than inheriting either a mandatory-C++ or never-C++ assumption.
-
-## Native workbench direction
-
-```text
-Qt Quick / QML
-        ↓
-curated PySide6 controller / item models
-        ↓
-frontend-neutral application + presentation semantics
-        ↓
-public quantitative APIs
-        ↓
-production quantitative core
-```
-
-The finance core remains Qt-independent. UI4 is complete and exposes authoritative M5/M6 Heston/calibration behavior. UI5 is active and may consume merged M7/M8 validation, model-risk, and performance evidence; it must present M8’s measured no-C++ conclusion truthfully rather than invent a native numerical path.
-
-## Local development
-
-Python 3.12+ is required.
-
-```bash
-python -m venv venv
-source venv/bin/activate
-python -m pip install --upgrade pip
-python -m pip install -e ".[dev]"
-./scripts/check_all
-```
-
-Apply supported Ruff fixes/formatting with:
-
-```bash
-./scripts/fix
-```
-
-The canonical core gate runs Ruff linting, Ruff formatting checks, strict Pyright, and pytest. Dedicated desktop CI owns PySide6/QML validation.
-
-## Current non-goals
-
-The repository intentionally still has no production implementation of:
-
-- universal `Problem`/`Method`/`Result`, inverse, validation, risk, or optimizer frameworks;
-- generic stochastic-control/strategy/trade/portfolio/VaR infrastructure;
-- physical-measure Heston filtering or forecasting;
-- Bayesian Heston inference;
-- generic quote-cleaning or arbitrage-free surface repair;
-- Heston dynamic hedging;
-- generic model/plugin registries;
-- generic numerical-backend registries; or
-- a C++ numerical kernel for the current v0.1 representative workloads, because M8 profiling did not justify one.
-
-Those capabilities should be added only when concrete mathematical and empirical pressure earns them.
