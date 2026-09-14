@@ -29,6 +29,8 @@ def test_ui5_reference_request_preserves_m7_predeclared_holdout() -> None:
         "SPXW-2023-04-28-put-3800",
         "SPXW-2023-04-28-call-4075",
     )
+    assert request.problem.heston_forward_method.integration_upper_bound == 100.0
+    assert request.problem.heston_forward_method.intervals == 256
     assert len(request.method.heston_initial_guesses) == 3
 
 
@@ -48,11 +50,12 @@ def test_ui5_validation_runs_real_m7_evidence_and_keeps_limits_explicit() -> Non
     assert not evidence.conclusion.heston_hedge_comparison_supported
     assert evidence.heston_stability.training_jacobian_rank == 5
     assert evidence.heston_stability.training_condition_number is not None
+    assert evidence.computation.heston_fourier_intervals == 256
     assert len(analysis.workloads) == 6
     assert all(
-        "runtime" not in workload.detail.lower() for workload in analysis.workloads[:-1]
+        "runtime" not in workload.detail.lower() for workload in analysis.workloads
     )
-    assert "does not claim measured runtime" in analysis.workloads[-1].detail.lower()
+    assert "measured m8 result is presented separately" in analysis.workloads[-1].detail.lower()
 
 
 def test_ui5_presentation_separates_training_evaluation_and_workload_structure() -> (
