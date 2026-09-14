@@ -48,7 +48,7 @@ def build_ui5_validation_presentation(
                 workload.operation,
                 workload.workload_id,
                 workload.detail,
-                "Profile in M8",
+                "M8 workload lineage",
             )
             for workload in analysis.workloads
         ),
@@ -297,9 +297,9 @@ def _inspector_rows(analysis: UI5ValidationAnalysis) -> tuple[PresentationRow, .
             "Immutable residuals, metrics, start outcomes, stability/conditioning, computation structure, and bounded conclusion.",
         ),
         PresentationRow(
-            "M8 handoff",
+            "M8 workload lineage",
             f"{len(analysis.workloads)} representative workloads",
-            "Workload definitions/counts are not measured runtime or proof that C++ is needed.",
+            "M7 defines the workload structure; measured M8 timing/parity/native-decision evidence is presented separately.",
         ),
     )
 
