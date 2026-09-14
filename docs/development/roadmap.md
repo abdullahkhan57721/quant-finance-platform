@@ -6,264 +6,136 @@ Build a professional quantitative-finance research and model-validation platform
 
 The project is organized around mathematically meaningful problem families and evidence, not a checklist of finance keywords. Foundational mathematical distinctions may be explicit from the outset; operational frameworks must earn their abstractions from concrete consumers.
 
-## v0.1 quantitative narrative
+This file is the **execution graph**. For the current operational snapshot, read `current_state.md`. For global selection/state/worktree rules, read `orchestration.md`. Long implementation detail belongs in milestone specs, Issues, model docs, or PRs rather than this graph.
+
+## State model
+
+Milestones use:
 
 ```text
-M0 / M0A   engineering + mathematical architecture          complete
-      ↓
-M1         Black-Scholes reference pricing                  complete
-      ↓
-M2         independent valuation + Greeks                   complete
-      ├───────────────────────────────┐
-      ↓                               ↓
-M3         dynamic hedging/control    M4 market evidence + IV
-           complete                   complete
-      └───────────────┬───────────────┘
-                      ↓
-M5         Heston forward model + independent valuation      complete
-                      ↓
-M6         Heston calibration + identifiability              complete
-                      ↓
-M7         empirical validation / BS vs Heston model risk    complete
-                      ↓
-M8         measured performance engineering                  complete
-                      ↓
-UI5        validation/model-risk product hardening           complete
-                      ↓
-M9         portfolio-quality v0.1 release                    next
+BLOCKED  READY  ACTIVE  REVIEW  MERGED  PAUSED  SUPERSEDED
 ```
 
-The earned research story is:
+Precise transition and completion semantics are defined in `docs/development/orchestration.md`.
+
+`MERGED` means the required PR was squash-merged **and** repository-required post-merge `main` verification completed. A local implementation, green branch, or closed-unmerged PR is not `MERGED`.
+
+Repository truth and live Issues/PRs override stale status text here.
+
+## Priority
+
+Lower number wins:
+
+```text
+P0  current critical path / release frontier
+P1  near-term dependent work
+P2  independent maintenance or lower-unblocking work
+P3  optional/backlog work
+```
+
+Within equal priority, use roadmap order, dependency-unblocking value, then lower unstable-shared-contract risk.
+
+## Execution graph
+
+| id | title | status | priority | depends_on | parallel_with | blocks | issue | pr | spec |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| M0 | Engineering Bootstrap | MERGED | P0 | — | — | M0A, M1 | historical pre-index | historical pre-index | history in Git/roadmap |
+| M0A | Mathematical Quant-Finance Architecture Foundation | MERGED | P0 | M0 | — | M1 | #9, #11 | #10, #14 | ADR 0001/0002 + history |
+| M1 | European Options & Black-Scholes Reference Vertical | MERGED | P0 | M0A | UI1 after contracts stable | M2, UI1 | #5 | #15 | `docs/models/black_scholes.md` + history |
+| M2 | Independent Valuation & Sensitivity/Greeks | MERGED | P0 | M1 | UI1 | M3, M4, UI2 | #19 | #20 | `docs/models/m2_numerical_methods_and_sensitivities.md` + history |
+| M3 | Dynamic Hedging / Control | MERGED | P0 | M2 | M4 | M5, UI3 | #24 | #26 | `docs/models/m3_dynamic_delta_hedging.md` + history |
+| M4 | Market Evidence / Implied-Volatility Inference | MERGED | P0 | M2 | M3 | M5, UI3 | #25 | #27 | M4 model/evidence docs + history |
+| M5 | Heston Stochastic Volatility & Independent Valuation | MERGED | P0 | M3, M4 | UI3 after merged inputs | M6, UI4 | #30 | #31 | `docs/models/m5_heston_stochastic_volatility.md` + history |
+| M6 | Heston Calibration / Multi-Parameter Inverse Problem | MERGED | P0 | M5 | UI4 after contracts stable | M7, UI4 | #34 | #35 | M6 model/evidence docs + history |
+| M7 | Empirical Validation, Model Risk & BS vs Heston | MERGED | P0 | M6 | UI4 | M8, UI5 | #40 | #41 | `docs/models/m7_empirical_validation_and_model_risk.md` + history |
+| M8 | Performance Engineering & Measured Native Decision | MERGED | P0 | M7 | UI5 after evidence contract stable | M9, UI5 | #42 | #45 | `docs/models/m8_performance_engineering.md` + history |
+| UI1 | Native Workbench Architecture & Black-Scholes Vertical | MERGED | P1 | M1 | M2 | UI2 | #18 | #21 | ADR 0003 + native Workbench docs |
+| UI2 | Valuation Comparison, Numerical Evidence & Greeks | MERGED | P1 | UI1, M2 | M3, M4 | UI3 | #28 | #29 | native Workbench docs + history |
+| UI3 | Dynamic Hedging, Market Evidence & Scalar Inference | MERGED | P1 | UI2, M3, M4 | M5 | UI4 | #32 | #33 | native Workbench docs + history |
+| UI4 | Heston Forward Valuation, Calibration & Identifiability | MERGED | P1 | UI3, M5, M6 | M7 | UI5 | #38 | #39 | native Workbench docs + history |
+| UI5 | Validation, Model Risk & Product Hardening | MERGED | P1 | UI4, M7, M8 | — | M9 | #43 | #44 | `docs/models/ui5_validation_model_risk_and_product_hardening.md` + history |
+| M9 | Portfolio-Quality v0.1 Release | READY | P0 | M8, UI5 | Issue #7 only with shared-doc coordination | v0.1 completion | create on activation | — | [`milestones/M9.md`](milestones/M9.md) |
+
+Issue/PR identifiers above are historical navigation where known; live GitHub state is authoritative.
+
+## Current READY frontier
+
+```text
+P0  M9 — Portfolio-Quality v0.1 Release
+```
+
+M9 is the default next product work because M8 and UI5 are both `MERGED`.
+
+Independent repository maintenance:
+
+```text
+P2  Issue #7 — Add cognitive-complexity quality gate
+```
+
+Issue #7 is not a product milestone. It may run in a separate worktree alongside M9 only if shared documentation edits are coordinated and both branches are reconciled against current `main` before exact-head validation.
+
+There are no other committed future product milestones on the current roadmap.
+
+## Dependency narrative
+
+```text
+M0 / M0A
+    ↓
+M1
+    ↓
+M2
+   ├───────────────┐
+   ↓               ↓
+  M3              M4
+   └───────┬───────┘
+           ↓
+          M5
+           ↓
+          M6
+           ↓
+          M7
+           ↓
+          M8
+
+M1 -> UI1 -> UI2
+             ↓
+      M3 + M4 -> UI3
+      M5 + M6 -> UI4
+      M7 + M8 -> UI5
+
+M8 + UI5
+    ↓
+   M9
+```
+
+The earned research story remains:
 
 ```text
 theory
-→ independent numerical evidence
-→ sensitivity / replication pressure
-→ observed-market falsification pressure
-→ richer stochastic-volatility forward model
-→ calibrated inverse problem with identifiability evidence
-→ predeclared held-out model comparison
-→ measured optimization
-→ validation-first native presentation/product hardening
-→ release
+-> independent numerical evidence
+-> sensitivity / replication pressure
+-> observed-market falsification pressure
+-> richer stochastic-volatility forward model
+-> calibrated inverse problem with identifiability evidence
+-> predeclared held-out model comparison
+-> measured optimization
+-> validation-first native presentation/product hardening
+-> release
 ```
 
-## Completed quantitative milestones
+## M9 boundary
 
-### M0 — Engineering bootstrap
+M9 consolidates rather than broadens scope. It consumes the earned M1–M8 and UI1–UI5 evidence stack, including:
 
-Established repository truth, source-layout packaging, pytest/Ruff/strict-Pyright CI, operating rules, durable docs, and reproducibility/native-backend guardrails.
+- the bounded M7 same-date held-out Black-Scholes vs Heston comparison;
+- the M8 measured Python/NumPy optimization result;
+- the explicit M8 decision that C++ is not justified for current v0.1 workloads; and
+- the completed UI5 native Workbench.
 
-### M0A — Mathematical Quant-Finance Architecture Foundation
+See the durable M9 spec for scope, non-goals, release validation, and completion requirements.
 
-Established the mathematical problem taxonomy and the conceptual execution pattern:
+## Post-v0.1 directions are not READY milestones
 
-```text
-Problem + supported Method -> specific immutable Result / Evidence
-```
+Potential later specializations include rates, XVA/counterparty credit, portfolio market risk, and possibly rough-volatility research after reviewing then-current literature and v0.1 limitations.
 
-This is a responsibility map, not a universal runtime hierarchy.
-
-### M1 — European options and Black-Scholes reference vertical
-
-Established the first concrete `PricingProblem` specialization with European call/put contracts, Black-Scholes/GBM semantics, ACT/365F, a flat continuously compounded money-market numeraire, continuous dividend/carry, analytic valuation, and theoretical validation evidence.
-
-### M2 — Independent valuation and sensitivity/Greeks
-
-Added independent CRR and seeded Monte Carlo valuation plus analytic/finite-difference Delta, Gamma, Vega, Theta, and Rho with explicit numerical-error evidence.
-
-### M3 — Dynamic hedging / control
-
-Turned analytic Delta into an explicit dynamic replication policy over model-generated GBM paths with stock/cash financing, rebalance schedules, volatility misspecification, transaction costs, and replication evidence.
-
-### M4 — Market evidence / scalar inverse problems
-
-Established immutable raw observations/provenance, explicit midpoint normalization, Black-Scholes implied-volatility inversion with separate bisection, conditioning evidence, and pinned SPX strike/maturity evidence.
-
-### M5 — Heston stochastic volatility and independent valuation
-
-Added explicit Heston state/law/parameter semantics, characteristic-function/Fourier valuation, independent seeded full-truncation Euler Monte Carlo, Feller diagnostics, exact `xi=0` handling, and cross-method validation.
-
-### M6 — Heston calibration, recovery and identifiability
-
-Added option-price-space calibration targets, explicit residual/weighting/domain semantics, separate bounded SciPy nonlinear least squares, known-truth recovery, multiple starts, perturbation evidence, local domain-scaled Jacobian diagnostics, a rank-deficient counterexample, and a provenance-preserving SPX calibration workflow.
-
-M6 established:
-
-```text
-small calibration loss
-!= uniquely identified parameters
-!= trustworthy model
-```
-
-### M7 — Empirical Validation, Model Risk, and Black-Scholes vs Heston
-
-**Status: complete.**
-
-M7 is the first concrete validation specialization.
-
-The available empirical sample contains 14 selected SPX/SPXW contracts from one market date across two expiries. M7 therefore uses a predeclared **same-date cross-sectional** holdout:
-
-```text
-sort by (expiry, strike)
-evaluation iff zero-based index % 3 == 2
-```
-
-This yields 10 training and 4 held-out evaluation contracts.
-
-Both models consume exactly the same training prices and half-spread-standardized price residual scale:
-
-```text
-10 training observations
-        ├── fit one constant Black-Scholes sigma
-        └── calibrate Heston (v0,kappa,theta,xi,rho)
-                 from three predeclared starts
-        ↓
-freeze both estimates
-        ↓
-price the same 4 held-out contracts
-```
-
-A regression test changes only held-out targets and proves that fitted training models and held-out model prices are unchanged.
-
-Reference held-out evidence:
-
-```text
-                         Black-Scholes      Heston
-price RMSE                   8.412           0.671
-half-spread std. RMSE       20.613           1.649
-relative MAE                 8.27%            0.66%
-```
-
-Under this predeclared sample and explicit financial inputs/objective, Heston materially improves held-out pricing metrics relative to the one-volatility Black-Scholes benchmark.
-
-M7 retains model-risk evidence rather than turning that result into a universal ranking:
-
-- all contract-level residuals;
-- training/evaluation metrics separately;
-- three-start Heston stability;
-- local Jacobian rank/singular values/condition number;
-- a post-evaluation full-sample Heston stability fit;
-- M6's rank-deficient low-loss counterexample as identification context;
-- M3 volatility-misspecification and transaction-cost evidence;
-- an explicit statement that authoritative Heston hedging is not yet supported; and
-- representative M8 workload definitions.
-
-The bounded conclusion is:
-
-> Under this predeclared same-date cross-sectional holdout, explicit rate/carry convention, price-space objective, and selected observations, Heston improves held-out price and half-spread-standardized RMSE relative to the one-volatility Black-Scholes benchmark. This does not establish temporal generalization or model validity; calibration conditioning, limited date/maturity coverage, numerical cost, and unsupported Heston hedging remain material limitations.
-
-See `docs/models/m7_empirical_validation_and_model_risk.md`, `docs/evidence/m7_spx_bs_vs_heston_validation_reference.json`, and `scripts/m7_model_validation.py`.
-
-### M8 — Performance engineering and measured native decision
-
-**Status: complete.**
-
-M8 profiled the six workloads frozen by M7 before selecting an acceleration target. The baseline showed two dominant causes:
-
-```text
-Heston Monte Carlo
-→ scalar Python path loop + 10.08 million scalar Gaussian draws
-
-Heston calibration / M7
-→ repeated strike-independent Heston characteristic-function work
-   inside thousands of scalar Fourier prices
-```
-
-M8 optimized those causes in Python first:
-
-- vectorized Heston path propagation across NumPy arrays while preserving explicit full-truncation Euler timesteps;
-- fresh local NumPy `PCG64` generator ownership for reproducibility without ambient RNG state;
-- stateless Heston Fourier batching by maturity so compatible strikes share characteristic-function work;
-- batched calibration residual evaluation only inside repeated optimizer calls;
-- scalar M5/M6 pricing/result reconstruction retained as correctness reference; and
-- explicit scalar fallback for the exact `xi=0` deterministic-variance boundary.
-
-Same-run reference medians:
-
-```text
-Heston MC, 20k x 252                 3.3673 s -> 0.1230 s   27.38x
-10-target / 3-start calibration      2.2919 s -> 0.4971 s    4.61x
-14-target / 3-start calibration      3.2752 s -> 0.5454 s    6.01x
-complete M7 validation study         5.4136 s -> 1.0819 s    5.00x
-```
-
-Deterministic financial parity checks pass. The changed Monte Carlo RNG stream is validated statistically rather than by equal-seed stream identity; old/new estimates differ by about `0.853` combined standard errors in the reference comparison.
-
-M8 deliberately adds **no C++ kernel**. The representative post-optimization absolute runtimes are small enough that a compiler/binding/cross-platform packaging and native-parity surface is not justified for v0.1. Python remains the financial-semantic/reference implementation, and no generic backend abstraction was introduced.
-
-This negative native decision is part of the M8 result. Future materially larger workloads may reopen the question only after new profiling.
-
-See `docs/models/m8_performance_engineering.md`, `docs/evidence/m8_performance_reference.json`, `scripts/m8_profile_workloads.py`, and `scripts/m8_compare_performance.py`.
-
-## UI5 — Validation, model risk, performance evidence and product hardening
-
-**Status: complete.**
-
-UI5 makes the earned M7/M8 scientific story the center of the native product while retaining UI1–UI4 as the research-workbench library.
-
-Its validation workspace provides:
-
-- separate training and held-out evaluation metrics;
-- contract-level Black-Scholes/Heston residual structure;
-- held-out absolute pricing error;
-- Heston training/full-sample parameter stability and local conditioning;
-- explicit model-risk non-claims, including the absence of authoritative Heston hedge evidence;
-- the committed M8 representative before/after runtime evidence with revision/environment provenance;
-- deterministic and statistical parity semantics;
-- the measured negative native decision, with no fabricated backend selector; and
-- a combined copyable M7/M8 evidence report.
-
-Product hardening adds keyboard navigation, accessibility names, responsive layouts, explicit empty/running/result/warning/error boundaries, truthful busy-state-only long-running UX, process-isolated Qt controller tests, and continued standalone build/package-launch proof.
-
-UI5 deliberately does not create generic persisted-study/fork/report frameworks before the platform owns a durable saved-study/document identity. Signing, notarization, installers and supported-platform release guarantees remain M9 release-target decisions.
-
-See `docs/models/ui5_validation_model_risk_and_product_hardening.md` and `docs/architecture/native_quant_workbench.md`.
-
-## M9 — Portfolio-quality v0.1 release
-
-**Status: next.**
-
-M9 should consolidate rather than broaden the quantitative scope. Expected outputs include:
-
-- a reproducible flagship study spanning the earned M1–M8 narrative;
-- explicit market-data/provenance/replay instructions;
-- validation/model-risk conclusions and non-claims;
-- M8 same-run before/after performance evidence and the measured no-C++ decision;
-- the completed UI5 downstream native-workbench integration;
-- release-oriented documentation and examples;
-- concrete platform/distribution decisions where justified;
-- final quality/reproducibility review; and
-- the tagged v0.1 release.
-
-M9 must not manufacture a native kernel merely to make the release sound more sophisticated. The performance result to present is that profiling found real bottlenecks, Python/NumPy changes produced 4.61×–27.38× heavy-workload improvements, parity remained strong, and native acceleration was not earned for the current workload scale.
-
-## Native UI track
-
-```text
-UI1  native architecture + Black-Scholes analytic vertical       complete
-UI2  valuation comparison / convergence / uncertainty / Greeks  complete
-UI3  dynamic hedging + market evidence / implied volatility     complete
-UI4  Heston forward valuation + calibration / identifiability   complete
-UI5  validation/model-risk + performance/product hardening      complete
-```
-
-The dependency direction remains:
-
-```text
-Qt Quick / QML
-        ↓
-PySide6 controller / item models
-        ↓
-application + presentation
-        ↓
-public quantitative APIs + committed derived evidence
-        ↓
-production quantitative core
-```
-
-Finance milestones do not depend on UI completion. M9 can now consume the completed quantitative M1–M8 and native UI1–UI5 evidence stack without first opening another broad UI feature milestone.
-
-## Post-v0.1 directions
-
-Potential later specializations include rates, XVA/counterparty credit, portfolio market risk, and possibly rough-volatility research after reviewing then-current literature and the demonstrated limitations of v0.1.
+These are **directions, not executable milestones**. They have no status, priority, dependency graph entry, or implementation permission until a future planning pass justifies them and creates durable specs from repository evidence.
