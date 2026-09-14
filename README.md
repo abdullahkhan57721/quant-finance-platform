@@ -23,12 +23,6 @@ python -m pip install -e ".[desktop]"
 python -m qf_platform.desktop.main
 ```
 
-Run the repository quality gate with:
-
-```bash
-./scripts/check_all
-```
-
 The committed evidence includes the [SPX Black-Scholes vs Heston held-out comparison](docs/evidence/m7_spx_bs_vs_heston_validation_reference.json) and the [measured performance study](docs/evidence/m8_performance_reference.json). M8 improved representative heavy workloads by **4.61×–27.38×** through Python/NumPy and algorithmic changes; after profiling, a C++ kernel was deliberately **not** retained for v0.1 because the remaining absolute cost did not justify the added binding, packaging, and parity surface.
 
 ## Status
@@ -432,7 +426,7 @@ public quantitative APIs
 production quantitative core
 ```
 
-The finance core remains Qt-independent. UI4 is complete and exposes authoritative M5/M6 Heston/calibration behavior. UI5 is active and may consume merged M7/M8 validation, model-risk, and performance evidence; it must present M8’s measured no-C++ conclusion truthfully rather than invent a native numerical path.
+The finance core remains Qt-independent. UI4 is complete and exposes authoritative M5/M6 Heston/calibration behavior. UI5 is complete and consumes authoritative M7/M8 validation, model-risk, and performance evidence while presenting M8’s measured no-C++ conclusion truthfully rather than inventing a native numerical path.
 
 ## Local development
 
