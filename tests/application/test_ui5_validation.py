@@ -67,21 +67,16 @@ def test_ui5_validation_matches_committed_m7_reference_evidence() -> None:
         )
 
     expected_training = artifact["selected_heston_training_estimate"]
-    training = evidence.selected_heston_training_result.estimate
-    assert training.initial_variance == pytest.approx(
-        expected_training["initial_variance"], abs=1.0e-8
+    expected_vector = (
+        expected_training["initial_variance"],
+        expected_training["mean_reversion_speed"],
+        expected_training["long_run_variance"],
+        expected_training["volatility_of_variance"],
+        expected_training["correlation"],
     )
-    assert training.mean_reversion_speed == pytest.approx(
-        expected_training["mean_reversion_speed"], abs=1.0e-7
-    )
-    assert training.long_run_variance == pytest.approx(
-        expected_training["long_run_variance"], abs=1.0e-8
-    )
-    assert training.volatility_of_variance == pytest.approx(
-        expected_training["volatility_of_variance"], abs=1.0e-7
-    )
-    assert training.correlation == pytest.approx(
-        expected_training["correlation"], abs=1.0e-7
+    assert evidence.selected_heston_training_result.estimate.as_vector() == pytest.approx(
+        expected_vector,
+        abs=1.0e-7,
     )
 
 
