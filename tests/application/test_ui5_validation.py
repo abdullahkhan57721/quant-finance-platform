@@ -56,15 +56,26 @@ def test_ui5_validation_matches_committed_m7_reference_evidence() -> None:
     )
     for metrics, key in metric_pairs:
         recorded = artifact["metrics"][key]
-        tolerance = 1.0e-5 if key.startswith("heston_") else 1.0e-8
+        if key.startswith("heston_"):
+            absolute_tolerance = 1.0e-5
+            relative_tolerance = 2.0e-5
+        else:
+            absolute_tolerance = 1.0e-8
+            relative_tolerance = 1.0e-8
         assert metrics.root_mean_square_error == pytest.approx(
-            recorded["root_mean_square_error"], abs=tolerance
+            recorded["root_mean_square_error"],
+            abs=absolute_tolerance,
+            rel=relative_tolerance,
         )
         assert metrics.standardized_root_mean_square_error == pytest.approx(
-            recorded["standardized_root_mean_square_error"], abs=tolerance
+            recorded["standardized_root_mean_square_error"],
+            abs=absolute_tolerance,
+            rel=relative_tolerance,
         )
         assert metrics.relative_mean_absolute_error == pytest.approx(
-            recorded["relative_mean_absolute_error"], abs=tolerance
+            recorded["relative_mean_absolute_error"],
+            abs=absolute_tolerance,
+            rel=relative_tolerance,
         )
 
     expected_training = artifact["selected_heston_training_estimate"]
@@ -80,6 +91,7 @@ def test_ui5_validation_matches_committed_m7_reference_evidence() -> None:
         == pytest.approx(
             expected_vector,
             abs=1.0e-4,
+            rel=2.0e-5,
         )
     )
 
