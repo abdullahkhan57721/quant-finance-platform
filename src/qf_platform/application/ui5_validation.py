@@ -40,7 +40,7 @@ class UI5ValidationRequest:
 
 @dataclass(frozen=True, slots=True)
 class UI5WorkloadDefinition:
-    """One M7-defined M8 profiling workload; structural evidence, not timing."""
+    """One M7-defined representative workload definition; structural evidence, not timing."""
 
     workload_id: str
     operation: str
@@ -49,7 +49,7 @@ class UI5WorkloadDefinition:
 
 @dataclass(frozen=True, slots=True)
 class UI5ValidationAnalysis:
-    """Completed M7 evidence plus the structural M8 handoff visible to UI5."""
+    """Completed M7 evidence plus structural workload lineage visible to UI5."""
 
     evidence: BlackScholesHestonValidationEvidence
     workloads: tuple[UI5WorkloadDefinition, ...]
@@ -152,7 +152,7 @@ def make_ui5_reference_validation_request() -> UI5ValidationRequest:
         continuous_dividend_yield=_Q,
         heston_forward_method=HestonFourierEuropeanOption(
             integration_upper_bound=100.0,
-            intervals=128,
+            intervals=256,
         ),
     )
     method = CrossSectionalBlackScholesHestonValidation(
@@ -172,7 +172,7 @@ def run_ui5_validation(request: UI5ValidationRequest) -> UI5ValidationAnalysis:
         UI5WorkloadDefinition(
             "bs_closed_form_single",
             "One Black-Scholes closed-form European-option valuation",
-            "M8 must time this separately from model quality evidence.",
+            "M8 measured this separately from model-quality evidence.",
         ),
         UI5WorkloadDefinition(
             "heston_fourier_single",
@@ -185,7 +185,7 @@ def run_ui5_validation(request: UI5ValidationRequest) -> UI5ValidationAnalysis:
         UI5WorkloadDefinition(
             "heston_mc_reference",
             "One seeded Heston Monte Carlo valuation",
-            "20,000 paths · 252 timesteps · seed 20260910 (M7 handoff definition)",
+            "20,000 paths · 252 timesteps · seed 20260910 (predeclared M7 workload definition)",
         ),
         UI5WorkloadDefinition(
             "heston_training_calibration",
@@ -206,7 +206,7 @@ def run_ui5_validation(request: UI5ValidationRequest) -> UI5ValidationAnalysis:
         UI5WorkloadDefinition(
             "m7_end_to_end_cross_sectional_validation",
             "Complete 10-train / 4-evaluation M7 validation study",
-            "Structural workload only; UI5 Phase A does not claim measured runtime.",
+            "Structural workload definition; measured M8 result is presented separately.",
         ),
     )
     return UI5ValidationAnalysis(evidence=evidence, workloads=workloads)
