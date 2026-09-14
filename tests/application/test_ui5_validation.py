@@ -70,7 +70,9 @@ def test_ui5_presentation_separates_training_evaluation_and_workload_structure()
     assert any(
         row.label == "Heston hedging advantage" for row in presentation.model_risk_rows
     )
-    assert all(row.status == "Profile in M8" for row in presentation.workload_rows)
+    assert all(
+        row.status == "M8 workload lineage" for row in presentation.workload_rows
+    )
     assert len(presentation.residual_plot.series) == 4
     assert len(presentation.held_out_error_plot.series) == 2
     assert len(presentation.parameter_stability_plot.series[0].points) == 5
