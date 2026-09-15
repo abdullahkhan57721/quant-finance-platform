@@ -12,7 +12,7 @@ Two governing principles:
 
 > Foundational mathematical domain distinctions may be represented explicitly from the outset when their distinctness follows from the mathematics. Problem-specific software frameworks and cross-cutting operational abstractions must still earn their place through real behavior and evidence.
 
-ADR 0002 is the current architectural authority for this doctrine. ADR 0001 remains the historical record for the pricing-specific foundation that first motivated it.
+ADR 0002 is the current architectural authority for this doctrine. ADR 0001 remains the historical record for the pricing-specific foundation that first motivated it. ADR 0003 governs the native PySide6 + Qt Quick/QML Workbench boundary.
 
 ## Source of truth
 
@@ -23,28 +23,132 @@ Before making consequential changes, orient in this order:
 1. this `AGENTS.md`;
 2. `docs/development/current_state.md`;
 3. `docs/development/roadmap.md`;
-4. `docs/architecture/index.md`;
-5. `docs/quantitative_conventions.md` when quantitative assumptions or units matter;
-6. `docs/development/engineering_principles.md` when workflow/design rationale matters;
-7. relevant ADRs under `docs/decisions/`, especially ADR 0002 for current mathematical architecture and ADR 0001 for its pricing-specific history;
-8. the relevant GitHub Issue in full;
-9. the current implementation and tests;
-10. current open PRs, recovery checkpoint, and CI status.
+4. `docs/development/orchestration.md` when selecting/continuing roadmap work;
+5. the selected milestone specification under `docs/development/milestones/`, when one exists;
+6. `docs/architecture/index.md`;
+7. `docs/quantitative_conventions.md` when quantitative assumptions or units matter;
+8. `docs/development/engineering_principles.md` when workflow/design rationale matters;
+9. relevant ADRs under `docs/decisions/`, especially ADR 0002 for current mathematical architecture and ADR 0001 for its pricing-specific history;
+10. the relevant GitHub Issue in full;
+11. the current implementation and tests;
+12. current open PRs, recovery checkpoint, and CI status.
 
-Executable repository truth wins over prose when they conflict: current `main`, tests, and protected CI are authoritative for actual behavior.
+Executable/live repository truth wins over prose when they conflict. Use this practical order:
 
-Do not rely on an old chat summary when the repository can answer the question.
+```text
+current main / tests / required CI
+        ↓
+live PR and Issue state
+        ↓
+AGENTS.md + durable architecture / conventions / ADRs
+        ↓
+current_state.md
+        ↓
+roadmap.md + milestone specs
+        ↓
+conversation context
+```
+
+Do not rely on an old chat summary when the repository can answer the question. If navigation prose is materially stale, correct it in the active work unit after establishing repository truth.
+
+## Repository-driven roadmap orchestration
+
+When asked to **continue development**, **execute the roadmap**, or equivalent, do not wait for a large copied milestone prompt.
+
+Use the repository itself:
+
+1. complete the required orientation above;
+2. fetch/verify current `main` and inspect live open Issues/PRs;
+3. reconcile stale prose against repository truth;
+4. read the execution graph in `docs/development/roadmap.md`;
+5. determine the eligible READY set using `docs/development/orchestration.md`;
+6. select the highest-priority eligible milestone deterministically;
+7. read that milestone's durable specification;
+8. verify every dependency is actually repository-defined `MERGED` on current `main`;
+9. reuse an existing active Issue/PR when it already owns the work; otherwise create the appropriate Issue;
+10. create/use one branch and isolated worktree for the selected milestone by default;
+11. implement only the selected milestone's intended scope;
+12. validate incrementally using the repository cadence and milestone-specific evidence;
+13. run required final/exact-head validation on the actual candidate head;
+14. self-review the exact diff for quantitative correctness, architecture, documentation, test quality, and accidental scope expansion;
+15. open/update the PR and maintain its recovery checkpoint;
+16. do **not** declare the milestone `MERGED` until squash merge and required post-merge `main` verification are complete;
+17. when repository truth changes, update `current_state.md`, roadmap metadata, and follow-on states in the appropriate PR;
+18. reevaluate the dependency graph before selecting further work.
+
+Milestone states are:
+
+```text
+BLOCKED  READY  ACTIVE  REVIEW  MERGED  PAUSED  SUPERSEDED
+```
+
+Their precise semantics and transition rules live in `docs/development/orchestration.md`. In particular, `MERGED` is repository-defined completion, not “implementation exists.”
+
+### Deterministic default selection
+
+Unless repository evidence requires a different explicit rule:
+
+```text
+eligible =
+    status == READY
+    AND every depends_on milestone == MERGED
+    AND no active/review work unit already owns the same scope
+
+select by:
+    1. priority;
+    2. roadmap order;
+    3. dependency-unblocking value;
+    4. lower unstable-shared-contract risk when otherwise equal.
+```
+
+If no milestone is eligible, report the concrete blockers instead of inventing work.
+
+### Concurrency and worktrees
+
+Independent READY milestones may run in separate branches/worktrees only when their shared contracts are stable enough to make parallel execution safe.
+
+Do **not** parallelize milestones that:
+
+- depend on one another;
+- modify unstable shared public contracts;
+- require unresolved architecture from another active milestone;
+- would create avoidable high-overlap merge conflicts;
+- depend on evidence that is not yet merged and verified.
+
+`parallel_with` in the roadmap is permission to evaluate concurrency, not proof that concurrency is currently safe. Inspect live branches/PRs and file/contract overlap first.
+
+When concurrent work exists, update/reconcile against current `main` before final validation. One milestone per branch/worktree remains the default.
+
+### Human merge gate
+
+Optimize for high autonomy **before merge**, not uncontrolled recursive merging:
+
+```text
+select
+-> implement
+-> test
+-> self-review
+-> PR
+-> exact-head validation
+-> ready-to-merge
+-> human/repository merge gate
+-> squash merge
+-> post-merge verification
+-> unlock next work
+```
+
+Do not weaken repository approval/merge protections. If a future project rule permits automated squash merging under defined conditions, document those conditions centrally before using them.
 
 ## Development workflow
 
 Use the normal durable-work-unit flow:
 
 ```text
-roadmap milestone
+roadmap milestone/spec
       ↓
 GitHub Issue
       ↓
-branch
+branch / isolated worktree
       ↓
 implementation
       ↓
@@ -54,22 +158,28 @@ tests / validation / CI
       ↓
 exact-head review
       ↓
+merge gate
+      ↓
 squash merge
       ↓
 verify main
+      ↓
+update state / reevaluate graph
 ```
 
 Normally:
 
 ```text
-1 Issue → 1 branch → 1 PR
+1 Issue → 1 branch/worktree → 1 PR
 ```
 
 Use the repository implementation Issue template for substantial work. Capture the goal, scope boundaries, quantitative assumptions, ownership/mutability semantics, likely wrong interpretations, acceptance criteria, automated verification, and manual verification before architecture-sensitive implementation begins.
 
-A long ChatGPT conversation is not a reason to create another Issue. Continue the same work unit in a fresh chat while preserving the Issue, branch, and normally the PR.
+A milestone spec is the durable roadmap-level contract. The GitHub Issue is the activated concrete work unit. Do not duplicate all global rules into either one.
 
-Maintain a PR recovery checkpoint when work spans multiple sessions:
+A long ChatGPT conversation is not a reason to create another Issue. Continue the same work unit in a fresh session while preserving the Issue, branch/worktree, and normally the PR.
+
+Maintain a PR recovery checkpoint when work spans sessions:
 
 ```text
 Implemented:
@@ -165,7 +275,7 @@ specific immutable Result
 
 Do not introduce universal `Problem`, `Method`, or `Result` base classes unless real consumers prove shared software behavior.
 
-The current production pricing specialization is:
+The production pricing specialization remains compositional:
 
 ```math
 \mathfrak P_{\mathrm{price}}
@@ -175,22 +285,7 @@ The current production pricing specialization is:
 
 with theoretical valuation under the numeraire-associated pricing measure, while a concrete analytic/numerical method remains separate.
 
-The pricing core currently implements:
-
-```text
-state / state space / path
-stochastic law
-model parameter values
-financial contract
-cash-flow stream
-numeraire
-physical- and pricing-measure semantics
-PricingProblem
-ValuationMethod
-ValuationResult
-```
-
-The inverse, sensitivity, prediction, control, risk, and validation families remain conceptual until their milestones create real behavior. Do not create empty production classes/packages merely to mirror the taxonomy.
+The implemented platform now has concrete pricing, sensitivity, control, inverse/inference, and validation specializations. Their shared mathematical distinctions do not imply a universal cross-family runtime hierarchy.
 
 ### Protected conceptual distinctions
 
@@ -226,7 +321,7 @@ Do not define every stochastic law universally through only `drift()` and `diffu
 
 Do not implement a generic measure-theory engine or assume an arbitrary `Measure` object can mechanically transform every model between P and Q. Dynamics/parameters under the relevant measure should remain explicit.
 
-Do not create speculative empty packages for future Heston, inference, prediction, control, XVA, rates, market risk, rough volatility, or native backends.
+Do not create speculative empty packages for future rates, XVA, market risk, rough volatility, or native backends.
 
 Mathematical generality does not imply universal operational APIs.
 
@@ -264,19 +359,7 @@ Do not silently overwrite historical observations with model-generated values. K
 
 ## Dependency guidance
 
-Current foundational pricing direction:
-
-```text
-state / cash flows / measures
-          ↓
-contracts + stochastic-law semantics
-          ↓
-PricingProblem
-          ↓
-valuation methods/results
-```
-
-Broader conceptual direction:
+The durable conceptual direction is:
 
 ```text
 observations/provenance ──→ normalization / problem-ready information
@@ -313,19 +396,15 @@ Make ownership and mutability explicit at consequential boundaries.
 
 Prefer immutable committed inputs/results where practical. Keep mutable optimizer state, caches, work buffers, and orchestration local to the implementation that owns them.
 
-M0A foundational value objects and the `PricingProblem` / `ValuationResult` contracts are immutable. Concrete model-specific parameter objects should likewise be value-like where appropriate. Calibration later produces parameter values/evidence rather than mutating stochastic-law identity.
+Foundational value objects and committed pricing/sensitivity/control/inference/validation result/evidence contracts should remain value-like where appropriate. Calibration produces parameter estimates/evidence rather than mutating stochastic-law identity.
 
-The broader Problem → Method → Result doctrine likewise treats completed result/evidence objects as committed outputs. Mutable request/configuration/solver state belongs outside those results.
-
-Do not let UI/notebook state become a core quantitative API. Normalize external or interactive inputs into typed production-library inputs before pricing, inference, sensitivity, prediction, control, risk, or validation logic consumes them.
+Do not let UI/notebook state become a core quantitative API. Normalize external or interactive inputs into typed production-library inputs before quantitative logic consumes them.
 
 ## Quantitative conventions
 
 `docs/quantitative_conventions.md` is the authority for project-wide quantitative representation decisions.
 
-Do not silently choose or reinterpret day count, compounding, rate units, volatility units, dividend/carry representation, calendars, Greek units/signs, probability semantics, horizons, loss definitions, confidence levels, or similar conventions inside an implementation when the choice crosses a public boundary.
-
-M0A commits the mathematical responsibility taxonomy, pricing semantics, numeraire positivity, Problem → Method → Result separation, and observation/model distinction. It deliberately leaves M1-specific date/day-count/rate/carry/volatility conventions undecided until the concrete specialization requires them.
+Do not silently choose or reinterpret day count, compounding, rate units, volatility units, dividend/carry representation, calendars, Greek units/signs, probability semantics, horizons, loss definitions, confidence levels, calibration objectives/weights, or similar conventions inside an implementation when the choice crosses a public boundary.
 
 If a convention is intentionally undecided, keep it explicit/local and update the convention register when a real consumer justifies a project-wide decision.
 
@@ -341,16 +420,16 @@ Correctness requires multiple forms of evidence where applicable:
 - calibration and parameter-recovery evidence;
 - empirical/out-of-sample evidence;
 - model-risk/sensitivity analysis;
-- Python/C++ parity;
+- Python/C++ parity if a native implementation actually exists;
 - performance evidence.
 
-Validation is itself a mathematical problem family, but the production validation framework must remain concrete until real consumers justify shared behavior.
+Validation is itself a mathematical problem family, but a universal validation framework still must be earned by repeated concrete operational behavior.
 
 Independent implementations agreeing with each other are useful evidence, but not sufficient by themselves if both could share the same conceptual error.
 
 Every meaningful numerical tolerance should have an explicit reason.
 
-Formula implementations should be traceable to a source or derivation, notation mapping, assumptions, limiting cases, and tests once mathematical model code exists. M0A contains semantic mathematics but no production pricing formula; M1 owns the first full formula traceability evidence.
+Important formula implementations should remain traceable to a source or derivation, notation mapping, assumptions, limiting cases, and tests.
 
 ## Reproducibility and RNG
 
@@ -373,13 +452,15 @@ Prefer algorithmic improvements, elimination of repeated work, allocation/data-l
 
 Reject minor speedups that materially damage readability, auditability, or numerical trustworthiness.
 
+M8 is current evidence that C++ is **not justified for the v0.1 representative workloads** after measured Python/NumPy optimization. Do not add a native backend for optics. Reopen the question only after a materially different workload and fresh profiling justify it.
+
 ## Python/C++ direction
 
 Python is the correctness/reference implementation and owns high-level financial semantics, research orchestration, validation, inference/calibration workflows, and market-data handling.
 
 C++ should be introduced only after profiling identifies a measured numerical hotspot worth accelerating. Do not create a fake backend abstraction before there are two real implementations.
 
-When native acceleration arrives, keep the binding boundary narrow: domain objects are normalized in Python, numerical primitives cross the boundary, and results return to Python-owned result/validation structures.
+If native acceleration later becomes justified, keep the binding boundary narrow: domain objects are normalized in Python, numerical primitives cross the boundary, and results return to Python-owned result/validation structures.
 
 Preserve the readable Python reference and add parity/conformance evidence for the native implementation.
 
@@ -404,13 +485,11 @@ Use Codex selectively for execution-heavy work behind settled interfaces, such a
 
 Do not delegate architecture-sensitive work merely because it is large. Settle consequential contracts first and encode them in the Issue.
 
-Parallelize only when shared interfaces are stable enough that branches are unlikely to redefine the same public concepts.
-
 ## Research direction
 
 Classical foundations come before frontier-model novelty.
 
-The intended v0.1 progression is:
+The earned v0.1 progression is:
 
 ```text
 mathematical problem architecture + pricing foundation
@@ -437,36 +516,42 @@ calibration / inverse problem
         ↓
 parameter recovery + stability
         ↓
-out-of-sample/model-risk validation
+held-out/model-risk validation
         ↓
 profile actual bottlenecks
         ↓
-targeted C++ acceleration
+measured Python/algorithmic optimization
+        ↓
+validation-first native product hardening
+        ↓
+portfolio-quality v0.1 release
 ```
 
-A modern research-paper replication belongs after the classical platform is mature. Rough volatility is a promising direction, not a pre-committed implementation target.
+M9 is the committed release frontier. Post-v0.1 directions in the roadmap are not implementation permission until a future planning pass creates justified milestones/specs.
 
 ## Documentation discipline
 
 Keep information at the lifetime appropriate to it:
 
 - durable operating rules → `AGENTS.md`;
+- roadmap orchestration/state semantics → `docs/development/orchestration.md`;
 - current architecture → architecture docs;
 - consequential decision rationale → ADRs;
-- concise project orientation → `current_state.md`;
-- milestone direction → `roadmap.md`;
-- exact implementation scope → Issue;
-- in-progress/recovery state → PR;
+- concise current operational orientation → `current_state.md`;
+- milestone dependency graph/status/priority → `roadmap.md`;
+- durable per-milestone execution contract → `docs/development/milestones/`;
+- exact activated implementation scope → Issue;
+- in-progress/recovery/exact-head state → PR;
 - behavior → code/tests;
 - enforced quality → CI;
 - history → Git;
 - explanatory rationale → `engineering_principles.md` and learning material.
 
-Update `current_state.md` and `roadmap.md` only when project truth materially changes. Do not churn them for trivial implementation details or volatile SHAs/CI state.
+Update `current_state.md` and `roadmap.md` only when project truth materially changes. Do not churn them for trivial implementation details or volatile SHAs/CI run IDs that belong in the PR.
 
 Use architecture documents/ADRs only for durable consequential decisions. Avoid documenting speculative designs as if they were committed architecture. Supersede an ADR instead of rewriting its historical decision.
 
-Update documentation in the same PR when public contracts, quantitative conventions, or durable architecture change.
+Update documentation in the same PR when public contracts, quantitative conventions, durable architecture, or roadmap truth changes.
 
 ## Quality gate
 
@@ -485,10 +570,10 @@ pyright
 pytest
 ```
 
-Issue #7 separately tracks adding a cognitive-complexity guard now that real production code exists.
+Issue #7 tracks adding a cognitive-complexity guard. Do not describe it as enforced until current `main` actually contains it in the canonical gate.
 
 Use `./scripts/fix` for supported Ruff auto-fixes and formatting.
 
 Do not weaken quality guards merely to merge. Add new guards only when real code or architecture gives them something meaningful to enforce.
 
-Performance changes additionally require profiling/benchmark evidence. Quantitative-model changes additionally require the financial/numerical validation appropriate to that model.
+Performance changes additionally require profiling/benchmark evidence. Quantitative-model changes additionally require the financial/numerical validation appropriate to that model. Release work additionally requires the clean-install/package/launch/replay evidence claimed by its milestone spec.
