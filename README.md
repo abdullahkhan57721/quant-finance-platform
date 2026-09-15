@@ -16,18 +16,25 @@ The first specialization is **Equity Derivatives & Volatility Modeling**.
 | **What empirical result did it produce?** | On a pinned **January 4, 2023 SPX/SPXW** sample with a predeclared **10-train / 4-held-out** split, Heston reduced held-out price RMSE from **8.412 to 0.671** and relative MAE from **8.27% to 0.66%** versus a fairly fitted one-volatility Black-Scholes benchmark. This is a same-date cross-sectional result, not a claim of temporal forecasting skill. |
 | **What can I run / see?** | A native desktop workbench for pricing, Greeks, hedging, implied volatility, Heston calibration, validation/model risk, and measured performance evidence; plus reproducible scripts, tests, and committed evidence artifacts. |
 
-## Run the native workbench
+## Run and verify v0.1
+
+Python 3.12+ is required. From a clean checkout:
 
 ```bash
-python -m pip install -e ".[desktop]"
+python -m pip install ".[desktop]"
+python scripts/v01_release_check.py
 python -m qf_platform.desktop.main
 ```
+
+The release check is deterministic and network-free. It verifies the installed `0.1.0` package metadata plus the committed M7/M8 release evidence and scientific non-claims.
+
+See the **[v0.1 Release Guide](docs/release/v0.1.md)** for clean-environment installation, the reviewer demo path, the raw-market replay boundary, the CI-verified distribution target, and explicit platform limitations. See [`CHANGELOG.md`](CHANGELOG.md) for concise release notes.
 
 The committed evidence includes the [SPX Black-Scholes vs Heston held-out comparison](docs/evidence/m7_spx_bs_vs_heston_validation_reference.json) and the [measured performance study](docs/evidence/m8_performance_reference.json). M8 improved representative heavy workloads by **4.61×–27.38×** through Python/NumPy and algorithmic changes; after profiling, a C++ kernel was deliberately **not** retained for v0.1 because the remaining absolute cost did not justify the added binding, packaging, and parity surface.
 
 ## Status
 
-**M0–M8 and UI1–UI5 are complete. M9 — Portfolio-Quality v0.1 Release is next.**
+**M0–M8 and UI1–UI5 are complete. M9 defines the v0.1.0 release verification and distribution contract.**
 
 The implemented research arc is:
 
@@ -46,6 +53,8 @@ Black-Scholes theory
 
 ## Deep documentation
 
+- [`docs/release/v0.1.md`](docs/release/v0.1.md) — v0.1 install, verification, demo, evidence, and distribution boundary
+- [`CHANGELOG.md`](CHANGELOG.md) — v0.1 release notes
 - [`AGENTS.md`](AGENTS.md) — repository workflow and guardrails
 - [`docs/development/current_state.md`](docs/development/current_state.md) — current project truth
 - [`docs/development/roadmap.md`](docs/development/roadmap.md) — milestone sequencing
