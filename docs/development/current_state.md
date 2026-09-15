@@ -5,88 +5,99 @@
 The quantitative-finance platform has completed and repository-verified:
 
 ```text
-M0, M0A, M1, M2, M3, M4, M5, M6, M7, M8
+M0, M0A, M1, M2, M3, M4, M5, M6, M7, M8, M9
 UI1, UI2, UI3, UI4, UI5
 ```
 
 ADR 0002 remains the mathematical architecture authority. ADR 0003 remains the native PySide6 + Qt Quick/QML authority.
 
-The current product frontier is:
+The planned **v0.1 product roadmap is repository-complete**. There is currently no committed READY product milestone.
+
+M9 — Portfolio-Quality v0.1 Release is `MERGED` by the repository state model:
 
 ```text
-READY
-P0  M9 — Portfolio-Quality v0.1 Release
+Issue #50       CLOSED / completed
+PR #51          squash-merged
+verified main   6237ccad3ec27153c294a84da32350b0bd1b12c1
+Core CI         success — run 34990451682
+Release CI      success — run 34990451746
+Desktop CI      success — run 34990451680
 ```
 
-M9 is READY because both required predecessors are MERGED:
+The merged-main Desktop run rebuilt the standalone Ubuntu proof, passed packaged launch smoke, and uploaded `ui1-linux-desktop-proof` with artifact id `10406156064` and SHA-256 `82f24145db4b168ab1f4c8352087e6be8805f8f5073ab46b245351aab8c42f27`.
 
-```text
-M8  MERGED
-UI5 MERGED
-```
+At this snapshot GitHub has **no published Release**. Creating the `v0.1.0` tag/release is the remaining post-verification publication operation. It is not a new product milestone and must not be reported as complete until live GitHub state shows the tag/release.
 
-Its durable execution specification is `docs/development/milestones/M9.md`.
-
-Independent lower-priority maintenance also exists:
+Independent lower-priority maintenance remains:
 
 ```text
 READY / auxiliary
 P2  Issue #7 — Add cognitive-complexity quality gate
 ```
 
-Issue #7 is not part of the product milestone dependency chain. It may run in a separate worktree alongside M9 only if shared development-document edits are coordinated and both branches are reconciled against current `main` before exact-head validation.
-
-At the time this orchestration migration was planned, current `main` had no open product-milestone PR. **Do not treat that sentence as durable live state**: every fresh session must search current open Issues/PRs before starting work. Live repository state overrides this snapshot.
+Issue #7 is not part of the quantitative product dependency chain.
 
 ## Execution frontier
 
-### READY
+### READY — product
 
-- **M9 — Portfolio-Quality v0.1 Release**, P0.
-- **Issue #7 — cognitive-complexity quality gate**, P2 auxiliary maintenance.
+None.
+
+The committed v0.1 product roadmap ends at M9. Do not infer an M10 or silently activate a post-v0.1 specialization.
+
+### READY — auxiliary maintenance
+
+- **Issue #7 — cognitive-complexity quality gate**, P2.
 
 ### ACTIVE / REVIEW
 
-No product milestone is intentionally recorded here as ACTIVE or REVIEW. If GitHub has an open Issue/PR for M9 or another roadmap item, that live work owns the state and this section must be reconciled rather than duplicated.
+None recorded after the M9 closeout. Live GitHub state overrides this sentence if new work is subsequently activated.
 
 ### BLOCKED
 
-No committed product milestone is currently BLOCKED.
+No committed product milestone is BLOCKED because there is no committed post-v0.1 product milestone.
 
 ### PAUSED / SUPERSEDED
 
-No future product milestone is currently PAUSED or SUPERSEDED. Historical superseded work remains in Git/Issue/PR history rather than being rewritten away.
+No future product milestone is currently PAUSED or SUPERSEDED. Historical superseded work remains in Git/Issue/PR history.
 
 ## Recommended next execution
 
 A fresh agent should:
 
-1. verify current `main` and open Issues/PRs;
-2. verify M8 and UI5 still satisfy repository-defined `MERGED` completion;
-3. if no existing M9 work unit owns the milestone, select M9 as the highest-priority READY milestone;
-4. read `docs/development/milestones/M9.md`;
-5. activate/reuse the M9 Issue and execute it through the normal repository workflow;
-6. do not begin speculative post-v0.1 work merely because M9 is the last committed milestone.
+1. verify current `main`, open Issues/PRs, and live GitHub Releases;
+2. if `v0.1.0` is still absent, treat publication of the already-verified v0.1 release as the remaining release operation rather than creating new product work;
+3. if release publication is already complete, either execute auxiliary Issue #7 when desired or stop;
+4. before any new product implementation, perform a new planning pass and create durable roadmap/spec entries justified by repository evidence;
+5. do not promote rates, XVA, portfolio risk, rough volatility, cross-platform installers, C++, or any other direction to READY merely because M9 is complete.
 
-The deterministic selection/state/worktree rules are in `docs/development/orchestration.md`.
+The deterministic selection/state/worktree rules remain in `docs/development/orchestration.md`.
 
-## Important temporary constraints
+## v0.1 release contract
 
-M9 is a release/consolidation milestone, not a scope-expansion milestone.
+The merged and verified v0.1 contract is deliberately evidence-bounded:
 
-Preserve these boundaries:
+- package version `0.1.0`;
+- Python **3.12** source installation;
+- optional native desktop UI with **PySide6 6.11.2**;
+- clean non-editable installation and source-launch smoke on Ubuntu CI;
+- deterministic, network-free `scripts/v01_release_check.py` against committed M7/M8 evidence;
+- `docs/release/v0.1.md` as the reviewer-facing install, launch, evidence, provenance, demo, and limitation guide; and
+- Ubuntu 24.04 x86_64 standalone `pyside6-deploy` artifact as the CI-verified packaged proof.
 
-```text
-same-date held-out pricing evidence != temporal forecasting
-calibration convergence != parameter identification
-better held-out Heston pricing != universal model validity
-Heston pricing advantage != demonstrated Heston hedge superiority
-measured Python optimization != justification for a C++ backend
-```
+The repository does **not** claim:
 
-Do not manufacture a native backend for release optics. M8 measured current representative workloads and concluded that a C++ kernel is not justified for v0.1 after Python/NumPy optimization.
+- macOS or Windows installer certification;
+- code signing or notarization;
+- an automatic update channel;
+- universal support for the CI-produced Linux artifact;
+- temporal forecasting skill from the M7 holdout;
+- global Heston parameter identification;
+- historical trading profitability;
+- Heston hedge superiority; or
+- that a C++ backend is justified for current v0.1 workloads.
 
-Generic saved-study/fork/document infrastructure remains absent because the repository still has no authoritative persisted study/workspace identity. Signing, notarization, installers, and supported-platform guarantees are M9 release-target decisions only to the extent actual release evidence justifies them.
+Raw SPX source rows remain intentionally outside the repository. Core release verification uses committed derived evidence. `scripts/m7_model_validation.py` remains the authoritative replay path when the separately obtained pinned raw artifact is available.
 
 ## Mathematical organization
 
@@ -185,9 +196,7 @@ Authoritative detail: `docs/models/m7_empirical_validation_and_model_risk.md` an
 
 ### Performance / M8
 
-M8 profiled representative M7 workloads and optimized measured Python bottlenecks before considering native acceleration.
-
-Pinned baseline -> optimized heavy-workload evidence:
+Pinned baseline -> optimized representative heavy-workload evidence:
 
 ```text
 Heston MC, 20k x 252                 3.3673 s -> 0.1230 s   27.38x
@@ -198,11 +207,11 @@ complete M7 validation study         5.4136 s -> 1.0819 s    5.00x
 
 Deterministic financial parity checks pass; changed Monte Carlo RNG semantics are validated statistically rather than by equal-stream identity.
 
-**No C++ kernel is retained in M8.** The measured post-optimization absolute cost did not justify compiler/binding/cross-platform packaging and parity surface for v0.1.
+**No C++ kernel is retained for v0.1.** The measured post-optimization absolute cost did not justify compiler/binding/cross-platform packaging and parity surface.
 
 Authoritative detail: `docs/models/m8_performance_engineering.md` and `docs/evidence/m8_performance_reference.json`.
 
-## Native Workbench through UI5
+## Native Workbench through UI5 / M9
 
 The dependency direction remains:
 
@@ -218,9 +227,7 @@ public quantitative APIs + committed derived evidence
 production quantitative core
 ```
 
-UI5 presents the authoritative M7 validation/model-risk evidence and the revision-pinned M8 performance/parity evidence while preserving the measured no-C++ result. Product hardening includes keyboard navigation, accessibility names, responsive layouts, explicit state boundaries, copyable M7/M8 evidence reporting, process-isolated Qt controller tests, and standalone package/build/launch proof.
-
-Detailed authority: `docs/architecture/native_quant_workbench.md` and `docs/models/ui5_validation_model_risk_and_product_hardening.md`.
+UI5 remains the authoritative native product surface. M9 adds release packaging/verification around that product without moving quantitative logic into QML.
 
 ## Deliberately absent
 
@@ -243,14 +250,14 @@ These absences are not automatic future milestones. Post-v0.1 work must be justi
 
 ## Staleness and verification rule
 
-This document describes **now** and is intentionally less detailed than the roadmap/model docs.
+This document describes **now** and is intentionally less detailed than model/evidence docs.
 
 If it conflicts with executable/live repository truth, use this order:
 
 ```text
 current main / tests / required CI
         ↓
-live PR and Issue state
+live PR, Issue, Release, and tag state
         ↓
 AGENTS.md + durable architecture / conventions / ADRs
         ↓
