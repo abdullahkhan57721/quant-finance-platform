@@ -142,8 +142,7 @@ def main() -> int:
 
     print(f"v{installed} release verification passed")
     print(
-        "M7: 10 training / 4 held-out; "
-        f"price RMSE {bs_rmse:.3f} -> {heston_rmse:.3f}"
+        f"M7: 10 training / 4 held-out; price RMSE {bs_rmse:.3f} -> {heston_rmse:.3f}"
     )
     print(
         "M8: heavy-workload speedups "
