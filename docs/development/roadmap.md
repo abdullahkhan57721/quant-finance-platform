@@ -54,27 +54,44 @@ Within equal priority, use roadmap order, dependency-unblocking value, then lowe
 | UI3 | Dynamic Hedging, Market Evidence & Scalar Inference | MERGED | P1 | UI2, M3, M4 | M5 | UI4 | #32 | #33 | native Workbench docs + history |
 | UI4 | Heston Forward Valuation, Calibration & Identifiability | MERGED | P1 | UI3, M5, M6 | M7 | UI5 | #38 | #39 | native Workbench docs + history |
 | UI5 | Validation, Model Risk & Product Hardening | MERGED | P1 | UI4, M7, M8 | — | M9 | #43 | #44 | `docs/models/ui5_validation_model_risk_and_product_hardening.md` + history |
-| M9 | Portfolio-Quality v0.1 Release | READY | P0 | M8, UI5 | Issue #7 only with shared-doc coordination | v0.1 completion | create on activation | — | [`milestones/M9.md`](milestones/M9.md) |
+| M9 | Portfolio-Quality v0.1 Release | MERGED | P0 | M8, UI5 | — | planned v0.1 complete | #50 | #51 | [`milestones/M9.md`](milestones/M9.md) |
 
 Issue/PR identifiers above are historical navigation where known; live GitHub state is authoritative.
 
-## Current READY frontier
+## Current product frontier
 
 ```text
-P0  M9 — Portfolio-Quality v0.1 Release
+No committed READY product milestone.
 ```
 
-M9 is the default next product work because M8 and UI5 are both `MERGED`.
+M9 is repository-defined `MERGED` because PR #51 was squash-merged and the required post-merge Core, Release Verification, and Desktop workflows all succeeded on exact `main` commit:
 
-Independent repository maintenance:
+```text
+6237ccad3ec27153c294a84da32350b0bd1b12c1
+```
+
+The committed v0.1 product roadmap therefore ends at M9.
+
+Independent repository maintenance remains:
 
 ```text
 P2  Issue #7 — Add cognitive-complexity quality gate
 ```
 
-Issue #7 is not a product milestone. It may run in a separate worktree alongside M9 only if shared documentation edits are coordinated and both branches are reconciled against current `main` before exact-head validation.
+Issue #7 is not a product milestone and does not unlock another quantitative milestone.
 
-There are no other committed future product milestones on the current roadmap.
+## v0.1 publication state
+
+Repository implementation and verification are complete. At the M9 closeout snapshot, live GitHub shows **no published Release**.
+
+Therefore:
+
+```text
+M9 repository milestone        MERGED
+v0.1.0 tag/release publication pending until live GitHub shows it
+```
+
+Publishing the already-verified `v0.1.0` release is a post-verification release operation, not a new roadmap node. Do not report publication as complete from documentation alone; inspect live GitHub Releases/tags.
 
 ## Dependency narrative
 
@@ -106,6 +123,8 @@ M1 -> UI1 -> UI2
 M8 + UI5
     ↓
    M9
+    ↓
+planned v0.1 product roadmap complete
 ```
 
 The earned research story remains:
@@ -120,22 +139,30 @@ theory
 -> predeclared held-out model comparison
 -> measured optimization
 -> validation-first native presentation/product hardening
--> release
+-> verified v0.1 release surface
 ```
 
-## M9 boundary
+## M9 completion boundary
 
-M9 consolidates rather than broadens scope. It consumes the earned M1–M8 and UI1–UI5 evidence stack, including:
+M9 consolidated rather than broadened scope. It consumes the earned M1–M8 and UI1–UI5 evidence stack and leaves:
 
+- package version `0.1.0`;
+- a reviewer-facing release guide and changelog;
+- clean non-editable install verification;
+- deterministic network-free verification of committed M7/M8 release evidence;
+- a tested native Workbench source-launch path;
+- an Ubuntu 24.04 x86_64 standalone build/packaged-launch proof;
 - the bounded M7 same-date held-out Black-Scholes vs Heston comparison;
 - the M8 measured Python/NumPy optimization result;
 - the explicit M8 decision that C++ is not justified for current v0.1 workloads; and
-- the completed UI5 native Workbench.
+- no unsupported cross-platform installer/signing claims.
 
-See the durable M9 spec for scope, non-goals, release validation, and completion requirements.
+See the durable M9 spec and `docs/release/v0.1.md` for the authoritative release boundary.
 
 ## Post-v0.1 directions are not READY milestones
 
 Potential later specializations include rates, XVA/counterparty credit, portfolio market risk, and possibly rough-volatility research after reviewing then-current literature and v0.1 limitations.
 
 These are **directions, not executable milestones**. They have no status, priority, dependency graph entry, or implementation permission until a future planning pass justifies them and creates durable specs from repository evidence.
+
+A fresh agent must not invent an M10 simply because M9 is complete.
