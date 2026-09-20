@@ -7,7 +7,7 @@ The quantitative-finance platform has completed and repository-verified:
 ~~~text
 M0, M0A, M1, M2, M3, M4, M5, M6, M7, M8, M9
 UI1, UI2, UI3, UI4, UI5
-F1, F2
+F1, F2, F3
 ~~~
 
 ADR 0002 remains the mathematical architecture authority. ADR 0003 remains the native PySide6 + Qt Quick/QML authority.
@@ -44,7 +44,7 @@ Issue #7 is not part of the F-series dependency chain.
 
 ### ACTIVE / REVIEW
 
-**F4 — Dash/Plotly Internal Analytics Workbench** is ACTIVE in Issue #61 / PR #62 on branch `f4-61-dash-analytics`.
+**F4 — Dash/Plotly Internal Analytics Workbench** is in REVIEW in Issue #61 / PR #62 on branch `f4-61-dash-analytics`.
 
 F1/F2/F3 are verified MERGED. F4 owns only the Dash/Plotly sibling client and its minimum web-specific services, renderer, tests, documentation, and CI; quantitative authority remains in the existing application/core layers.
 
@@ -54,7 +54,7 @@ A fresh agent asked to continue development should:
 
 1. verify current main and live Issues/PRs;
 2. recover F4 Issue #61 / PR #62 rather than duplicating work;
-3. execute F4 through exact-head validation and the human merge gate;
+3. inspect F4 exact-head validation and preserve the human merge gate;
 4. keep F5 BLOCKED until F4 is repository-defined MERGED.
 
 No copied milestone prompt is required.
