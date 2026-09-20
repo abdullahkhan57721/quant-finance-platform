@@ -168,6 +168,12 @@ def test_flagship_validation_exports_are_auditable(tmp_path: Path) -> None:
     assert "conditioning" in workbook.sheetnames
     assert "provenance" in workbook.sheetnames
     assert workbook["heldout_metrics"]["E2"].value == heldout.rows[0][4]
+    assert all(
+        cell.data_type != "f"
+        for worksheet in workbook.worksheets
+        for row in worksheet.iter_rows()
+        for cell in row
+    )
 
     payload = json.loads(paths.json.read_text(encoding="utf-8"))
     assert payload["schema"] == "qf-platform-tabular-report-v1"
