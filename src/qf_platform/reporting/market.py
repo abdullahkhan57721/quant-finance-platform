@@ -66,7 +66,9 @@ def market_iv_report(
                 "annual decimal",
             ),
             ReportField("quote_normalization", "explicit European PM midpoint"),
-            ReportField(\n                "inverse_method", "Black-Scholes implied volatility by bisection"\n            ),
+            ReportField(
+                "inverse_method", "Black-Scholes implied volatility by bisection"
+            ),
         ),
         tables=(
             ReportTable(
