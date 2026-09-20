@@ -93,7 +93,7 @@ def test_validation_notebook_keeps_m7_claims_bounded() -> None:
     assert "same-date cross-sectional" in text
     assert "not temporal out-of-sample forecasting" in text
     assert "not a historical trading-profit result" in text
-    assert "not evidence of heston hedge superiority" in text
+    assert "does not establish heston hedge superiority" in text
 
 
 def test_hedging_notebook_keeps_model_generated_boundary_visible() -> None:
