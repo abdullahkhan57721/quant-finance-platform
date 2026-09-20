@@ -61,18 +61,18 @@ Within equal priority, use roadmap order, dependency-unblocking value, then lowe
 | F2 | Reproducible Jupyter Research Studies | MERGED | P1 | F1 | F3, F4 | F5 | #57 | #58 | milestones/F2.md |
 | F3 | Analyst Interoperability & Structured Exports | MERGED | P1 | F1 | F2, F4 | F5 | #59 | #60 | milestones/F3.md |
 | F4 | Dash/Plotly Internal Analytics Workbench | MERGED | P1 | F1 | F2, F3 | F5 | #61 | #62 | milestones/F4.md |
-| F5 | Multi-Surface Integration & Portfolio Documentation | ACTIVE | P1 | F2, F3, F4 | — | — | #63 | create on activation | milestones/F5.md |
+| F5 | Multi-Surface Integration & Portfolio Documentation | REVIEW | P1 | F2, F3, F4 | — | — | #63 | #65 | milestones/F5.md |
 
 Issue/PR identifiers above are historical navigation where known; live GitHub state is authoritative.
 
 ## Current product frontier
 
 ~~~text
-P1 ACTIVE
-F5 — Multi-Surface Integration & Portfolio Documentation — Issue #63
+P1 REVIEW
+F5 — Multi-Surface Integration & Portfolio Documentation — Issue #63 / PR #65
 ~~~
 
-F1–F4 are squash-merged and post-merge verified on main. F5 is the active integration milestone.
+F1–F4 are squash-merged and post-merge verified on main. F5 is in final review/validation.
 
 Independent repository maintenance remains:
 
