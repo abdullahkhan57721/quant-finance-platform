@@ -184,7 +184,14 @@ def _render_valuation(presentation: M2WorkbenchPresentation) -> html.Div:
                 "Valuation comparison",
                 [
                     _simple_table(
-                        ("Method", "Configuration", "PV", "Difference", "Evidence", "Status"),
+                        (
+                            "Method",
+                            "Configuration",
+                            "PV",
+                            "Difference",
+                            "Evidence",
+                            "Status",
+                        ),
                         (
                             (
                                 row.method,
@@ -203,7 +210,14 @@ def _render_valuation(presentation: M2WorkbenchPresentation) -> html.Div:
                 "Greeks",
                 [
                     _simple_table(
-                        ("Greek", "Analytic", "Finite difference", "Difference", "Units", "Status"),
+                        (
+                            "Greek",
+                            "Analytic",
+                            "Finite difference",
+                            "Difference",
+                            "Units",
+                            "Status",
+                        ),
                         (
                             (
                                 row.greek,
@@ -230,8 +244,13 @@ def _render_valuation(presentation: M2WorkbenchPresentation) -> html.Div:
 def _render_hedging(presentation: HedgeWorkbenchPresentation) -> html.Div:
     return html.Div(
         [
-            _section("Selected replication path", [_presentation_rows(presentation.result_rows)]),
-            _section("Aggregate evidence", [_presentation_rows(presentation.aggregate_rows)]),
+            _section(
+                "Selected replication path",
+                [_presentation_rows(presentation.result_rows)],
+            ),
+            _section(
+                "Aggregate evidence", [_presentation_rows(presentation.aggregate_rows)]
+            ),
             _section(
                 "Rebalance cadence",
                 [
@@ -271,8 +290,14 @@ def _render_market(presentation: MarketWorkbenchPresentation) -> html.Div:
     )
     return html.Div(
         [
-            _section("Derived empirical summary", [_presentation_rows(presentation.empirical_summary_rows)]),
-            _section("Empirical provenance", [_presentation_rows(presentation.empirical_provenance_rows)]),
+            _section(
+                "Derived empirical summary",
+                [_presentation_rows(presentation.empirical_summary_rows)],
+            ),
+            _section(
+                "Empirical provenance",
+                [_presentation_rows(presentation.empirical_provenance_rows)],
+            ),
             _section(
                 "Observation → normalization → inference",
                 [
