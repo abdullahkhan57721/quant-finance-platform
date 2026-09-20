@@ -106,7 +106,7 @@ def _start_rows(
     phase: str,
     starts: tuple[HestonStartEvidence, ...],
 ) -> tuple[tuple[ReportValue, ...], ...]:
-    rows = []
+    rows: list[tuple[ReportValue, ...]] = []
     for index, start in enumerate(starts, start=1):
         initial = start.initial_guess.as_vector()
         result = start.result
