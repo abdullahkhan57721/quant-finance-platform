@@ -9,7 +9,7 @@ from qf_platform.pricing import (
     MonteCarloValuationResult,
 )
 
-from .model import ReportColumn, ReportField, ReportTable, TabularReport
+from .model import ReportColumn, ReportField, ReportTable, ReportValue, TabularReport
 
 
 def valuation_greeks_report(
@@ -26,7 +26,7 @@ def valuation_greeks_report(
     if not isinstance(numeraire, FlatMoneyMarketNumeraire):
         raise TypeError("M2 reporting requires a flat money-market numeraire")
 
-    valuation_rows = []
+    valuation_rows: list[tuple[ReportValue, ...]] = []
     for run in analysis.valuations:
         result = run.result
         standard_error = None
@@ -53,7 +53,7 @@ def valuation_greeks_report(
             )
         )
 
-    greek_rows = []
+    greek_rows: list[tuple[ReportValue, ...]] = []
     for run in analysis.sensitivities:
         analytic = run.analytic_result
         finite_difference = run.finite_difference_result
