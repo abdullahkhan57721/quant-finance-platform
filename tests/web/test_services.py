@@ -2,8 +2,11 @@
 
 from __future__ import annotations
 
+from typing import TypeVar
+
 from qf_platform.web.services import (
     HedgingInputs,
+    ServiceResult,
     ValuationInputs,
     load_m6_market_reference_service,
     load_market_service,
@@ -15,8 +18,10 @@ from qf_platform.web.services import (
     run_valuation_service,
 )
 
+T = TypeVar("T")
 
-def _require_value(result):
+
+def _require_value(result: ServiceResult[T]) -> T:
     assert result.error is None
     assert result.value is not None
     return result.value
