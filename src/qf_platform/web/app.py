@@ -107,13 +107,17 @@ def _section(title: str, children: Iterable[object]) -> html.Section:
     )
 
 
-def _simple_table(headers: Sequence[str], rows: Iterable[Sequence[object]]) -> html.Table:
+def _simple_table(
+    headers: Sequence[str], rows: Iterable[Sequence[object]]
+) -> html.Table:
     return html.Table(
         [
             html.Thead(html.Tr([html.Th(header) for header in headers])),
             html.Tbody(
                 [
-                    html.Tr([html.Td("" if value is None else str(value)) for value in row])
+                    html.Tr(
+                        [html.Td("" if value is None else str(value)) for value in row]
+                    )
                     for row in rows
                 ]
             ),
@@ -138,7 +142,10 @@ def _graphs(*plots: PlotData) -> html.Div:
             )
             for plot in plots
         ],
-        style={"display": "grid", "gridTemplateColumns": "repeat(auto-fit, minmax(420px, 1fr))"},
+        style={
+            "display": "grid",
+            "gridTemplateColumns": "repeat(auto-fit, minmax(420px, 1fr))",
+        },
     )
 
 
@@ -270,12 +277,23 @@ def _render_market(presentation: MarketWorkbenchPresentation) -> html.Div:
                 "Observation → normalization → inference",
                 [
                     _simple_table(
-                        ("Contract", "Expiry", "Strike", "Right", "Target", "Implied vol", "Status"),
+                        (
+                            "Contract",
+                            "Expiry",
+                            "Strike",
+                            "Right",
+                            "Target",
+                            "Implied vol",
+                            "Status",
+                        ),
                         observation_rows,
                     )
                 ],
             ),
-            _graphs(presentation.empirical_smile_plot, presentation.empirical_conditioning_plot),
+            _graphs(
+                presentation.empirical_smile_plot,
+                presentation.empirical_conditioning_plot,
+            ),
         ]
     )
 
@@ -284,8 +302,13 @@ def _render_heston_pricing(presentation: HestonPricingPresentation) -> html.Div:
     return html.Div(
         [
             _section("Heston model", [_presentation_rows(presentation.parameter_rows)]),
-            _section("Independent valuation evidence", [_presentation_rows(presentation.result_rows)]),
-            _graphs(presentation.method_comparison_plot, presentation.fourier_stability_plot),
+            _section(
+                "Independent valuation evidence",
+                [_presentation_rows(presentation.result_rows)],
+            ),
+            _graphs(
+                presentation.method_comparison_plot, presentation.fourier_stability_plot
+            ),
         ]
     )
 
@@ -295,16 +318,30 @@ def _render_heston_calibration(
     market_reference: M6MarketReferencePresentation | None,
 ) -> html.Div:
     children: list[object] = [
-        _section("Synthetic calibration question", [_presentation_rows(presentation.problem_rows)]),
-        _section("Multiple starts and estimates", [_presentation_rows(presentation.run_rows)]),
-        _section("Conditioning / identifiability", [_presentation_rows(presentation.conditioning_rows)]),
+        _section(
+            "Synthetic calibration question",
+            [_presentation_rows(presentation.problem_rows)],
+        ),
+        _section(
+            "Multiple starts and estimates", [_presentation_rows(presentation.run_rows)]
+        ),
+        _section(
+            "Conditioning / identifiability",
+            [_presentation_rows(presentation.conditioning_rows)],
+        ),
         _graphs(presentation.objective_plot, presentation.residual_plot),
     ]
     if market_reference is not None:
         children.extend(
             [
-                _section("Recorded SPX calibration reference", [_presentation_rows(market_reference.summary_rows)]),
-                _section("Recorded conditioning", [_presentation_rows(market_reference.conditioning_rows)]),
+                _section(
+                    "Recorded SPX calibration reference",
+                    [_presentation_rows(market_reference.summary_rows)],
+                ),
+                _section(
+                    "Recorded conditioning",
+                    [_presentation_rows(market_reference.conditioning_rows)],
+                ),
             ]
         )
     return html.Div(children)
@@ -316,9 +353,17 @@ def _render_validation(
 ) -> html.Div:
     children: list[object] = [
         _section("Validation design", [_presentation_rows(presentation.summary_rows)]),
-        _section("Held-out metrics", [_presentation_rows(presentation.evaluation_metric_rows)]),
-        _section("Model-risk limits", [_presentation_rows(presentation.model_risk_rows)]),
-        _section("Heston stability / conditioning", [_presentation_rows(presentation.stability_rows)]),
+        _section(
+            "Held-out metrics",
+            [_presentation_rows(presentation.evaluation_metric_rows)],
+        ),
+        _section(
+            "Model-risk limits", [_presentation_rows(presentation.model_risk_rows)]
+        ),
+        _section(
+            "Heston stability / conditioning",
+            [_presentation_rows(presentation.stability_rows)],
+        ),
         _graphs(
             presentation.residual_plot,
             presentation.held_out_error_plot,
@@ -328,8 +373,14 @@ def _render_validation(
     if performance is not None:
         children.extend(
             [
-                _section("Recorded M8 performance evidence", [_presentation_rows(performance.workload_rows)]),
-                _section("Native-code decision", [_presentation_rows(performance.native_decision_rows)]),
+                _section(
+                    "Recorded M8 performance evidence",
+                    [_presentation_rows(performance.workload_rows)],
+                ),
+                _section(
+                    "Native-code decision",
+                    [_presentation_rows(performance.native_decision_rows)],
+                ),
                 _graphs(performance.runtime_plot),
             ]
         )
@@ -338,11 +389,23 @@ def _render_validation(
 
 def _overview_layout() -> html.Div:
     families = (
-        ("Pricing & Greeks", "Forward valuation, numerical cross-validation, sensitivities"),
-        ("Dynamic Hedging", "Replication error, cadence, misspecification, transaction costs"),
-        ("Market / IV", "Observed quotes, normalization, inversion, skew and conditioning"),
+        (
+            "Pricing & Greeks",
+            "Forward valuation, numerical cross-validation, sensitivities",
+        ),
+        (
+            "Dynamic Hedging",
+            "Replication error, cadence, misspecification, transaction costs",
+        ),
+        (
+            "Market / IV",
+            "Observed quotes, normalization, inversion, skew and conditioning",
+        ),
         ("Heston", "Independent forward valuation, calibration, local identifiability"),
-        ("Model Validation", "Predeclared train/held-out comparison and bounded conclusions"),
+        (
+            "Model Validation",
+            "Predeclared train/held-out comparison and bounded conclusions",
+        ),
         ("Performance", "Revision-pinned M8 evidence and measured no-C++ decision"),
     )
     return html.Div(
@@ -387,15 +450,30 @@ def _valuation_layout() -> html.Div:
                     _input("Strike", "val-strike", defaults.strike),
                     _input("Valuation date", "val-date", defaults.valuation_date),
                     _input("Expiry", "val-expiry", defaults.expiry),
-                    _input("Annualized volatility", "val-vol", defaults.annualized_volatility),
-                    _input("Continuously compounded rate", "val-rate", defaults.continuously_compounded_rate),
-                    _input("Continuous dividend yield", "val-q", defaults.continuous_dividend_yield),
-                    _dropdown("Right", "val-right", defaults.option_right, (("Call", "call"), ("Put", "put"))),
+                    _input(
+                        "Annualized volatility",
+                        "val-vol",
+                        defaults.annualized_volatility,
+                    ),
+                    _input(
+                        "Continuously compounded rate",
+                        "val-rate",
+                        defaults.continuously_compounded_rate,
+                    ),
+                    _input(
+                        "Continuous dividend yield",
+                        "val-q",
+                        defaults.continuous_dividend_yield,
+                    ),
                     _dropdown(
                         "Selected valuation",
                         "val-method",
                         defaults.valuation_method,
-                        (("Analytic", "analytic"), ("CRR", "crr"), ("Monte Carlo", "monte_carlo")),
+                        (
+                            ("Analytic", "analytic"),
+                            ("CRR", "crr"),
+                            ("Monte Carlo", "monte_carlo"),
+                        ),
                     ),
                     _input("CRR steps", "val-crr", defaults.crr_steps),
                     _input("MC paths", "val-mc-paths", defaults.monte_carlo_paths),
@@ -404,13 +482,26 @@ def _valuation_layout() -> html.Div:
                         "Greek",
                         "val-greek",
                         defaults.selected_greek,
-                        (("Delta", "delta"), ("Gamma", "gamma"), ("Vega", "vega"), ("Theta", "theta"), ("Rho", "rho")),
+                        (
+                            ("Delta", "delta"),
+                            ("Gamma", "gamma"),
+                            ("Vega", "vega"),
+                            ("Theta", "theta"),
+                            ("Rho", "rho"),
+                        ),
                     ),
                 ],
                 style=_GRID_STYLE,
             ),
-            html.Button("Run valuation study", id="val-run", n_clicks=0, style=_BUTTON_STYLE),
-            dcc.Loading(html.Div(id="val-output", children=_prompt("Run the study to generate evidence."))),
+            html.Button(
+                "Run valuation study", id="val-run", n_clicks=0, style=_BUTTON_STYLE
+            ),
+            dcc.Loading(
+                html.Div(
+                    id="val-output",
+                    children=_prompt("Run the study to generate evidence."),
+                )
+            ),
         ]
     )
 
@@ -420,25 +511,55 @@ def _hedging_layout() -> html.Div:
     return html.Div(
         [
             html.H2("Dynamic Hedging"),
-            html.P("Pricing-measure model-generated replication experiment; not a historical trading backtest."),
+            html.P(
+                "Pricing-measure model-generated replication experiment; not a historical trading backtest."
+            ),
             html.Div(
                 [
                     _input("Spot", "hedge-spot", defaults.spot),
                     _input("Strike", "hedge-strike", defaults.strike),
                     _input("Valuation date", "hedge-date", defaults.valuation_date),
                     _input("Expiry", "hedge-expiry", defaults.expiry),
-                    _dropdown("Right", "hedge-right", defaults.option_right, (("Call", "call"), ("Put", "put"))),
-                    _input("Generating volatility", "hedge-gen-vol", defaults.generating_volatility),
-                    _input("Hedging volatility", "hedge-hedge-vol", defaults.hedging_volatility),
-                    _input("Rebalance interval (days)", "hedge-days", defaults.rebalance_day_interval),
+                    _dropdown(
+                        "Right",
+                        "hedge-right",
+                        defaults.option_right,
+                        (("Call", "call"), ("Put", "put")),
+                    ),
+                    _input(
+                        "Generating volatility",
+                        "hedge-gen-vol",
+                        defaults.generating_volatility,
+                    ),
+                    _input(
+                        "Hedging volatility",
+                        "hedge-hedge-vol",
+                        defaults.hedging_volatility,
+                    ),
+                    _input(
+                        "Rebalance interval (days)",
+                        "hedge-days",
+                        defaults.rebalance_day_interval,
+                    ),
                     _input("Seed", "hedge-seed", defaults.seed),
                     _input("Replicates", "hedge-reps", defaults.replicate_count),
-                    _input("Transaction cost rate", "hedge-cost", defaults.transaction_cost_rate),
+                    _input(
+                        "Transaction cost rate",
+                        "hedge-cost",
+                        defaults.transaction_cost_rate,
+                    ),
                 ],
                 style=_GRID_STYLE,
             ),
-            html.Button("Run hedge study", id="hedge-run", n_clicks=0, style=_BUTTON_STYLE),
-            dcc.Loading(html.Div(id="hedge-output", children=_prompt("Run the study to generate replication evidence."))),
+            html.Button(
+                "Run hedge study", id="hedge-run", n_clicks=0, style=_BUTTON_STYLE
+            ),
+            dcc.Loading(
+                html.Div(
+                    id="hedge-output",
+                    children=_prompt("Run the study to generate replication evidence."),
+                )
+            ),
         ]
     )
 
@@ -447,9 +568,18 @@ def _market_layout() -> html.Div:
     return html.Div(
         [
             html.H2("Market / Implied Volatility"),
-            html.P("Package-safe M4 evidence; default operation performs no network retrieval."),
-            html.Button("Load market evidence", id="market-run", n_clicks=0, style=_BUTTON_STYLE),
-            dcc.Loading(html.Div(id="market-output", children=_prompt("Load the package-safe M4 evidence."))),
+            html.P(
+                "Package-safe M4 evidence; default operation performs no network retrieval."
+            ),
+            html.Button(
+                "Load market evidence", id="market-run", n_clicks=0, style=_BUTTON_STYLE
+            ),
+            dcc.Loading(
+                html.Div(
+                    id="market-output",
+                    children=_prompt("Load the package-safe M4 evidence."),
+                )
+            ),
         ]
     )
 
@@ -461,9 +591,21 @@ def _heston_layout() -> html.Div:
             _section(
                 "Forward valuation",
                 [
-                    html.P("Run the default typed M5 problem through independent Fourier and Monte Carlo methods."),
-                    html.Button("Run Heston pricing", id="heston-price-run", n_clicks=0, style=_BUTTON_STYLE),
-                    dcc.Loading(html.Div(id="heston-price-output", children=_prompt("Run the pricing study."))),
+                    html.P(
+                        "Run the default typed M5 problem through independent Fourier and Monte Carlo methods."
+                    ),
+                    html.Button(
+                        "Run Heston pricing",
+                        id="heston-price-run",
+                        n_clicks=0,
+                        style=_BUTTON_STYLE,
+                    ),
+                    dcc.Loading(
+                        html.Div(
+                            id="heston-price-output",
+                            children=_prompt("Run the pricing study."),
+                        )
+                    ),
                 ],
             ),
             _section(
@@ -473,7 +615,22 @@ def _heston_layout() -> html.Div:
                         "Synthetic calibration study",
                         "heston-cal-mode",
                         "recovery",
-                        (("Truth recovery", "recovery"), ("Thin non-identifiability", "thin")),
+                        (
+                            ("Truth recovery", "recovery"),
+                            ("Thin non-identifiability", "thin"),
+                        ),
+                    ),
+                    html.Button(
+                        "Run Heston calibration",
+                        id="heston-cal-run",
+                        n_clicks=0,
+                        style=_BUTTON_STYLE,
+                    ),
+                    dcc.Loading(
+                        html.Div(
+                            id="heston-cal-output",
+                            children=_prompt("Run the calibration study."),
+                        )
                     ),
                     html.Button("Run Heston calibration", id="heston-cal-run", n_clicks=0, style=_BUTTON_STYLE),
                     dcc.Loading(html.Div(id="heston-cal-output", children=_prompt("Run the calibration study."))),
@@ -490,8 +647,18 @@ def _validation_layout() -> html.Div:
             html.P(
                 "Predeclared same-date cross-sectional M7 holdout plus revision-pinned M8 performance evidence."
             ),
-            html.Button("Run validation study", id="validation-run", n_clicks=0, style=_BUTTON_STYLE),
-            dcc.Loading(html.Div(id="validation-output", children=_prompt("Run the reference validation study."))),
+            html.Button(
+                "Run validation study",
+                id="validation-run",
+                n_clicks=0,
+                style=_BUTTON_STYLE,
+            ),
+            dcc.Loading(
+                html.Div(
+                    id="validation-output",
+                    children=_prompt("Run the reference validation study."),
+                )
+            ),
         ]
     )
 
