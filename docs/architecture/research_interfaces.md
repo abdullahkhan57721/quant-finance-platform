@@ -126,3 +126,42 @@ Committed `.ipynb` files deliberately retain no execution counts or outputs.
 public-import direction, output-free contract, and important model-risk
 non-claims. This keeps notebook diffs stable without weakening executable
 verification.
+
+
+## F3 structured reporting boundary
+
+F3 adds another concrete sibling client downstream of the F1 application/domain
+contracts:
+
+```text
+typed quantitative result/evidence
+            ↓
+concrete workflow report adapter
+            ↓
+limited tabular report values
+            ↓
+XLSX / CSV / JSON
+```
+
+The shared `ReportField` / `ReportColumn` / `ReportTable` / `TabularReport`
+values exist only because the M2, M3, M4, M6, and M7/M8 exporters share the same
+small rectangular-export responsibility. They are not an arbitrary-object
+serializer, dataframe layer, formula language, workflow engine, or quantitative
+result hierarchy.
+
+Concrete adapters read existing immutable evidence and copy source values into
+explicit schemas. They do not import or invoke pricing, sensitivity, hedge,
+inference, calibration, or validation execution functions. Units, assumptions,
+provenance, partitions, conditioning, and non-claims travel with the exported
+evidence rather than being inferred from spreadsheet formatting.
+
+CSV and JSON are supported by the base reporting package with standard-library
+dependencies. XLSX rendering lazily imports the optional `reporting` dependency,
+so OpenPyXL does not become a quantitative-core dependency. Workbooks contain
+values rather than financial formulas, and generated binaries are temporary
+artifacts rather than committed authorities.
+
+The flagship validation report intentionally keeps training evidence, held-out
+evidence, residuals, calibration starts, parameter stability, conditioning,
+provenance, model-risk limitations, and revision-pinned M8 performance evidence
+in separate tables/sheets.
