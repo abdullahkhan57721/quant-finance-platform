@@ -10,7 +10,7 @@ from .app import create_dash_app
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Run the local quant-finance Dash workbench.")
+    parser = argparse.ArgumentParser(\n        description="Run the local quant-finance Dash workbench."\n    )
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--port", type=int, default=8050)
     parser.add_argument("--debug", action="store_true")
