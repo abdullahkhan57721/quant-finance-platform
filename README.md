@@ -87,7 +87,7 @@ The committed evidence includes the [SPX Black-Scholes vs Heston held-out compar
 
 ## Status
 
-**M0–M9, UI1–UI5, F1, and F2 are complete. F3 structured exports are squash-merged pending post-merge verification; F4 Dash/Plotly analytics is active.**
+**M0–M9, UI1–UI5, and F1–F3 are complete. F4 Dash/Plotly analytics is active.**
 
 The implemented research arc is:
 
