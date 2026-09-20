@@ -15,7 +15,9 @@ Implemented pressure now includes:
 - M6 — noisy multi-parameter calibration and identifiability evidence;
 - M7 — predeclared empirical validation / model-risk comparison;
 - M8 — profiling-driven Python/NumPy performance engineering and the measured decision not to add C++; and
-- UI1–UI5 — frontend-neutral application/presentation seams consumed by the native Qt Workbench.
+- UI1–UI5 — frontend-neutral application/presentation seams consumed by the native Qt Workbench;
+- F1–F4 — public Python research access, reproducible notebooks, analyst exports, and Dash/Plotly analytics; and
+- F5 — active integration of the sibling interfaces, clean-install evidence, and cross-surface consistency.
 
 ADR 0002 is the platform-wide mathematical architecture authority. ADR 0003 governs the native PySide6 + Qt Quick/QML workbench boundary.
 
@@ -436,7 +438,7 @@ remaining absolute cost does not justify C++
 
 Python remains the semantic/correctness authority. Native acceleration may be reconsidered only after materially different workloads and new profiling evidence identify a worthwhile narrow numerical boundary.
 
-The current F-series extends **downstream consumption**, not quantitative authority:
+The F-series extends **downstream consumption**, not quantitative authority:
 
 ~~~text
 quantitative core / committed evidence
@@ -446,7 +448,7 @@ frontend-neutral application/research semantics
   Python / Jupyter / exports / Dash / Qt
 ~~~
 
-F1 must first audit the existing qf_platform.application and public domain surfaces. New interface-specific adapters may be added only downstream. Notebooks, XLSX/CSV/JSON exporters, Dash callbacks, and Qt controllers must not become alternate pricing/calibration/validation implementations.
+F1 audited the existing `qf_platform.application` and public domain surfaces; F2–F4 added concrete downstream clients, and F5 integrates them. New interface-specific adapters may be added only downstream. Notebooks, XLSX/CSV/JSON exporters, Dash callbacks, and Qt controllers must not become alternate pricing/calibration/validation implementations.
 
 Do not create a universal cross-client UI framework merely because multiple clients exist. Extract only shared frontend-neutral responsibilities that have real repeated consumers.
 
@@ -473,6 +475,10 @@ Avoid:
 Create an ADR when a decision is durable, consequential, and difficult to infer from code plus this index. M2–M7 are concrete extensions of ADR 0002 rather than architectural contradictions requiring a superseding ADR.
 
 Do not rewrite historical ADRs to hide evolution; supersede them only when architecture truly changes.
+
+## Multi-surface interface architecture
+
+The [research and multi-surface interface contract](research_interfaces.md) records the public Python seam, Jupyter/reporting/web client boundaries, F5 interface matrix, canonical consistency invariant, and clean-install dependency evidence.
 
 ## F1 research interface audit
 
