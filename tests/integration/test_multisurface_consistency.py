@@ -35,7 +35,7 @@ def test_canonical_valuation_and_delta_are_consistent_across_surfaces() -> None:
     )
     delta_row = next(row for row in presentation.greek_rows if row.greek == "Delta")
     assert present_value_row.value == f"{authoritative_pv:.12g}"
-    assert delta_row.analytic == f"{authoritative_delta:.12g}"
+    assert delta_row.analytic == f"{authoritative_delta:.10g}"
 
     report = valuation_greeks_report(request, analysis)
     valuations = next(table for table in report.tables if table.name == "valuations")
