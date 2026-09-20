@@ -139,7 +139,9 @@ def valuation_greeks_report(
                     (
                         point.steps,
                         point.supported,
-                        point.result.present_value if point.result is not None else None,
+                        point.result.present_value
+                        if point.result is not None
+                        else None,
                     )
                     for point in analysis.crr_convergence
                 ),
