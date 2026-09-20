@@ -168,7 +168,7 @@ M9 remains MERGED history and its package/release docs remain valid records of w
 
 However:
 
-- there is no current requirement to publish a v0.1.0 GitHub Release/tag;
+- there is no current requirement to publish a GitHub Release/tag;
 - no future milestone is blocked on release publication;
 - the project does not stop at M9;
 - future roadmap work does not need to be organized around semantic versions.
