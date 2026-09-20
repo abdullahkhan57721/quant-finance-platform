@@ -1,6 +1,10 @@
 """Plotly terminal-renderer tests over renderer-neutral PlotData."""
 
+# pyright: reportAny=false, reportUnknownArgumentType=false, reportUnknownMemberType=false, reportUnknownVariableType=false
+
 from __future__ import annotations
+
+import pytest
 
 from qf_platform.presentation import PlotData, PlotPoint, PlotSeries
 from qf_platform.web.plotly_adapter import figure_from_plot_data
@@ -27,6 +31,6 @@ def test_plotly_adapter_preserves_points_and_uncertainty() -> None:
     trace = payload["data"][0]
     assert list(trace["x"]) == [1.0, 2.0]
     assert list(trace["y"]) == [2.0, 3.0]
-    assert list(trace["error_y"]["array"]) == [0.7, 0.0]
-    assert list(trace["error_y"]["arrayminus"]) == [0.5, 0.0]
+    assert list(trace["error_y"]["array"]) == pytest.approx([0.7, 0.0])
+    assert list(trace["error_y"]["arrayminus"]) == pytest.approx([0.5, 0.0])
     assert payload["layout"]["title"]["text"] == "Evidence"
