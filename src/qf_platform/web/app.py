@@ -632,8 +632,6 @@ def _heston_layout() -> html.Div:
                             children=_prompt("Run the calibration study."),
                         )
                     ),
-                    html.Button("Run Heston calibration", id="heston-cal-run", n_clicks=0, style=_BUTTON_STYLE),
-                    dcc.Loading(html.Div(id="heston-cal-output", children=_prompt("Run the calibration study."))),
                 ],
             ),
         ]
