@@ -98,10 +98,11 @@ def _failure[T](exc: Exception) -> ServiceResult[T]:
 
 
 def run_valuation_service(
-    inputs: ValuationInputs = ValuationInputs(),
+    inputs: ValuationInputs | None = None,
 ) -> ServiceResult[M2WorkbenchPresentation]:
     """Run M2 through existing Draft/request/application/presentation contracts."""
 
+    inputs = inputs or ValuationInputs()
     try:
         composition = compose_black_scholes_study(
             BlackScholesStudyDraft(
@@ -134,10 +135,11 @@ def run_valuation_service(
 
 
 def run_hedging_service(
-    inputs: HedgingInputs = HedgingInputs(),
+    inputs: HedgingInputs | None = None,
 ) -> ServiceResult[HedgeWorkbenchPresentation]:
     """Run M3 through the existing hedge workbench; browser code owns no accounting."""
 
+    inputs = inputs or HedgingInputs()
     try:
         composition = compose_black_scholes_study(
             BlackScholesStudyDraft(
