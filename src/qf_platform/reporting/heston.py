@@ -7,7 +7,7 @@ from qf_platform.application import (
     HestonCalibrationWorkbenchRequest,
 )
 
-from .model import ReportColumn, ReportField, ReportTable, TabularReport
+from .model import ReportColumn, ReportField, ReportTable, ReportValue, TabularReport
 
 _PARAMETER_NAMES = ("v0", "kappa", "theta", "xi", "rho")
 
@@ -18,9 +18,9 @@ def heston_calibration_report(
 ) -> TabularReport:
     """Adapt completed M6 calibration/conditioning evidence without optimization."""
 
-    run_rows = []
-    residual_rows = []
-    conditioning_rows = []
+    run_rows: list[tuple[ReportValue, ...]] = []
+    residual_rows: list[tuple[ReportValue, ...]] = []
+    conditioning_rows: list[tuple[ReportValue, ...]] = []
     for run in analysis.runs:
         result = run.result
         estimate = result.estimate.as_vector()
