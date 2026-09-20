@@ -28,7 +28,7 @@ F5  Multi-Surface Integration & Portfolio Documentation
 
 ### ACTIVE — product
 
-**F5 — Multi-Surface Integration & Portfolio Documentation** is ACTIVE in Issue #63 on branch `f5-63-multi-surface-integration`.
+**F5 — Multi-Surface Integration & Portfolio Documentation** is in REVIEW in Issue #63 / PR #65 on branch `f5-63-multi-surface-integration`.
 
 F1/F2/F3/F4 are squash-merged and post-merge verified. F4 is verified on `main` at `076ad9ec059eee4254a3d80e154b722af56ae994`; Core, research notebooks, reporting exports, web analytics, Release Verification, and Desktop standalone packaging all passed.
 
@@ -43,9 +43,9 @@ Issue #7 is not part of the F-series dependency chain.
 A fresh agent asked to continue development should:
 
 1. verify current main and live Issues/PRs;
-2. recover F5 Issue #63 / its active PR rather than duplicating work;
+2. recover F5 Issue #63 / PR #65 rather than duplicating work;
 3. preserve the one-authority / five-sibling-surface architecture;
-4. carry F5 through exact-head validation and the human merge gate;
+4. inspect F5 exact-head validation and preserve the human merge gate;
 5. after verified F5 merge, perform a new repository-grounded planning pass rather than inventing F6 automatically.
 
 No copied milestone prompt is required.
