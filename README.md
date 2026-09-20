@@ -28,8 +28,21 @@ python examples/research/pricing_and_greeks.py
 The [Python research guide](docs/research/python_api.md) maps the public inputs,
 methods and evidence for pricing/Greeks, hedging, market/IV, Heston forward,
 calibration/identifiability, validation and recorded performance. Six standalone
-examples exercise those APIs. Qt remains a sibling client; F2 notebooks, F3
-exports and F4 Dash follow after F1's verified merge.
+examples exercise those APIs.
+
+## Jupyter flagship studies
+
+Install the research tools and execute the three output-free notebooks in memory:
+
+```bash
+python -m pip install -e ".[research]"
+python scripts/check_notebooks.py
+```
+
+See [`notebooks/README.md`](notebooks/README.md) for the pricing/Greeks,
+dynamic-hedging/model-risk, and SPX/Heston-validation studies plus the evidence
+and non-claim boundaries they preserve. Qt remains a sibling client; F3 exports
+and F4 Dash are independent downstream surfaces.
 
 ## Run and verify v0.1
 
@@ -49,7 +62,7 @@ The committed evidence includes the [SPX Black-Scholes vs Heston held-out compar
 
 ## Status
 
-**M0–M9 and UI1–UI5 are complete. F1 curates the Python research surface; the F-series continues development beyond historical release hardening.**
+**M0–M9, UI1–UI5, and F1 are complete. F2 adds reproducible Jupyter research studies while F3/F4 remain independent READY sibling surfaces.**
 
 The implemented research arc is:
 

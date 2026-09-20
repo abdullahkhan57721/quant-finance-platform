@@ -98,3 +98,31 @@ Exact commands, head SHA and CI results belong in the PR checkpoint.
 - [Native Workbench](native_quant_workbench.md)
 - [Architecture index](index.md)
 - [Quantitative conventions](../quantitative_conventions.md)
+
+
+## F2 notebook execution boundary
+
+F2 makes Jupyter a concrete sibling client of the F1 boundary:
+
+```text
+committed output-free notebook
+        ↓
+public qf_platform application/domain APIs
+        ↓
+immutable quantitative result/evidence
+        ↓
+notebook-owned Markdown tables and Matplotlib figures
+```
+
+The notebooks own research composition and narrative only. They do not own
+finance formulas, calibration/validation algorithms, persistent quantitative
+state, or hidden data acquisition. The default studies use explicit seeds and
+package-safe committed/derived evidence, so automated execution requires no
+network or Qt runtime.
+
+Committed `.ipynb` files deliberately retain no execution counts or outputs.
+`scripts/check_notebooks.py` executes them in memory under the optional
+`research` dependency set, while core tests statically protect the flagship set,
+public-import direction, output-free contract, and important model-risk
+non-claims. This keeps notebook diffs stable without weakening executable
+verification.
