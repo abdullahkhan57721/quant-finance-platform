@@ -1,8 +1,6 @@
 # Quantitative Finance Research & Validation Platform
 
-A **validation-first equity-derivatives research and model-risk platform** for pricing, inference, hedging, calibration, empirical validation, and measured performance engineering.
-
-The first specialization is **Equity Derivatives & Volatility Modeling**.
+A **validation-first equity-derivatives research and model-risk platform** for pricing, Greeks, hedging, implied-volatility inference, Heston valuation/calibration, empirical validation, and measured performance engineering.
 
 > Don’t just implement quantitative models—show how to determine whether they are correct, stable, useful, and trustworthy.
 
@@ -10,84 +8,58 @@ The first specialization is **Equity Derivatives & Volatility Modeling**.
 
 | Question | Answer |
 | --- | --- |
-| **What is this?** | A Python quantitative-finance platform plus a native **PySide6 / Qt Quick** research workbench, built around reproducible model evidence rather than isolated formula demos. |
+| **What is this?** | One quantitative/application core exposed through **five sibling interfaces**: Python, Jupyter, structured XLSX/CSV/JSON exports, Dash/Plotly, and a native PySide6/QML desktop Workbench. |
 | **What quantitative problems does it solve?** | European-option pricing, Greeks, dynamic delta hedging, implied-volatility inversion, Heston valuation, Heston calibration/identifiability, Black-Scholes vs Heston validation, and performance analysis. |
-| **What makes it technically interesting?** | Independent valuation methods, explicit **Problem → Method → Result/Evidence** boundaries, observation provenance, no-leakage held-out validation, calibration-conditioning diagnostics, and profiling-driven optimization instead of speculative native code. |
-| **What empirical result did it produce?** | On a pinned **January 4, 2023 SPX/SPXW** sample with a predeclared **10-train / 4-held-out** split, Heston reduced held-out price RMSE from **8.412 to 0.671** and relative MAE from **8.27% to 0.66%** versus a fairly fitted one-volatility Black-Scholes benchmark. This is a same-date cross-sectional result, not a claim of temporal forecasting skill. |
-| **What can I run / see?** | A native desktop workbench for pricing, Greeks, hedging, implied volatility, Heston calibration, validation/model risk, and measured performance evidence; plus reproducible scripts, tests, and committed evidence artifacts. |
+| **What makes it technically interesting?** | Independent valuation methods, explicit **Problem → Method → Result/Evidence** boundaries, provenance-bearing observations, no-leakage held-out validation, calibration-conditioning diagnostics, and profiling-driven optimization instead of speculative native code. |
+| **What empirical result did it produce?** | On a pinned **January 4, 2023 SPX/SPXW** sample with a predeclared **10-train / 4-held-out** split, Heston reduced held-out price RMSE from **8.412 to 0.671** and relative MAE from **8.27% to 0.66%** versus a fairly fitted one-volatility Black-Scholes benchmark. This is a same-date cross-sectional result, not temporal forecasting or trading-performance evidence. |
+| **What can I run?** | Choose the interface below. Every surface is downstream of the same production quantitative semantics; none is a second pricing/calibration engine. |
 
-## Research from Python
+## Choose an interface
 
-Use the shared quantitative/application APIs without a desktop dependency:
+| Interface | Best for | Install | Run |
+| --- | --- | --- | --- |
+| **Python API / examples** | Programmatic research, custom composition, interview/code review | `python -m pip install .` | `python examples/research/pricing_and_greeks.py` |
+| **Jupyter** | Reproducible exploratory studies with tables/plots | `python -m pip install -e ".[research]"` | `python -m jupyterlab notebooks` or `python scripts/check_notebooks.py` |
+| **XLSX / CSV / JSON exports** | Analyst/model-validation handoff and auditable evidence | `python -m pip install -e ".[reporting]"` | `python examples/reporting/export_reference_validation.py --output reporting_output` |
+| **Dash / Plotly** | Local browser analytics across pricing, hedging, IV, Heston, validation | `python -m pip install -e ".[web]"` | `python -m qf_platform.web.main` |
+| **PySide6 / QML desktop** | Native interactive Workbench | `python -m pip install -e ".[desktop]"` | `python -m qf_platform.desktop.main` |
 
-```bash
-python -m pip install .
-python examples/research/pricing_and_greeks.py
+The dependency direction is:
+
+```text
+                         quantitative core
+                               ↑
+                    application/research semantics
+                               ↑
+        ┌──────────────┬───────┼────────┬──────────────┐
+        │              │       │        │              │
+     Python         Jupyter   exports   Dash          Qt/QML
+   programmatic     research  XLSX/CSV  analytics     desktop
+                               /JSON
 ```
 
-The [Python research guide](docs/research/python_api.md) maps the public inputs,
-methods and evidence for pricing/Greeks, hedging, market/IV, Heston forward,
-calibration/identifiability, validation and recorded performance. Six standalone
-examples exercise those APIs.
+Use the [Python research guide](docs/research/python_api.md), [notebook guide](notebooks/README.md), [structured-export guide](docs/research/structured_exports.md), [browser analytics guide](docs/research/web_analytics.md), and [native Workbench architecture](docs/architecture/native_quant_workbench.md) for deeper workflow details.
 
-## Jupyter flagship studies
+## Evidence and reproducibility
 
-Install the research tools and execute the three output-free notebooks in memory:
+The default research paths are deterministic/network-independent where applicable. Stochastic studies use explicit seeds; empirical SPX evidence is committed as derived evidence with provenance rather than silently fetched live.
 
-```bash
-python -m pip install -e ".[research]"
-python scripts/check_notebooks.py
+Key boundaries remain explicit:
+
+```text
+raw observation != normalized observation != inferred parameter
+calibration fit != parameter identification
+training fit != held-out validation
+same-date cross-sectional holdout != temporal forecasting
+replication experiment != historical trading backtest
+quantitative result/evidence != presentation artifact
 ```
 
-See [`notebooks/README.md`](notebooks/README.md) for the pricing/Greeks,
-dynamic-hedging/model-risk, and SPX/Heston-validation studies plus the evidence
-and non-claim boundaries they preserve.
+A canonical Black-Scholes scenario is regression-tested across the authoritative application result, renderer-neutral presentation, structured reporting, Dash service, and native Qt boundary. Reporting preserves the raw numeric value; display surfaces may use explicit formatting but must agree numerically.
 
-## Analyst exports
+## Current status
 
-Generate the flagship validation/model-risk evidence as XLSX, JSON, and CSV:
-
-```bash
-python -m pip install -e ".[reporting]"
-python examples/reporting/export_reference_validation.py --output reporting_output
-```
-
-The [structured export guide](docs/research/structured_exports.md) documents the
-concrete M2/M3/M4/M6/M7 adapters, sheet/table schemas, units, provenance, and
-model-risk non-claims. Exported files are downstream evidence artifacts; Python
-results remain the quantitative authority. Qt remains a sibling client and F4
-Dash remains independent.
-
-## Browser analytics workbench
-
-Install the optional Dash/Plotly client and launch the local internal-analytics surface:
-
-```bash
-python -m pip install -e ".[web]"
-python -m qf_platform.web.main
-```
-
-The [browser analytics guide](docs/research/web_analytics.md) documents the workspaces, launch options, evidence boundaries, and architecture. The browser workbench exposes valuation/Greeks, dynamic hedging, market/implied-volatility evidence, Heston pricing/calibration, and M7/M8 model-validation evidence through the same frontend-neutral application/presentation contracts used by Python, Jupyter, exports, and Qt. Default studies are network-free, and the web package does not import the desktop layer.
-
-## Run and verify v0.1
-
-Python 3.12+ is required. From a clean checkout:
-
-```bash
-python -m pip install ".[desktop]"
-python scripts/v01_release_check.py
-python -m qf_platform.desktop.main
-```
-
-The release check is deterministic and network-free. It verifies the installed `0.1.0` package metadata plus the committed M7/M8 release evidence and scientific non-claims.
-
-See the **[v0.1 Release Guide](docs/release/v0.1.md)** for clean-environment installation, the reviewer demo path, the raw-market replay boundary, the CI-verified distribution target, and explicit platform limitations. See [`CHANGELOG.md`](CHANGELOG.md) for concise release notes.
-
-The committed evidence includes the [SPX Black-Scholes vs Heston held-out comparison](docs/evidence/m7_spx_bs_vs_heston_validation_reference.json) and the [measured performance study](docs/evidence/m8_performance_reference.json). M8 improved representative heavy workloads by **4.61×–27.38×** through Python/NumPy and algorithmic changes; after profiling, a C++ kernel was deliberately **not** retained for v0.1 because the remaining absolute cost did not justify the added binding, packaging, and parity surface.
-
-## Status
-
-**M0–M9, UI1–UI5, and F1–F3 are complete. F4 Dash/Plotly analytics is in final review.**
+**M0–M9, UI1–UI5, and F1–F4 are repository-verified MERGED. F5 is the active multi-surface integration milestone.**
 
 The implemented research arc is:
 
@@ -100,9 +72,10 @@ Black-Scholes theory
 → calibration + identifiability
 → predeclared held-out model comparison
 → measured performance engineering
-→ native validation/model-risk workbench
-→ v0.1 release
+→ five sibling research/analysis interfaces
 ```
+
+Historical v0.1 packaging/release documentation remains available, but publishing a GitHub Release/tag or incrementing a semantic version is **not** a dependency for continued development.
 
 ## Deep documentation
 
