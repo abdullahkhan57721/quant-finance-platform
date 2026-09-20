@@ -125,7 +125,6 @@ def test_ui2_worker_returns_comparison_uncertainty_and_greek_plot() -> None:
     }
 
 
-
 def test_ui2_controller_canonical_present_value_matches_application_authority() -> None:
     composition = compose_black_scholes_study(canonical_black_scholes_draft())
     request = make_m2_workbench_request(composition, M2WorkbenchDraft())
