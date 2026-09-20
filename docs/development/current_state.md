@@ -45,7 +45,7 @@ Issue #7 is not part of the F-series dependency chain.
 
 ### ACTIVE / REVIEW
 
-**F2 — Reproducible Jupyter Research Studies** is ACTIVE in Issue #57 on branch `f2-57-jupyter-studies`.
+**F2 — Reproducible Jupyter Research Studies** is in REVIEW in Issue #57 / PR #58 on branch `f2-57-jupyter-studies`.
 
 F2 was selected from the F2/F3/F4 READY frontier by equal-priority roadmap order. It owns notebooks, research-only tooling/dependencies, notebook execution evidence, and the minimum documentation/CI required for those studies. It must not consume unmerged F3/F4 behavior or move quantitative logic into notebook cells.
 
@@ -55,7 +55,7 @@ A fresh agent asked to continue development should:
 
 1. verify current main and live Issues/PRs;
 2. recover F2 Issue #57 and its branch/PR if still open rather than duplicating work;
-3. execute F2 through exact-head validation and the human merge gate;
+3. inspect F2 exact-head validation and preserve the human merge gate;
 4. keep F3/F4 READY unless live repository truth introduces a blocker or another isolated work unit activates them;
 5. keep F5 BLOCKED until F2, F3, and F4 are repository-defined MERGED.
 
