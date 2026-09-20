@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from qf_platform.application import MarketWorkbenchAnalysis, MarketWorkbenchConfig
 
-from .model import ReportColumn, ReportField, ReportTable, TabularReport
+from .model import ReportColumn, ReportField, ReportTable, ReportValue, TabularReport
 
 
 def market_iv_report(
@@ -14,7 +14,7 @@ def market_iv_report(
     """Preserve raw/normalized/inferred distinctions in exported M4 evidence."""
 
     provenance = analysis.underlying.provenance
-    outcome_rows = []
+    outcome_rows: list[tuple[ReportValue, ...]] = []
     for outcome in analysis.outcomes:
         quote = outcome.raw_quote
         normalized = outcome.normalized
