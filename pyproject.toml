@@ -23,6 +23,13 @@ dev = [
 desktop = [
     "PySide6==6.11.2",
 ]
+research = [
+    "ipykernel>=6.29,<8",
+    "jupyterlab>=4.2,<5",
+    "matplotlib>=3.9,<4",
+    "nbclient>=0.10,<1",
+    "nbformat>=5.10,<6",
+]
 
 [tool.setuptools.packages.find]
 where = ["src"]
