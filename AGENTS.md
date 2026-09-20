@@ -452,7 +452,7 @@ Prefer algorithmic improvements, elimination of repeated work, allocation/data-l
 
 Reject minor speedups that materially damage readability, auditability, or numerical trustworthiness.
 
-M8 is current evidence that C++ is **not justified for the v0.1 representative workloads** after measured Python/NumPy optimization. Do not add a native backend for optics. Reopen the question only after a materially different workload and fresh profiling justify it.
+M8 is current evidence that C++ is **not justified for the current representative workloads** after measured Python/NumPy optimization. Do not add a native backend for optics. Reopen the question only after a materially different workload and fresh profiling justify it.
 
 ## Python/C++ direction
 
@@ -489,9 +489,9 @@ Do not delegate architecture-sensitive work merely because it is large. Settle c
 
 Classical foundations come before frontier-model novelty.
 
-The earned v0.1 progression is:
+The earned quantitative progression is:
 
-```text
+~~~text
 mathematical problem architecture + pricing foundation
         ↓
 Black-Scholes theory + specialization
@@ -524,10 +524,27 @@ measured Python/algorithmic optimization
         ↓
 validation-first native product hardening
         ↓
-portfolio-quality v0.1 release
-```
+historical packaging/reviewer-facing hardening
+        ↓
+multi-surface finance-facing interfaces
+~~~
 
-M9 is the committed release frontier. Post-v0.1 directions in the roadmap are not implementation permission until a future planning pass creates justified milestones/specs.
+The committed current frontier is the F-series in roadmap.md:
+
+~~~text
+F1  research API / multi-surface boundary
+        ↓
+F2 notebooks   F3 exports   F4 Dash
+        └──────────┬──────────┘
+                   ↓
+F5 multi-surface integration
+~~~
+
+Do not stop development merely because a historical package/release milestone merged. Publishing a GitHub Release/tag or incrementing a semantic version is not a prerequisite for continuing the roadmap.
+
+The F-series is interface/product work over already-earned quantitative behavior. It must not move financial semantics into notebooks, spreadsheets, Dash callbacks, or Qt, and it must not use interface work as an excuse to invent new quantitative abstractions.
+
+After F5, do not invent F6 automatically. Use a fresh repository-grounded planning pass to choose the next quantitative or product frontier.
 
 ## Documentation discipline
 
