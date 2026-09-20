@@ -28,10 +28,9 @@ F5  Multi-Surface Integration & Portfolio Documentation
 
 ### READY — product
 
-- **F3 — Analyst Interoperability & Structured Exports**, P1.
 - **F4 — Dash/Plotly Internal Analytics Workbench**, P1.
 
-F1 is squash-merged and verified on main. F3/F4 are independent sibling consumers of the merged F1 contracts, but neither is activated by the current F2 work unit.
+F1 is squash-merged and verified on main. F4 remains an independent READY sibling consumer of the merged F1 contracts.
 
 ### BLOCKED — product
 
@@ -45,7 +44,9 @@ Issue #7 is not part of the F-series dependency chain.
 
 ### ACTIVE / REVIEW
 
-**F2 — Reproducible Jupyter Research Studies** is in REVIEW in Issue #57 / PR #58 on branch `f2-57-jupyter-studies`.
+**F2 — Reproducible Jupyter Research Studies** is in REVIEW after squash merge #58 while required post-merge main verification completes.
+
+**F3 — Analyst Interoperability & Structured Exports** is ACTIVE in Issue #59 on branch `f3-59-structured-exports`.
 
 F2 was selected from the F2/F3/F4 READY frontier by equal-priority roadmap order. It owns notebooks, research-only tooling/dependencies, notebook execution evidence, and the minimum documentation/CI required for those studies. It must not consume unmerged F3/F4 behavior or move quantitative logic into notebook cells.
 
@@ -54,9 +55,9 @@ F2 was selected from the F2/F3/F4 READY frontier by equal-priority roadmap order
 A fresh agent asked to continue development should:
 
 1. verify current main and live Issues/PRs;
-2. recover F2 Issue #57 and its branch/PR if still open rather than duplicating work;
-3. inspect F2 exact-head validation and preserve the human merge gate;
-4. keep F3/F4 READY unless live repository truth introduces a blocker or another isolated work unit activates them;
+2. recover F3 Issue #59 and its branch/PR rather than duplicating work;
+3. verify F2 post-merge main CI before marking F2 MERGED;
+4. execute F3 through exact-head validation and the human merge gate while keeping F4 READY;
 5. keep F5 BLOCKED until F2, F3, and F4 are repository-defined MERGED.
 
 No copied milestone prompt is required.
