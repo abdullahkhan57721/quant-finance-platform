@@ -165,3 +165,40 @@ The flagship validation report intentionally keeps training evidence, held-out
 evidence, residuals, calibration starts, parameter stability, conditioning,
 provenance, model-risk limitations, and revision-pinned M8 performance evidence
 in separate tables/sheets.
+
+
+## F4 Dash/Plotly browser-client boundary
+
+F4 adds a fourth concrete sibling client downstream of the F1 application and
+renderer-neutral presentation contracts:
+
+```text
+Dash layout / callbacks + Plotly
+             ↓
+web-specific services / terminal renderer
+             ↓
+qf_platform.application + qf_platform.presentation
+             ↓
+authoritative quantitative core / committed evidence
+```
+
+The web service module owns only browser-facing composition: it normalizes
+transient text through existing application Draft/request functions, invokes the
+existing concrete `run_*` workflows, and returns existing presentation values.
+It contains no pricing, Greek, hedge-accounting, implied-volatility, calibration,
+validation, or performance formulas.
+
+`PlotData` remains renderer-neutral. F4's Plotly adapter converts its series and
+uncertainty bounds into Plotly traces; no numerical evidence is recomputed from
+formatted display strings.
+
+The Dash application owns local interaction state, loading/error presentation,
+navigation, and callback lifecycle. Expensive Heston/validation work runs only
+after explicit user actions. Default market/validation/performance flows use
+package-safe derived evidence and require no network access.
+
+The optional `web` dependency group contains Dash/Plotly. The base quantitative
+and application packages do not require those dependencies. Static architecture
+tests forbid the web package from importing `qf_platform.desktop`, PySide6, live
+network clients, or direct quantitative implementation packages. A clean
+headless smoke constructs the app with desktop imports actively rejected.
