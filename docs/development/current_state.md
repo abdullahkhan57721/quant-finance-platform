@@ -30,7 +30,7 @@ F5  Multi-Surface Integration & Portfolio Documentation
 
 No unclaimed READY product milestone is ahead of the active F4 work unit.
 
-F1/F2 are verified MERGED. F3 is squash-merged but remains REVIEW until post-merge main verification finishes.
+F1/F2/F3 are squash-merged and post-merge verified.
 
 ### BLOCKED — product
 
@@ -44,21 +44,18 @@ Issue #7 is not part of the F-series dependency chain.
 
 ### ACTIVE / REVIEW
 
-**F3 — Analyst Interoperability & Structured Exports** is squash-merged but remains REVIEW until post-merge main verification completes.
+**F4 — Dash/Plotly Internal Analytics Workbench** is ACTIVE in Issue #61 / PR #62 on branch `f4-61-dash-analytics`.
 
-**F4 — Dash/Plotly Internal Analytics Workbench** is ACTIVE in Issue #61 on branch `f4-61-dash-analytics`.
-
-F2 was selected from the F2/F3/F4 READY frontier by equal-priority roadmap order. It owns notebooks, research-only tooling/dependencies, notebook execution evidence, and the minimum documentation/CI required for those studies. It must not consume unmerged F3/F4 behavior or move quantitative logic into notebook cells.
+F1/F2/F3 are verified MERGED. F4 owns only the Dash/Plotly sibling client and its minimum web-specific services, renderer, tests, documentation, and CI; quantitative authority remains in the existing application/core layers.
 
 ## Deterministic next execution
 
 A fresh agent asked to continue development should:
 
 1. verify current main and live Issues/PRs;
-2. recover F4 Issue #61 and its branch/PR rather than duplicating work;
-3. verify the already-merged F3 main checks and reconcile F3 to MERGED when they pass;
-4. execute F4 through exact-head validation and the human merge gate;
-5. keep F5 BLOCKED until F4 is also repository-defined MERGED.
+2. recover F4 Issue #61 / PR #62 rather than duplicating work;
+3. execute F4 through exact-head validation and the human merge gate;
+4. keep F5 BLOCKED until F4 is repository-defined MERGED.
 
 No copied milestone prompt is required.
 
