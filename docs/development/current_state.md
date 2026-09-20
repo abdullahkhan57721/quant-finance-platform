@@ -27,9 +27,9 @@ F5  Multi-Surface Integration & Portfolio Documentation
 
 ### READY — product
 
-- **F1 — Research API & Multi-Surface Interface Boundary**, P0.
+None; F1 is ACTIVE in Issue #55.
 
-F1 should be activated through a new implementation Issue after the F-series planning/orchestration PR is merged and verified.
+The F-series planning PR #54 is merged and verified on main.
 
 ### BLOCKED — product
 
@@ -48,7 +48,7 @@ Issue #7 is not part of the F-series dependency chain.
 
 ### ACTIVE / REVIEW
 
-No product milestone is active at this planning snapshot. Live GitHub Issues/PRs override this sentence.
+F1 — Research API & Multi-Surface Interface Boundary is ACTIVE in Issue #55.
 
 ## Deterministic next execution
 
