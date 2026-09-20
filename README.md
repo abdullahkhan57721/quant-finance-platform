@@ -59,7 +59,7 @@ A canonical Black-Scholes scenario is regression-tested across the authoritative
 
 ## Current status
 
-**M0–M9, UI1–UI5, and F1–F4 are repository-verified MERGED. F5 is the active multi-surface integration milestone.**
+**M0–M9, UI1–UI5, and F1–F4 are repository-verified MERGED. F5 multi-surface integration is in final review.**
 
 The implemented research arc is:
 
