@@ -60,7 +60,7 @@ Within equal priority, use roadmap order, dependency-unblocking value, then lowe
 | F1 | Research API & Multi-Surface Interface Boundary | MERGED | P0 | M9 | — | F2, F3, F4 | #55 | #56 | milestones/F1.md |
 | F2 | Reproducible Jupyter Research Studies | MERGED | P1 | F1 | F3, F4 | F5 | #57 | #58 | milestones/F2.md |
 | F3 | Analyst Interoperability & Structured Exports | REVIEW | P1 | F1 | F2, F4 | F5 | #59 | #60 | milestones/F3.md |
-| F4 | Dash/Plotly Internal Analytics Workbench | READY | P1 | F1 | F2, F3 | F5 | create on activation | — | milestones/F4.md |
+| F4 | Dash/Plotly Internal Analytics Workbench | ACTIVE | P1 | F1 | F2, F3 | F5 | #61 | — | milestones/F4.md |
 | F5 | Multi-Surface Integration & Portfolio Documentation | BLOCKED | P1 | F2, F3, F4 | — | — | create on activation | — | milestones/F5.md |
 
 Issue/PR identifiers above are historical navigation where known; live GitHub state is authoritative.
@@ -71,8 +71,8 @@ Issue/PR identifiers above are historical navigation where known; live GitHub st
 P1 REVIEW
 F3 — Analyst Interoperability & Structured Exports — Issue #59 / PR #60
 
-P1 READY
-F4 — Dash/Plotly Internal Analytics Workbench
+P1 ACTIVE
+F4 — Dash/Plotly Internal Analytics Workbench — Issue #61
 ~~~
 
 F1 is squash-merged and post-merge verified on main. F2 was selected first by the deterministic equal-priority roadmap-order rule and is now in final review/validation in PR #58. F2 is squash-merged and post-merge verified. F3 is ACTIVE in its isolated work unit; F4 remains independently READY.
