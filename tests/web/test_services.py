@@ -16,6 +16,7 @@ from qf_platform.web.services import (
     run_valuation_service,
 )
 
+
 def _require_value[T](result: ServiceResult[T]) -> T:
     assert result.error is None
     assert result.value is not None
