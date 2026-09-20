@@ -93,10 +93,6 @@ class HedgingInputs:
     transaction_cost_rate: str = "0.0"
 
 
-def _failure[T](exc: Exception) -> ServiceResult[T]:
-    return ServiceResult(error=str(exc))
-
-
 def run_valuation_service(
     inputs: ValuationInputs | None = None,
 ) -> ServiceResult[M2WorkbenchPresentation]:
@@ -131,7 +127,7 @@ def run_valuation_service(
             value=build_m2_workbench_presentation(request, analysis),
         )
     except (ValueError, TypeError, RuntimeError) as exc:
-        return _failure(exc)
+        return ServiceResult(error=str(exc))
 
 
 def run_hedging_service(
@@ -169,7 +165,7 @@ def run_hedging_service(
             value=build_hedge_workbench_presentation(request, analysis),
         )
     except (ValueError, TypeError, RuntimeError) as exc:
-        return _failure(exc)
+        return ServiceResult(error=str(exc))
 
 
 def load_market_service() -> ServiceResult[MarketWorkbenchPresentation]:
@@ -180,7 +176,7 @@ def load_market_service() -> ServiceResult[MarketWorkbenchPresentation]:
             value=build_market_workbench_presentation(canonical_m4_market_workbench()),
         )
     except (ValueError, TypeError, RuntimeError) as exc:
-        return _failure(exc)
+        return ServiceResult(error=str(exc))
 
 
 def run_heston_pricing_service(
@@ -195,7 +191,7 @@ def run_heston_pricing_service(
             value=build_heston_pricing_presentation(request, analysis),
         )
     except (ValueError, TypeError, RuntimeError) as exc:
-        return _failure(exc)
+        return ServiceResult(error=str(exc))
 
 
 def run_heston_calibration_service(
@@ -214,7 +210,7 @@ def run_heston_calibration_service(
             value=build_heston_calibration_presentation(analysis),
         )
     except (ValueError, TypeError, RuntimeError) as exc:
-        return _failure(exc)
+        return ServiceResult(error=str(exc))
 
 
 def load_m6_market_reference_service() -> ServiceResult[M6MarketReferencePresentation]:
@@ -227,7 +223,7 @@ def load_m6_market_reference_service() -> ServiceResult[M6MarketReferencePresent
             ),
         )
     except (ValueError, TypeError, RuntimeError) as exc:
-        return _failure(exc)
+        return ServiceResult(error=str(exc))
 
 
 def load_validation_service() -> ServiceResult[UI5ValidationPresentation]:
@@ -240,7 +236,7 @@ def load_validation_service() -> ServiceResult[UI5ValidationPresentation]:
             value=build_ui5_validation_presentation(analysis),
         )
     except (ValueError, TypeError, RuntimeError) as exc:
-        return _failure(exc)
+        return ServiceResult(error=str(exc))
 
 
 def load_performance_service() -> ServiceResult[UI5PerformancePresentation]:
@@ -253,4 +249,4 @@ def load_performance_service() -> ServiceResult[UI5PerformancePresentation]:
             ),
         )
     except (ValueError, TypeError, RuntimeError) as exc:
-        return _failure(exc)
+        return ServiceResult(error=str(exc))
