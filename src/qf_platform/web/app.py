@@ -506,12 +506,32 @@ def create_dash_app() -> Dash:
                 id="workspace-tabs",
                 value="overview",
                 children=[
-                    dcc.Tab(label="Overview", value="overview", children=[_overview_layout()]),
-                    dcc.Tab(label="Valuation & Greeks", value="valuation", children=[_valuation_layout()]),
-                    dcc.Tab(label="Dynamic Hedging", value="hedging", children=[_hedging_layout()]),
-                    dcc.Tab(label="Market / IV", value="market", children=[_market_layout()]),
-                    dcc.Tab(label="Heston", value="heston", children=[_heston_layout()]),
-                    dcc.Tab(label="Model Validation", value="validation", children=[_validation_layout()]),
+                    dcc.Tab(
+                        label="Overview",
+                        value="overview",
+                        children=[_overview_layout()],
+                    ),
+                    dcc.Tab(
+                        label="Valuation & Greeks",
+                        value="valuation",
+                        children=[_valuation_layout()],
+                    ),
+                    dcc.Tab(
+                        label="Dynamic Hedging",
+                        value="hedging",
+                        children=[_hedging_layout()],
+                    ),
+                    dcc.Tab(
+                        label="Market / IV", value="market", children=[_market_layout()]
+                    ),
+                    dcc.Tab(
+                        label="Heston", value="heston", children=[_heston_layout()]
+                    ),
+                    dcc.Tab(
+                        label="Model Validation",
+                        value="validation",
+                        children=[_validation_layout()],
+                    ),
                 ],
             )
         ],
@@ -538,7 +558,9 @@ def create_dash_app() -> Dash:
     def run_valuation_callback(n_clicks: int | None, *values: object) -> object:
         if not n_clicks:
             return _prompt("Run the study to generate evidence.")
-        inputs = ValuationInputs(*("" if value is None else str(value) for value in values))
+        inputs = ValuationInputs(
+            *("" if value is None else str(value) for value in values)
+        )
         return _render_service(run_valuation_service(inputs), _render_valuation)
 
     @app.callback(
@@ -559,7 +581,9 @@ def create_dash_app() -> Dash:
     def run_hedging_callback(n_clicks: int | None, *values: object) -> object:
         if not n_clicks:
             return _prompt("Run the study to generate replication evidence.")
-        inputs = HedgingInputs(*("" if value is None else str(value) for value in values))
+        inputs = HedgingInputs(
+            *("" if value is None else str(value) for value in values)
+        )
         return _render_service(run_hedging_service(inputs), _render_hedging)
 
     @app.callback(Output("market-output", "children"), Input("market-run", "n_clicks"))
@@ -605,7 +629,9 @@ def create_dash_app() -> Dash:
         if validation.error is not None:
             return _error(validation.error)
         performance_result = load_performance_service()
-        performance = performance_result.value if performance_result.error is None else None
+        performance = (
+            performance_result.value if performance_result.error is None else None
+        )
         if validation.value is None:
             return _error("validation service returned no value")
         return _render_validation(validation.value, performance)
