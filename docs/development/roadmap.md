@@ -60,21 +60,21 @@ Within equal priority, use roadmap order, dependency-unblocking value, then lowe
 | F1 | Research API & Multi-Surface Interface Boundary | MERGED | P0 | M9 | — | F2, F3, F4 | #55 | #56 | milestones/F1.md |
 | F2 | Reproducible Jupyter Research Studies | MERGED | P1 | F1 | F3, F4 | F5 | #57 | #58 | milestones/F2.md |
 | F3 | Analyst Interoperability & Structured Exports | MERGED | P1 | F1 | F2, F4 | F5 | #59 | #60 | milestones/F3.md |
-| F4 | Dash/Plotly Internal Analytics Workbench | REVIEW | P1 | F1 | F2, F3 | F5 | #61 | #62 | milestones/F4.md |
-| F5 | Multi-Surface Integration & Portfolio Documentation | BLOCKED | P1 | F2, F3, F4 | — | — | create on activation | — | milestones/F5.md |
+| F4 | Dash/Plotly Internal Analytics Workbench | MERGED | P1 | F1 | F2, F3 | F5 | #61 | #62 | milestones/F4.md |
+| F5 | Multi-Surface Integration & Portfolio Documentation | ACTIVE | P1 | F2, F3, F4 | — | — | #63 | opening | milestones/F5.md |
 
 Issue/PR identifiers above are historical navigation where known; live GitHub state is authoritative.
 
 ## Current product frontier
 
 ~~~text
-P1 REVIEW
-F4 — Dash/Plotly Internal Analytics Workbench — Issue #61 / PR #62
+P1 ACTIVE
+F5 — Multi-Surface Integration & Portfolio Documentation — Issue #63
 ~~~
 
-F1, F2, and F3 are squash-merged and post-merge verified on main. F4 is in final review/validation; F5 remains blocked on F4.
+F1–F4 are squash-merged and post-merge verified on main. F5 is the active integration work unit.
 
-F5 remains BLOCKED until F2, F3, and F4 are all repository-defined MERGED.
+F5 has no automatic follow-on milestone; after verified merge, perform a fresh repository-grounded planning pass.
 
 Independent repository maintenance remains:
 
