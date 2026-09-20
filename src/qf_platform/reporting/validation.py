@@ -441,24 +441,52 @@ def validation_model_risk_report(
             )
         )
 
+    metadata = [
+        ReportField("valuation_date", problem.valuation_date.isoformat()),
+        ReportField(
+            "underlying",
+            problem.observations[0].raw_underlying.underlying_id,
+        ),
+        ReportField("spot", problem.spot, "spot units"),
+        ReportField("design", "same-date cross-sectional holdout"),
+        ReportField("training_contracts", len(training), "count"),
+        ReportField("heldout_contracts", len(held_out), "count"),
+        ReportField(
+            "conclusion_scope",
+            "selected observations and stated conventions only; "
+            "no universal model ranking",
+        ),
+    ]
+    if performance is not None:
+        metadata.extend(
+            (
+                ReportField("performance_evidence_kind", performance.evidence_kind),
+                ReportField(
+                    "performance_source_artifact",
+                    performance.source_artifact_path,
+                ),
+                ReportField(
+                    "performance_baseline_revision",
+                    performance.baseline_revision,
+                ),
+                ReportField(
+                    "performance_optimized_revision",
+                    performance.optimized_reference_revision,
+                ),
+                ReportField(
+                    "performance_workflow_run_id",
+                    performance.workflow_run_id,
+                ),
+                ReportField(
+                    "performance_timings_are_ci_thresholds",
+                    performance.timings_are_ci_thresholds,
+                ),
+            )
+        )
+
     return TabularReport(
         report_id="bs_heston_validation",
         title="Black-Scholes versus Heston model-validation evidence",
-        metadata=(
-            ReportField("valuation_date", problem.valuation_date.isoformat()),
-            ReportField(
-                "underlying",
-                problem.observations[0].raw_underlying.underlying_id,
-            ),
-            ReportField("spot", problem.spot, "spot units"),
-            ReportField("design", "same-date cross-sectional holdout"),
-            ReportField("training_contracts", len(training), "count"),
-            ReportField("heldout_contracts", len(held_out), "count"),
-            ReportField(
-                "conclusion_scope",
-                "selected observations and stated conventions only; "
-                "no universal model ranking",
-            ),
-        ),
+        metadata=tuple(metadata),
         tables=tuple(tables),
     )
