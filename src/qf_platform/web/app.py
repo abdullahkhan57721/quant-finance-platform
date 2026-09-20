@@ -15,6 +15,7 @@ from qf_platform.presentation import (
     M2WorkbenchPresentation,
     M6MarketReferencePresentation,
     MarketWorkbenchPresentation,
+    PlotData,
     PresentationRow,
     UI5PerformancePresentation,
     UI5ValidationPresentation,
@@ -128,7 +129,7 @@ def _presentation_rows(rows: Sequence[PresentationRow]) -> html.Table:
     )
 
 
-def _graphs(*plots: object) -> html.Div:
+def _graphs(*plots: PlotData) -> html.Div:
     return html.Div(
         [
             dcc.Graph(
