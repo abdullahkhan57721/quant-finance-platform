@@ -177,9 +177,7 @@ def load_market_service() -> ServiceResult[MarketWorkbenchPresentation]:
 
     try:
         return ServiceResult(
-            value=build_market_workbench_presentation(
-                canonical_m4_market_workbench()
-            ),
+            value=build_market_workbench_presentation(canonical_m4_market_workbench()),
         )
     except (ValueError, TypeError, RuntimeError) as exc:
         return _failure(exc)
