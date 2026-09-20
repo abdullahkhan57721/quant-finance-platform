@@ -343,8 +343,7 @@ def validation_model_risk_report(
                     result.conditioning.rank_deficient,
                     result.conditioning.condition_number,
                     ", ".join(
-                        str(value)
-                        for value in result.conditioning.singular_values
+                        str(value) for value in result.conditioning.singular_values
                     ),
                 )
                 for phase, result in (
