@@ -7,6 +7,7 @@ The quantitative-finance platform has completed and repository-verified:
 ~~~text
 M0, M0A, M1, M2, M3, M4, M5, M6, M7, M8, M9
 UI1, UI2, UI3, UI4, UI5
+F1
 ~~~
 
 ADR 0002 remains the mathematical architecture authority. ADR 0003 remains the native PySide6 + Qt Quick/QML authority.
@@ -27,18 +28,14 @@ F5  Multi-Surface Integration & Portfolio Documentation
 
 ### READY — product
 
-None; F1 is in REVIEW in Issue #55 / PR #56.
+- **F3 — Analyst Interoperability & Structured Exports**, P1.
+- **F4 — Dash/Plotly Internal Analytics Workbench**, P1.
 
-The F-series planning PR #54 is merged and verified on main.
+F1 is squash-merged and verified on main. F3/F4 are independent sibling consumers of the merged F1 contracts, but neither is activated by the current F2 work unit.
 
 ### BLOCKED — product
 
-- **F2 — Reproducible Jupyter Research Studies**, blocked on F1.
-- **F3 — Analyst Interoperability & Structured Exports**, blocked on F1.
-- **F4 — Dash/Plotly Internal Analytics Workbench**, blocked on F1.
 - **F5 — Multi-Surface Integration & Portfolio Documentation**, blocked on F2, F3, and F4.
-
-After F1 is MERGED, F2/F3/F4 become candidate READY work. They may run in parallel only if the live shared-contract/file-overlap check in orchestration.md says that concurrency is safe.
 
 ### READY — auxiliary maintenance
 
@@ -48,25 +45,19 @@ Issue #7 is not part of the F-series dependency chain.
 
 ### ACTIVE / REVIEW
 
-F1 — Research API & Multi-Surface Interface Boundary is in REVIEW in Issue #55 / PR #56.
+**F2 — Reproducible Jupyter Research Studies** is ACTIVE in Issue #57 on branch `f2-57-jupyter-studies`.
 
-The candidate curates existing application/domain exports, exposes missing M2
-evidence types, adds six runnable Python studies, and documents the shared
-boundary. Public-import, execution and frontend-dependency checks accompany the
-examples. No quantitative algorithm or desktop behavior changes.
-
-See the PR recovery checkpoint for exact-head validation and CI status. F1 is
-not MERGED; F2/F3/F4 remain BLOCKED until squash merge and main verification.
+F2 was selected from the F2/F3/F4 READY frontier by equal-priority roadmap order. It owns notebooks, research-only tooling/dependencies, notebook execution evidence, and the minimum documentation/CI required for those studies. It must not consume unmerged F3/F4 behavior or move quantitative logic into notebook cells.
 
 ## Deterministic next execution
 
 A fresh agent asked to continue development should:
 
 1. verify current main and live Issues/PRs;
-2. recover F1 Issue #55 / PR #56 if it is still open rather than duplicating work;
-3. inspect exact-head validation and respect the human merge gate;
-4. after F1 merges, verify main and mark F1 MERGED;
-5. then recompute the READY frontier for F2/F3/F4 with live overlap checks.
+2. recover F2 Issue #57 and its branch/PR if still open rather than duplicating work;
+3. execute F2 through exact-head validation and the human merge gate;
+4. keep F3/F4 READY unless live repository truth introduces a blocker or another isolated work unit activates them;
+5. keep F5 BLOCKED until F2, F3, and F4 are repository-defined MERGED.
 
 No copied milestone prompt is required.
 
@@ -97,7 +88,7 @@ Dash callback != financial-model authority
 Qt controller != reusable research API
 ~~~
 
-The existing qf_platform.application package is already a substantial frontend-neutral seam. F1 must audit and curate it before adding any new façade.
+F1 verified the existing qf_platform.application/domain packages as the frontend-neutral research seam and deliberately added no duplicate research façade.
 
 ## Earned quantitative capability snapshot
 
