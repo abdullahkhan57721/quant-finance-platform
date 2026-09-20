@@ -4,155 +4,94 @@
 
 The quantitative-finance platform has completed and repository-verified:
 
-```text
+~~~text
 M0, M0A, M1, M2, M3, M4, M5, M6, M7, M8, M9
 UI1, UI2, UI3, UI4, UI5
-```
+~~~
 
 ADR 0002 remains the mathematical architecture authority. ADR 0003 remains the native PySide6 + Qt Quick/QML authority.
 
-The planned **v0.1 product roadmap is repository-complete**. There is currently no committed READY product milestone.
+The project is **continuing beyond the historical M9 packaging/release milestone**. Publishing a GitHub Release/tag or advancing a semantic version is not a dependency for further development.
 
-M9 — Portfolio-Quality v0.1 Release is `MERGED` by the repository state model:
+The next committed product track is the **F-series finance-facing interface layer**:
 
-```text
-Issue #50       CLOSED / completed
-PR #51          squash-merged
-verified main   6237ccad3ec27153c294a84da32350b0bd1b12c1
-Core CI         success — run 34990451682
-Release CI      success — run 34990451746
-Desktop CI      success — run 34990451680
-```
-
-The merged-main Desktop run rebuilt the standalone Ubuntu proof, passed packaged launch smoke, and uploaded `ui1-linux-desktop-proof` with artifact id `10406156064` and SHA-256 `82f24145db4b168ab1f4c8352087e6be8805f8f5073ab46b245351aab8c42f27`.
-
-At this snapshot GitHub has **no published Release**. Creating the `v0.1.0` tag/release is the remaining post-verification publication operation. It is not a new product milestone and must not be reported as complete until live GitHub state shows the tag/release.
-
-Independent lower-priority maintenance remains:
-
-```text
-READY / auxiliary
-P2  Issue #7 — Add cognitive-complexity quality gate
-```
-
-Issue #7 is not part of the quantitative product dependency chain.
+~~~text
+F1  Research API & Multi-Surface Interface Boundary
+F2  Reproducible Jupyter Research Studies
+F3  Analyst Interoperability & Structured Exports
+F4  Dash/Plotly Internal Analytics Workbench
+F5  Multi-Surface Integration & Portfolio Documentation
+~~~
 
 ## Execution frontier
 
 ### READY — product
 
-None.
+- **F1 — Research API & Multi-Surface Interface Boundary**, P0.
 
-The committed v0.1 product roadmap ends at M9. Do not infer an M10 or silently activate a post-v0.1 specialization.
+F1 should be activated through a new implementation Issue after the F-series planning/orchestration PR is merged and verified.
+
+### BLOCKED — product
+
+- **F2 — Reproducible Jupyter Research Studies**, blocked on F1.
+- **F3 — Analyst Interoperability & Structured Exports**, blocked on F1.
+- **F4 — Dash/Plotly Internal Analytics Workbench**, blocked on F1.
+- **F5 — Multi-Surface Integration & Portfolio Documentation**, blocked on F2, F3, and F4.
+
+After F1 is MERGED, F2/F3/F4 become candidate READY work. They may run in parallel only if the live shared-contract/file-overlap check in orchestration.md says that concurrency is safe.
 
 ### READY — auxiliary maintenance
 
 - **Issue #7 — cognitive-complexity quality gate**, P2.
 
+Issue #7 is not part of the F-series dependency chain.
+
 ### ACTIVE / REVIEW
 
-None recorded after the M9 closeout. Live GitHub state overrides this sentence if new work is subsequently activated.
+No product milestone is active at this planning snapshot. Live GitHub Issues/PRs override this sentence.
 
-### BLOCKED
+## Deterministic next execution
 
-No committed product milestone is BLOCKED because there is no committed post-v0.1 product milestone.
+A fresh agent asked to continue development should:
 
-### PAUSED / SUPERSEDED
+1. verify current main and live Issues/PRs;
+2. verify the F-series planning/orchestration change is merged;
+3. select F1 as the highest-priority READY product milestone;
+4. read docs/development/milestones/F1.md;
+5. create/reuse the F1 implementation Issue;
+6. execute it through the repository-defined Issue → branch/worktree → early PR → validation → exact-head review → squash merge → verify-main flow;
+7. after F1 merges, recompute the READY frontier for F2/F3/F4.
 
-No future product milestone is currently PAUSED or SUPERSEDED. Historical superseded work remains in Git/Issue/PR history.
+No copied milestone prompt is required.
 
-## Recommended next execution
+## F-series target architecture
 
-A fresh agent should:
+The goal is not to replace the existing Qt Workbench. It is to make Qt one sibling client of the same quantitative/application semantics:
 
-1. verify current `main`, open Issues/PRs, and live GitHub Releases;
-2. if `v0.1.0` is still absent, treat publication of the already-verified v0.1 release as the remaining release operation rather than creating new product work;
-3. if release publication is already complete, either execute auxiliary Issue #7 when desired or stop;
-4. before any new product implementation, perform a new planning pass and create durable roadmap/spec entries justified by repository evidence;
-5. do not promote rates, XVA, portfolio risk, rough volatility, cross-platform installers, C++, or any other direction to READY merely because M9 is complete.
-
-The deterministic selection/state/worktree rules remain in `docs/development/orchestration.md`.
-
-## v0.1 release contract
-
-The merged and verified v0.1 contract is deliberately evidence-bounded:
-
-- package version `0.1.0`;
-- Python **3.12** source installation;
-- optional native desktop UI with **PySide6 6.11.2**;
-- clean non-editable installation and source-launch smoke on Ubuntu CI;
-- deterministic, network-free `scripts/v01_release_check.py` against committed M7/M8 evidence;
-- `docs/release/v0.1.md` as the reviewer-facing install, launch, evidence, provenance, demo, and limitation guide; and
-- Ubuntu 24.04 x86_64 standalone `pyside6-deploy` artifact as the CI-verified packaged proof.
-
-The repository does **not** claim:
-
-- macOS or Windows installer certification;
-- code signing or notarization;
-- an automatic update channel;
-- universal support for the CI-produced Linux artifact;
-- temporal forecasting skill from the M7 holdout;
-- global Heston parameter identification;
-- historical trading profitability;
-- Heston hedge superiority; or
-- that a C++ backend is justified for current v0.1 workloads.
-
-Raw SPX source rows remain intentionally outside the repository. Core release verification uses committed derived evidence. `scripts/m7_model_validation.py` remains the authoritative replay path when the separately obtained pinned raw artifact is available.
-
-## Mathematical organization
-
-The durable taxonomy remains:
-
-```text
-FINANCIAL / MATHEMATICAL FOUNDATIONS
-state / state space
-stochastic law
-parameters
-probability / measure semantics
-numeraire
-market observations + provenance
-contracts / cash flows
-quantitative conventions
-        ↓
-PROBLEM FAMILIES
-pricing
-inverse / inference
-sensitivity
-prediction
-control / optimization
-risk
-validation
-        ↓
-METHODS
-analytic / tree / Monte Carlo / Fourier / finite difference
-root finding / optimization / filtering / regression / scenarios / tests
-        ↓
-SPECIFIC IMMUTABLE RESULTS / EVIDENCE
-```
-
-The durable execution pattern is:
-
-```text
-Problem + supported Method -> specific immutable Result / Evidence
-```
+~~~text
+                         quantitative core
+                               ↑
+                    application/research semantics
+                               ↑
+        ┌──────────────┬───────┼────────┬──────────────┐
+        │              │       │        │              │
+     Python         Jupyter   exports   Dash          Qt/QML
+   programmatic     research  XLSX/CSV  analytics     desktop
+                               /JSON
+~~~
 
 Protect:
 
-```text
-financial state != market observation
-raw observation != normalized observation != modeled value
-state != stochastic law != parameters != calibrated estimate
-contract != cash-flow stream
-numeraire != pricing measure
-pricing != sensitivity != control != inverse != validation
-Delta sensitivity != hedge policy != realized hedge action
-calibration != validation
-training fit != held-out evaluation
-model residual != quote width != numerical error
-optimizer convergence != parameter identification != model validity
-same-date holdout != temporal forecasting
-Python financial semantics != accelerated numerical execution
-```
+~~~text
+quantitative result/evidence != presentation artifact
+research API != duplicate quantitative implementation
+notebook != production algorithm location
+spreadsheet != pricing/calibration engine
+Dash callback != financial-model authority
+Qt controller != reusable research API
+~~~
+
+The existing qf_platform.application package is already a substantial frontend-neutral seam. F1 must audit and curate it before adding any new façade.
 
 ## Earned quantitative capability snapshot
 
@@ -162,7 +101,7 @@ European calls/puts, ACT/365F, flat continuously compounded money-market numerai
 
 ### Dynamic hedging / M3
 
-Analytic Delta consumed as a hedge-policy input over exact-transition pricing-measure GBM paths with explicit rebalance schedules, stock/cash self-financing accounting, volatility misspecification, proportional transaction costs, and replication-error summaries. These are model-generated replication experiments, not historical trading backtests.
+Analytic Delta consumed as a hedge-policy input over exact-transition pricing-measure GBM paths with explicit rebalance schedules, stock/cash self-financing accounting, volatility misspecification, proportional transaction costs, and replication-error summaries. These remain model-generated replication experiments, not historical trading backtests.
 
 ### Market evidence / M4
 
@@ -170,52 +109,46 @@ Provenance-bearing raw option/underlying observations, explicit midpoint normali
 
 ### Heston / M5–M6
 
-Explicit Heston state/law/parameter semantics, independent Fourier and seeded full-truncation Euler Monte Carlo valuation, Feller diagnostics, exact deterministic-variance handling at `xi=0`, cross-method validation, and price-space calibration of `(v0, kappa, theta, xi, rho)` with multiple starts and local identifiability/conditioning evidence.
+Explicit Heston state/law/parameter semantics, independent Fourier and seeded full-truncation Euler Monte Carlo valuation, Feller diagnostics, exact deterministic-variance handling at xi=0, cross-method validation, and price-space calibration of (v0, kappa, theta, xi, rho) with multiple starts and local identifiability/conditioning evidence.
 
 ### Validation / M7
 
 M7 uses a predeclared same-date cross-sectional holdout over 14 selected SPX/SPXW contracts:
 
-```text
+~~~text
 10 training
 4 held-out evaluation
-```
+~~~
 
 Representative held-out evidence:
 
-```text
+~~~text
                          Black-Scholes      Heston
 price RMSE                   8.412           0.671
 half-spread std. RMSE       20.613           1.649
 relative MAE                 8.27%            0.66%
-```
+~~~
 
 Within that explicit sample and design, Heston materially improves held-out pricing metrics relative to the fairly fitted one-volatility Black-Scholes benchmark. This does not establish temporal generalization, physical-measure forecasting skill, global Heston identification, historical trading profitability, or Heston hedge superiority.
 
-Authoritative detail: `docs/models/m7_empirical_validation_and_model_risk.md` and `docs/evidence/m7_spx_bs_vs_heston_validation_reference.json`.
-
 ### Performance / M8
 
-Pinned baseline -> optimized representative heavy-workload evidence:
+Pinned baseline → optimized representative heavy-workload evidence:
 
-```text
+~~~text
 Heston MC, 20k x 252                 3.3673 s -> 0.1230 s   27.38x
 10-target / 3-start calibration      2.2919 s -> 0.4971 s    4.61x
 14-target / 3-start calibration      3.2752 s -> 0.5454 s    6.01x
 complete M7 validation study         5.4136 s -> 1.0819 s    5.00x
-```
+~~~
 
-Deterministic financial parity checks pass; changed Monte Carlo RNG semantics are validated statistically rather than by equal-stream identity.
+No C++ kernel is currently justified by the measured representative workloads. Reopen native acceleration only after materially different workloads and new profiling evidence.
 
-**No C++ kernel is retained for v0.1.** The measured post-optimization absolute cost did not justify compiler/binding/cross-platform packaging and parity surface.
+## Existing application / presentation boundary
 
-Authoritative detail: `docs/models/m8_performance_engineering.md` and `docs/evidence/m8_performance_reference.json`.
+The current durable dependency direction remains:
 
-## Native Workbench through UI5 / M9
-
-The dependency direction remains:
-
-```text
+~~~text
 Qt Quick / QML
         ↓
 curated PySide6 controller / item models
@@ -225,39 +158,47 @@ frontend-neutral application + presentation semantics
 public quantitative APIs + committed derived evidence
         ↓
 production quantitative core
-```
+~~~
 
-UI5 remains the authoritative native product surface. M9 adds release packaging/verification around that product without moving quantitative logic into QML.
+The F-series generalizes the set of downstream clients; it does not reverse this dependency direction.
 
-## Deliberately absent
+## Historical M9/release work
 
-The repository intentionally still lacks:
+M9 remains MERGED history and its package/release docs remain valid records of what was implemented at that time.
 
-- a generic validation/model-risk engine;
-- generic VaR/ES/scenario/portfolio infrastructure;
-- physical-measure Heston filtering/forecasting;
-- Bayesian Heston inference;
-- a generic optimizer/inverse hierarchy;
-- arbitrage-free surface construction/repair infrastructure;
-- Heston dynamic-hedging evidence;
-- a generic model/plugin registry;
-- a generic numerical-backend registry;
-- a C++ numerical kernel for current v0.1 workloads;
-- a generic persisted study/workspace/fork document model; and
-- unsupported signed/notarized multi-platform release guarantees.
+However:
 
-These absences are not automatic future milestones. Post-v0.1 work must be justified and specified from repository evidence.
+- there is no current requirement to publish a GitHub Release/tag;
+- no future milestone is blocked on release publication;
+- the project does not stop at M9;
+- future roadmap work does not need to be organized around semantic versions.
+
+Existing package version metadata may remain because Python packaging requires a version field. It is not the project-planning model.
+
+## Deliberately absent from the committed F-series
+
+The repository still does not commit to:
+
+- a REST/FastAPI service;
+- a React/TypeScript frontend;
+- an Excel add-in;
+- live market-data feeds for the default research workflows;
+- generic persisted workspace/project infrastructure;
+- a universal report engine;
+- generic model/plugin registries;
+- a C++ backend without new profiling evidence;
+- rates, XVA, portfolio-risk, or new stochastic-model families.
+
+These may be considered in a later repository-grounded planning pass. They are not automatic F6+ work.
 
 ## Staleness and verification rule
 
-This document describes **now** and is intentionally less detailed than model/evidence docs.
+If this document conflicts with executable/live repository truth, use:
 
-If it conflicts with executable/live repository truth, use this order:
-
-```text
+~~~text
 current main / tests / required CI
         ↓
-live PR, Issue, Release, and tag state
+live PR and Issue state
         ↓
 AGENTS.md + durable architecture / conventions / ADRs
         ↓
@@ -266,6 +207,6 @@ this current-state snapshot
 roadmap + milestone specs
         ↓
 conversation memory
-```
+~~~
 
 Correct material stale state as part of the active work unit rather than relying on it blindly.

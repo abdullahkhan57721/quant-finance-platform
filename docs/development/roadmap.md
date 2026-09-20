@@ -6,19 +6,21 @@ Build a professional quantitative-finance research and model-validation platform
 
 The project is organized around mathematically meaningful problem families and evidence, not a checklist of finance keywords. Foundational mathematical distinctions may be explicit from the outset; operational frameworks must earn their abstractions from concrete consumers.
 
-This file is the **execution graph**. For the current operational snapshot, read `current_state.md`. For global selection/state/worktree rules, read `orchestration.md`. Long implementation detail belongs in milestone specs, Issues, model docs, or PRs rather than this graph.
+This file is the **execution graph**. For the current operational snapshot, read current_state.md. For global selection/state/worktree rules, read orchestration.md. Long implementation detail belongs in milestone specs, Issues, model docs, or PRs rather than this graph.
+
+The project does **not** stop at a package/release version. Historical release work remains part of the repository record, but publishing or incrementing a version is not a dependency for continued development.
 
 ## State model
 
 Milestones use:
 
-```text
+~~~text
 BLOCKED  READY  ACTIVE  REVIEW  MERGED  PAUSED  SUPERSEDED
-```
+~~~
 
-Precise transition and completion semantics are defined in `docs/development/orchestration.md`.
+Precise transition and completion semantics are defined in docs/development/orchestration.md.
 
-`MERGED` means the required PR was squash-merged **and** repository-required post-merge `main` verification completed. A local implementation, green branch, or closed-unmerged PR is not `MERGED`.
+MERGED means the required PR was squash-merged and repository-required post-merge main verification completed. A local implementation, green branch, or closed-unmerged PR is not MERGED.
 
 Repository truth and live Issues/PRs override stale status text here.
 
@@ -26,12 +28,12 @@ Repository truth and live Issues/PRs override stale status text here.
 
 Lower number wins:
 
-```text
-P0  current critical path / release frontier
+~~~text
+P0  current critical path
 P1  near-term dependent work
 P2  independent maintenance or lower-unblocking work
 P3  optional/backlog work
-```
+~~~
 
 Within equal priority, use roadmap order, dependency-unblocking value, then lower unstable-shared-contract risk.
 
@@ -41,128 +43,108 @@ Within equal priority, use roadmap order, dependency-unblocking value, then lowe
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | M0 | Engineering Bootstrap | MERGED | P0 | — | — | M0A, M1 | historical pre-index | historical pre-index | history in Git/roadmap |
 | M0A | Mathematical Quant-Finance Architecture Foundation | MERGED | P0 | M0 | — | M1 | #9, #11 | #10, #14 | ADR 0001/0002 + history |
-| M1 | European Options & Black-Scholes Reference Vertical | MERGED | P0 | M0A | UI1 after contracts stable | M2, UI1 | #5 | #15 | `docs/models/black_scholes.md` + history |
-| M2 | Independent Valuation & Sensitivity/Greeks | MERGED | P0 | M1 | UI1 | M3, M4, UI2 | #19 | #20 | `docs/models/m2_numerical_methods_and_sensitivities.md` + history |
-| M3 | Dynamic Hedging / Control | MERGED | P0 | M2 | M4 | M5, UI3 | #24 | #26 | `docs/models/m3_dynamic_delta_hedging.md` + history |
-| M4 | Market Evidence / Implied-Volatility Inference | MERGED | P0 | M2 | M3 | M5, UI3 | #25 | #27 | M4 model/evidence docs + history |
-| M5 | Heston Stochastic Volatility & Independent Valuation | MERGED | P0 | M3, M4 | UI3 after merged inputs | M6, UI4 | #30 | #31 | `docs/models/m5_heston_stochastic_volatility.md` + history |
-| M6 | Heston Calibration / Multi-Parameter Inverse Problem | MERGED | P0 | M5 | UI4 after contracts stable | M7, UI4 | #34 | #35 | M6 model/evidence docs + history |
-| M7 | Empirical Validation, Model Risk & BS vs Heston | MERGED | P0 | M6 | UI4 | M8, UI5 | #40 | #41 | `docs/models/m7_empirical_validation_and_model_risk.md` + history |
-| M8 | Performance Engineering & Measured Native Decision | MERGED | P0 | M7 | UI5 after evidence contract stable | M9, UI5 | #42 | #45 | `docs/models/m8_performance_engineering.md` + history |
+| M1 | European Options & Black-Scholes Reference Vertical | MERGED | P0 | M0A | UI1 after contracts stable | M2, UI1 | #5 | #15 | model docs + history |
+| M2 | Independent Valuation & Sensitivity/Greeks | MERGED | P0 | M1 | UI1 | M3, M4, UI2 | #19 | #20 | model docs + history |
+| M3 | Dynamic Hedging / Control | MERGED | P0 | M2 | M4 | M5, UI3 | #24 | #26 | model docs + history |
+| M4 | Market Evidence / Implied-Volatility Inference | MERGED | P0 | M2 | M3 | M5, UI3 | #25 | #27 | model/evidence docs + history |
+| M5 | Heston Stochastic Volatility & Independent Valuation | MERGED | P0 | M3, M4 | UI3 after merged inputs | M6, UI4 | #30 | #31 | model docs + history |
+| M6 | Heston Calibration / Multi-Parameter Inverse Problem | MERGED | P0 | M5 | UI4 after contracts stable | M7, UI4 | #34 | #35 | model/evidence docs + history |
+| M7 | Empirical Validation, Model Risk & BS vs Heston | MERGED | P0 | M6 | UI4 | M8, UI5 | #40 | #41 | model/evidence docs + history |
+| M8 | Performance Engineering & Measured Native Decision | MERGED | P0 | M7 | UI5 after evidence contract stable | M9, UI5 | #42 | #45 | model/evidence docs + history |
 | UI1 | Native Workbench Architecture & Black-Scholes Vertical | MERGED | P1 | M1 | M2 | UI2 | #18 | #21 | ADR 0003 + native Workbench docs |
 | UI2 | Valuation Comparison, Numerical Evidence & Greeks | MERGED | P1 | UI1, M2 | M3, M4 | UI3 | #28 | #29 | native Workbench docs + history |
 | UI3 | Dynamic Hedging, Market Evidence & Scalar Inference | MERGED | P1 | UI2, M3, M4 | M5 | UI4 | #32 | #33 | native Workbench docs + history |
 | UI4 | Heston Forward Valuation, Calibration & Identifiability | MERGED | P1 | UI3, M5, M6 | M7 | UI5 | #38 | #39 | native Workbench docs + history |
-| UI5 | Validation, Model Risk & Product Hardening | MERGED | P1 | UI4, M7, M8 | — | M9 | #43 | #44 | `docs/models/ui5_validation_model_risk_and_product_hardening.md` + history |
-| M9 | Portfolio-Quality v0.1 Release | MERGED | P0 | M8, UI5 | — | planned v0.1 complete | #50 | #51 | [`milestones/M9.md`](milestones/M9.md) |
+| UI5 | Validation, Model Risk & Product Hardening | MERGED | P1 | UI4, M7, M8 | — | M9 | #43 | #44 | UI5 model/architecture docs |
+| M9 | Portfolio-Quality v0.1 Release | MERGED | P3 | M8, UI5 | — | F1 | #50 | #51 | milestones/M9.md; historical release hardening |
+| F1 | Research API & Multi-Surface Interface Boundary | READY | P0 | M9 | — | F2, F3, F4 | create on activation | — | milestones/F1.md |
+| F2 | Reproducible Jupyter Research Studies | BLOCKED | P1 | F1 | F3, F4 after F1 | F5 | create on activation | — | milestones/F2.md |
+| F3 | Analyst Interoperability & Structured Exports | BLOCKED | P1 | F1 | F2, F4 after F1 | F5 | create on activation | — | milestones/F3.md |
+| F4 | Dash/Plotly Internal Analytics Workbench | BLOCKED | P1 | F1 | F2, F3 after F1 | F5 | create on activation | — | milestones/F4.md |
+| F5 | Multi-Surface Integration & Portfolio Documentation | BLOCKED | P1 | F2, F3, F4 | — | — | create on activation | — | milestones/F5.md |
 
 Issue/PR identifiers above are historical navigation where known; live GitHub state is authoritative.
 
 ## Current product frontier
 
-```text
-No committed READY product milestone.
-```
+~~~text
+P0 READY
+F1 — Research API & Multi-Surface Interface Boundary
+~~~
 
-M9 is repository-defined `MERGED` because PR #51 was squash-merged and the required post-merge Core, Release Verification, and Desktop workflows all succeeded on exact `main` commit:
-
-```text
-6237ccad3ec27153c294a84da32350b0bd1b12c1
-```
-
-The committed v0.1 product roadmap therefore ends at M9.
+F1 is the deterministic next product milestone after this planning/orchestration change is merged and verified.
 
 Independent repository maintenance remains:
 
-```text
+~~~text
 P2  Issue #7 — Add cognitive-complexity quality gate
-```
+~~~
 
-Issue #7 is not a product milestone and does not unlock another quantitative milestone.
+Issue #7 is not in the product dependency chain.
 
-## v0.1 publication state
+## F-series dependency narrative
 
-Repository implementation and verification are complete. At the M9 closeout snapshot, live GitHub shows **no published Release**.
+~~~text
+merged quantitative core + application layer + Qt Workbench
+                         ↓
+                        F1
+                research-facing API boundary
+                  ┌──────┼──────┐
+                  ↓      ↓      ↓
+                 F2     F3     F4
+              notebooks exports Dash
+                  └──────┼──────┘
+                         ↓
+                        F5
+             multi-surface integration
+~~~
 
-Therefore:
+F2/F3/F4 are candidate parallel work only after F1 is MERGED. The orchestration rule still requires live overlap/shared-contract inspection before running them concurrently.
 
-```text
-M9 repository milestone        MERGED
-v0.1.0 tag/release publication pending until live GitHub shows it
-```
+## F-series architectural intent
 
-Publishing the already-verified `v0.1.0` release is a post-verification release operation, not a new roadmap node. Do not report publication as complete from documentation alone; inspect live GitHub Releases/tags.
+The project should become usable through several sibling surfaces without moving financial semantics out of the production core:
 
-## Dependency narrative
+~~~text
+                         quantitative core
+                               ↑
+                    application/research semantics
+                               ↑
+        ┌──────────────┬───────┼────────┬──────────────┐
+        │              │       │        │              │
+     Python         Jupyter   exports   Dash          Qt/QML
+   programmatic     research  XLSX/CSV  analytics     desktop
+                               /JSON
+~~~
 
-```text
-M0 / M0A
-    ↓
-M1
-    ↓
-M2
-   ├───────────────┐
-   ↓               ↓
-  M3              M4
-   └───────┬───────┘
-           ↓
-          M5
-           ↓
-          M6
-           ↓
-          M7
-           ↓
-          M8
+The Qt Workbench remains valuable, but it is one client rather than the universal entry point.
 
-M1 -> UI1 -> UI2
-             ↓
-      M3 + M4 -> UI3
-      M5 + M6 -> UI4
-      M7 + M8 -> UI5
+F1 must audit the existing qf_platform.application surface before inventing another façade. F2–F4 consume the F1 result. F5 integrates the finished surfaces.
 
-M8 + UI5
-    ↓
-   M9
-    ↓
-planned v0.1 product roadmap complete
-```
+## Historical M9 boundary
 
-The earned research story remains:
+M9 is complete history. It established packaging/reviewer-facing release hardening around the then-current platform.
 
-```text
-theory
--> independent numerical evidence
--> sensitivity / replication pressure
--> observed-market falsification pressure
--> richer stochastic-volatility forward model
--> calibrated inverse problem with identifiability evidence
--> predeclared held-out model comparison
--> measured optimization
--> validation-first native presentation/product hardening
--> verified v0.1 release surface
-```
+It does **not** imply:
 
-## M9 completion boundary
+- that development is complete;
+- that a GitHub Release/tag must be published before new work;
+- that future milestones must be framed as semantic versions; or
+- that later product work requires a version bump.
 
-M9 consolidated rather than broadened scope. It consumes the earned M1–M8 and UI1–UI5 evidence stack and leaves:
+Existing package version metadata and release documentation may remain for historical/package-tooling reasons. They are not the current roadmap frontier.
 
-- package version `0.1.0`;
-- a reviewer-facing release guide and changelog;
-- clean non-editable install verification;
-- deterministic network-free verification of committed M7/M8 release evidence;
-- a tested native Workbench source-launch path;
-- an Ubuntu 24.04 x86_64 standalone build/packaged-launch proof;
-- the bounded M7 same-date held-out Black-Scholes vs Heston comparison;
-- the M8 measured Python/NumPy optimization result;
-- the explicit M8 decision that C++ is not justified for current v0.1 workloads; and
-- no unsupported cross-platform installer/signing claims.
+## Deliberately uncommitted later directions
 
-See the durable M9 spec and `docs/release/v0.1.md` for the authoritative release boundary.
+The following are not part of the committed F1–F5 graph:
 
-## Post-v0.1 directions are not READY milestones
+- REST service / FastAPI;
+- React/TypeScript frontend;
+- Excel add-in;
+- rates;
+- XVA/counterparty credit;
+- portfolio market-risk infrastructure;
+- rough-volatility or other new model families;
+- C++ acceleration without new profiling evidence.
 
-Potential later specializations include rates, XVA/counterparty credit, portfolio market risk, and possibly rough-volatility research after reviewing then-current literature and v0.1 limitations.
-
-These are **directions, not executable milestones**. They have no status, priority, dependency graph entry, or implementation permission until a future planning pass justifies them and creates durable specs from repository evidence.
-
-A fresh agent must not invent an M10 simply because M9 is complete.
+A fresh agent must not invent F6 or another quantitative specialization merely because F5 later merges. A new planning pass should establish the next frontier from repository evidence.

@@ -352,7 +352,7 @@ remove scalar Python/RNG and repeated Fourier work
         ↓
 parity retained
         ↓
-C++ not justified for v0.1
+C++ not justified for the current representative workload scale
 ```
 
 There is therefore no native-backend selector, generic backend registry, or fictitious C++ execution path in UI5.
@@ -441,7 +441,7 @@ The project still deliberately does not claim:
 - arbitrary report/document infrastructure;
 - Windows/macOS installer certification;
 - code signing/notarization; or
-- a C++ quantitative backend for v0.1.
+- a C++ quantitative backend for the current representative workload scale.
 
 ## Packaging and validation
 
@@ -471,22 +471,27 @@ Dedicated Desktop CI verifies:
 - packaged offscreen launch smoke; and
 - standalone artifact upload.
 
-## Extension rule / M9 handoff
+## Multi-surface extension rule / F-series handoff
 
-Future UI/release work consumes only capabilities and evidence actually merged on `main`.
+Future clients consume only capabilities and evidence actually merged on main.
 
-With M7, M8, and UI5 complete, M9 should consolidate the earned v0.1 research/product narrative rather than add broad new model or backend scope:
+The current F-series broadens downstream access without changing the quantitative authority:
 
-```text
-merged quantitative capability / committed evidence
-        ↓
-concrete frontend-neutral application/presentation semantics
-        ↓
-curated controller values/actions
-        ↓
-QML presentation
-        ↓
-reproducible release evidence
-```
+~~~text
+production quantitative core / committed evidence
+                 ↓
+frontend-neutral application + presentation/research semantics
+          ┌──────┼──────┬──────────┐
+          ↓      ↓      ↓          ↓
+       Jupyter  exports  Dash     Qt/QML
+          ↑
+        Python
+~~~
 
-The growth rule remains consumer-driven. UI5 still does not justify a universal model registry, inverse-problem framework, optimizer UI, workflow graph editor, chart grammar, desktop job system, generic report engine, or numerical-backend registry.
+The native Workbench remains a first-class client, but not the universal interface layer.
+
+F1 must audit the existing application/presentation seams before extracting anything new. F2 notebooks, F3 exports, and F4 Dash then consume the merged F1 contracts. F5 integrates the sibling surfaces.
+
+The growth rule remains consumer-driven. Multiple clients do **not** by themselves justify a universal model registry, workflow graph, chart grammar, job system, report engine, persistence layer, or numerical-backend registry.
+
+Historical M9 packaging/release work remains history and does not block continued development or require a GitHub Release/tag before the F-series proceeds.
