@@ -44,7 +44,7 @@ Issue #7 is not part of the F-series dependency chain.
 
 ### ACTIVE / REVIEW
 
-**F3 — Analyst Interoperability & Structured Exports** is ACTIVE in Issue #59 on branch `f3-59-structured-exports`.
+**F3 — Analyst Interoperability & Structured Exports** is in REVIEW in Issue #59 / PR #60 on branch `f3-59-structured-exports`.
 
 F2 was selected from the F2/F3/F4 READY frontier by equal-priority roadmap order. It owns notebooks, research-only tooling/dependencies, notebook execution evidence, and the minimum documentation/CI required for those studies. It must not consume unmerged F3/F4 behavior or move quantitative logic into notebook cells.
 
@@ -54,7 +54,7 @@ A fresh agent asked to continue development should:
 
 1. verify current main and live Issues/PRs;
 2. recover F3 Issue #59 and its branch/PR rather than duplicating work;
-3. execute F3 through exact-head validation and the human merge gate while keeping F4 READY;
+3. inspect F3 exact-head validation and preserve the human merge gate while keeping F4 READY;
 4. keep F5 BLOCKED until F3 and F4 are also repository-defined MERGED.
 
 No copied milestone prompt is required.
