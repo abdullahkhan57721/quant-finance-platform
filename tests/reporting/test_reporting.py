@@ -68,9 +68,7 @@ def _m2_analysis() -> tuple[M2WorkbenchRequest, M2WorkbenchAnalysis]:
 def test_concrete_adapters_preserve_authoritative_values() -> None:
     m2_request, m2_analysis = _m2_analysis()
     valuation = valuation_greeks_report(m2_request, m2_analysis)
-    valuations = next(
-        table for table in valuation.tables if table.name == "valuations"
-    )
+    valuations = next(table for table in valuation.tables if table.name == "valuations")
     analytic = next(
         run for run in m2_analysis.valuations if run.method.value == "analytic"
     )
@@ -84,12 +82,9 @@ def test_concrete_adapters_preserve_authoritative_values() -> None:
     )
     hedge_analysis = run_hedge_workbench(hedge_request)
     hedge = hedging_report(hedge_request, hedge_analysis)
-    replicates = next(
-        table for table in hedge.tables if table.name == "replicates"
-    )
+    replicates = next(table for table in hedge.tables if table.name == "replicates")
     assert (
-        replicates.rows[0][1]
-        == hedge_analysis.selected_replicates[0].replication_error
+        replicates.rows[0][1] == hedge_analysis.selected_replicates[0].replication_error
     )
 
     market_analysis = canonical_m4_market_workbench()
@@ -113,10 +108,7 @@ def test_concrete_adapters_preserve_authoritative_values() -> None:
     runs = next(
         table for table in calibration.tables if table.name == "calibration_runs"
     )
-    assert (
-        runs.rows[0][11]
-        == calibration_analysis.runs[0].result.objective_value
-    )
+    assert runs.rows[0][11] == calibration_analysis.runs[0].result.objective_value
 
 
 def test_flagship_validation_exports_are_auditable(tmp_path: Path) -> None:
@@ -145,9 +137,7 @@ def test_flagship_validation_exports_are_auditable(tmp_path: Path) -> None:
         "provenance",
         "performance",
     )
-    heldout = next(
-        table for table in report.tables if table.name == "heldout_metrics"
-    )
+    heldout = next(table for table in report.tables if table.name == "heldout_metrics")
     assert (
         heldout.rows[0][4]
         == analysis.evidence.black_scholes_evaluation_metrics.root_mean_square_error
@@ -184,9 +174,7 @@ def test_flagship_validation_exports_are_auditable(tmp_path: Path) -> None:
         == performance.workloads[2].speedup_x
     )
 
-    metadata_csv = next(
-        path for path in paths.csv if path.name == "_metadata.csv"
-    )
+    metadata_csv = next(path for path in paths.csv if path.name == "_metadata.csv")
     with metadata_csv.open(encoding="utf-8", newline="") as handle:
         rows = list(csv.reader(handle))
     assert ["design", "same-date cross-sectional holdout", "", ""] in rows
