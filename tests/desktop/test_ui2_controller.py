@@ -10,6 +10,13 @@ pytest.importorskip("PySide6")
 
 from PySide6.QtGui import QGuiApplication
 
+from qf_platform.application import (
+    M2WorkbenchDraft,
+    canonical_black_scholes_draft,
+    compose_black_scholes_study,
+    make_m2_workbench_request,
+    run_m2_workbench,
+)
 from qf_platform.desktop.controller import WorkbenchController
 
 _app_instance: QGuiApplication | None = None
@@ -116,3 +123,28 @@ def test_ui2_worker_returns_comparison_uncertainty_and_greek_plot() -> None:
         "analytic",
         "finite_difference",
     }
+
+
+
+def test_ui2_controller_canonical_present_value_matches_application_authority() -> None:
+    composition = compose_black_scholes_study(canonical_black_scholes_draft())
+    request = make_m2_workbench_request(composition, M2WorkbenchDraft())
+    analysis = run_m2_workbench(request)
+    assert analysis.selected_valuation.result is not None
+    authoritative_pv = analysis.selected_valuation.result.present_value
+
+    controller = _controller()
+    app = _app()
+    assert controller.runStudy(*_ui2_args(method="analytic", greek="delta"))
+
+    deadline = time.monotonic() + 12.0
+    while controller.running and time.monotonic() < deadline:
+        app.processEvents()
+
+    assert not controller.running
+    assert controller.analysisReady
+    assert controller.hasResult
+    assert float(cast(str, controller.presentValue)) == pytest.approx(
+        authoritative_pv,
+        rel=1e-11,
+    )
