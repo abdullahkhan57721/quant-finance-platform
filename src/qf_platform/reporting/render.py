@@ -43,7 +43,10 @@ def _table_record(table: ReportTable) -> dict[str, object]:
             for column in table.columns
         ],
         "rows": [
-            {\n                column.key: value\n                for column, value in zip(table.columns, row, strict=True)\n            }
+            {
+                column.key: value
+                for column, value in zip(table.columns, row, strict=True)
+            }
             for row in table.rows
         ],
     }
@@ -96,7 +99,10 @@ def write_csv_report(report: TabularReport, directory: str | Path) -> tuple[Path
 def _autosize(worksheet: object) -> None:
     for column_cells in worksheet.columns:  # type: ignore[attr-defined]
         maximum = max(
-            (\n                len(str(cell.value)) if cell.value is not None else 0\n                for cell in column_cells\n            ),
+            (
+                len(str(cell.value)) if cell.value is not None else 0
+                for cell in column_cells
+            ),
             default=0,
         )
         letter = column_cells[0].column_letter
