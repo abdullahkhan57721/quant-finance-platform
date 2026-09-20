@@ -50,7 +50,9 @@ def hedging_report(
                 config.hedging_volatility,
                 "annual decimal",
             ),
-            ReportField(\n                "rebalance_day_interval", config.rebalance_day_interval, "days"\n            ),
+            ReportField(
+                "rebalance_day_interval", config.rebalance_day_interval, "days"
+            ),
             ReportField("seed", config.seed),
             ReportField("replicate_count", config.replicate_count, "count"),
             ReportField(
