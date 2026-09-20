@@ -4,7 +4,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Iterable, Sequence
+from collections.abc import Callable, Iterable, Sequence
 
 from dash import Dash, Input, Output, State, dcc, html
 
@@ -160,7 +160,7 @@ def _prompt(text: str) -> html.Div:
 
 def _render_service[T](
     result: ServiceResult[T],
-    renderer,
+    renderer: Callable[[T], object],
 ) -> object:
     if result.error is not None:
         return _error(result.error)
@@ -535,7 +535,7 @@ def create_dash_app() -> Dash:
         State("val-seed", "value"),
         State("val-greek", "value"),
     )
-    def run_valuation_callback(n_clicks, *values):
+    def run_valuation_callback(n_clicks: int | None, *values: object) -> object:
         if not n_clicks:
             return _prompt("Run the study to generate evidence.")
         inputs = ValuationInputs(*("" if value is None else str(value) for value in values))
@@ -556,14 +556,14 @@ def create_dash_app() -> Dash:
         State("hedge-reps", "value"),
         State("hedge-cost", "value"),
     )
-    def run_hedging_callback(n_clicks, *values):
+    def run_hedging_callback(n_clicks: int | None, *values: object) -> object:
         if not n_clicks:
             return _prompt("Run the study to generate replication evidence.")
         inputs = HedgingInputs(*("" if value is None else str(value) for value in values))
         return _render_service(run_hedging_service(inputs), _render_hedging)
 
     @app.callback(Output("market-output", "children"), Input("market-run", "n_clicks"))
-    def run_market_callback(n_clicks):
+    def run_market_callback(n_clicks: int | None) -> object:
         if not n_clicks:
             return _prompt("Load the package-safe M4 evidence.")
         return _render_service(load_market_service(), _render_market)
@@ -572,7 +572,7 @@ def create_dash_app() -> Dash:
         Output("heston-price-output", "children"),
         Input("heston-price-run", "n_clicks"),
     )
-    def run_heston_pricing_callback(n_clicks):
+    def run_heston_pricing_callback(n_clicks: int | None) -> object:
         if not n_clicks:
             return _prompt("Run the pricing study.")
         return _render_service(run_heston_pricing_service(), _render_heston_pricing)
@@ -582,7 +582,7 @@ def create_dash_app() -> Dash:
         Input("heston-cal-run", "n_clicks"),
         State("heston-cal-mode", "value"),
     )
-    def run_heston_calibration_callback(n_clicks, mode):
+    def run_heston_calibration_callback(n_clicks: int | None, mode: object) -> object:
         if not n_clicks:
             return _prompt("Run the calibration study.")
         calibration = run_heston_calibration_service(str(mode or "recovery"))
@@ -598,7 +598,7 @@ def create_dash_app() -> Dash:
         Output("validation-output", "children"),
         Input("validation-run", "n_clicks"),
     )
-    def run_validation_callback(n_clicks):
+    def run_validation_callback(n_clicks: int | None) -> object:
         if not n_clicks:
             return _prompt("Run the reference validation study.")
         validation = load_validation_service()
