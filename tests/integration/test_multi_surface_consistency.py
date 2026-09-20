@@ -17,12 +17,12 @@ from qf_platform.sensitivity import BlackScholesSensitivity
 from qf_platform.web.services import run_valuation_service
 
 
-def test_canonical_black_scholes_evidence_is_consistent_across_sibling_surfaces() -> None:
+def test_canonical_black_scholes_evidence_is_consistent_across_sibling_surfaces() -> (\n    None\n):
     composition = compose_black_scholes_study(canonical_black_scholes_draft())
     request = make_m2_workbench_request(composition, M2WorkbenchDraft())
     analysis = run_m2_workbench(request)
 
-    analytic = next(run for run in analysis.valuations if run.method.value == "analytic")
+    analytic = next(\n        run for run in analysis.valuations if run.method.value == "analytic"\n    )
     assert analytic.result is not None
     authoritative_pv = analytic.result.present_value
 
@@ -41,7 +41,7 @@ def test_canonical_black_scholes_evidence_is_consistent_across_sibling_surfaces(
     assert web_result.value is not None
     web = web_result.value
 
-    valuation_table = next(table for table in report.tables if table.name == "valuations")
+    valuation_table = next(\n        table for table in report.tables if table.name == "valuations"\n    )
     report_analytic = next(row for row in valuation_table.rows if row[0] == "analytic")
     assert report_analytic[3] == authoritative_pv
 
