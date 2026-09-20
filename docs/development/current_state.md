@@ -26,7 +26,7 @@ F5  Multi-Surface Integration & Portfolio Documentation
 
 ## Execution frontier
 
-### ACTIVE — product
+### REVIEW — product
 
 **F5 — Multi-Surface Integration & Portfolio Documentation** is in REVIEW in Issue #63 / PR #65 on branch `f5-63-multi-surface-integration`.
 
