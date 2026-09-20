@@ -57,7 +57,7 @@ Within equal priority, use roadmap order, dependency-unblocking value, then lowe
 | UI4 | Heston Forward Valuation, Calibration & Identifiability | MERGED | P1 | UI3, M5, M6 | M7 | UI5 | #38 | #39 | native Workbench docs + history |
 | UI5 | Validation, Model Risk & Product Hardening | MERGED | P1 | UI4, M7, M8 | — | M9 | #43 | #44 | UI5 model/architecture docs |
 | M9 | Portfolio-Quality v0.1 Release | MERGED | P3 | M8, UI5 | — | F1 | #50 | #51 | milestones/M9.md; historical release hardening |
-| F1 | Research API & Multi-Surface Interface Boundary | ACTIVE | P0 | M9 | — | F2, F3, F4 | #55 | pending | milestones/F1.md |
+| F1 | Research API & Multi-Surface Interface Boundary | REVIEW | P0 | M9 | — | F2, F3, F4 | #55 | #56 | milestones/F1.md |
 | F2 | Reproducible Jupyter Research Studies | BLOCKED | P1 | F1 | F3, F4 after F1 | F5 | create on activation | — | milestones/F2.md |
 | F3 | Analyst Interoperability & Structured Exports | BLOCKED | P1 | F1 | F2, F4 after F1 | F5 | create on activation | — | milestones/F3.md |
 | F4 | Dash/Plotly Internal Analytics Workbench | BLOCKED | P1 | F1 | F2, F3 after F1 | F5 | create on activation | — | milestones/F4.md |
@@ -68,11 +68,11 @@ Issue/PR identifiers above are historical navigation where known; live GitHub st
 ## Current product frontier
 
 ~~~text
-P0 ACTIVE
+P0 REVIEW
 F1 — Research API & Multi-Surface Interface Boundary
 ~~~
 
-F1 is the deterministic next product milestone after this planning/orchestration change is merged and verified.
+F1 is implemented in PR #56 for Issue #55 and awaits the human merge gate; exact-head validation is recorded in that PR. No product milestone is READY until F1 is merged and verified; F2/F3/F4 remain BLOCKED.
 
 Independent repository maintenance remains:
 

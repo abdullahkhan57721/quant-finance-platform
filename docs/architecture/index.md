@@ -473,3 +473,11 @@ Avoid:
 Create an ADR when a decision is durable, consequential, and difficult to infer from code plus this index. M2–M7 are concrete extensions of ADR 0002 rather than architectural contradictions requiring a superseding ADR.
 
 Do not rewrite historical ADRs to hide evolution; supersede them only when architecture truly changes.
+
+## F1 research interface audit
+
+The [implemented multi-surface boundary](research_interfaces.md) records the F1
+audit, public API decision and dependency checks. The existing application and
+domain packages serve Python consumers directly; no separate research façade
+is introduced. See the [Python research guide](../research/python_api.md) for
+public workflow contracts and runnable examples.
