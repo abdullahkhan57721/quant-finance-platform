@@ -202,3 +202,103 @@ and application packages do not require those dependencies. Static architecture
 tests forbid the web package from importing `qf_platform.desktop`, PySide6, live
 network clients, or direct quantitative implementation packages. A clean
 headless smoke constructs the app with desktop imports actively rejected.
+
+
+## F5 integrated multi-surface contract
+
+F5 closes the interface-integration loop without introducing another façade:
+
+```text
+                         quantitative core
+                               ↑
+                    application/research semantics
+                               ↑
+        ┌──────────────┬───────┼────────┬──────────────┐
+        │              │       │        │              │
+     Python         Jupyter   exports   Dash          Qt/QML
+   programmatic     research  XLSX/CSV  analytics     desktop
+                               /JSON
+```
+
+### Interface ownership and proof matrix
+
+| Interface | Purpose | Optional dependency | Primary run path | CI proof |
+| --- | --- | --- | --- | --- |
+| Python | Programmatic research and direct typed composition | none beyond base package | `examples/research/*.py` | clean base-package example consumer |
+| Jupyter | Reproducible research narrative, tables and plots | `research` | `scripts/check_notebooks.py` / JupyterLab | `research-notebooks` |
+| XLSX/CSV/JSON | Analyst/model-validation handoff | `reporting` for XLSX | `examples/reporting/export_reference_validation.py` | `reporting-exports` |
+| Dash/Plotly | Local browser analytics | `web` | `python -m qf_platform.web.main` | `web-analytics` |
+| Qt/QML | Native interactive Workbench | `desktop` | `python -m qf_platform.desktop.main` | Release Verification + Desktop package proof |
+
+These dependency groups are intentionally separable. Base Python research must not require
+Qt, Dash, Jupyter or OpenPyXL. Each optional surface installs only the dependencies
+needed for its own presentation/execution responsibilities.
+
+### Canonical consistency contract
+
+The published M1/M2 benchmark is the cross-surface regression anchor:
+
+```text
+spot = 100
+strike = 100
+valuation date = 2026-01-01
+expiry = 2027-01-01
+annualized volatility = 0.20
+continuously compounded rate = 0.05
+continuous dividend yield = 0.00
+right = call
+selected valuation = analytic
+selected Greek = Delta
+```
+
+The production application result is authoritative. Downstream contracts are:
+
+- reporting copies the raw numeric present value and Greek into its tabular schema;
+- renderer-neutral presentation may format those values for display;
+- Dash consumes the same presentation builder through its thin service layer;
+- the Qt controller exposes the same completed application/presentation evidence at
+  the native boundary;
+- no display string is fed back into quantitative computation.
+
+Consistency therefore means **same underlying quantitative evidence**, not byte-for-byte
+identity of representations. Tests compare raw values exactly where preserved and use
+the documented display precision where a client intentionally formats them.
+
+### Dependency-separation rules
+
+```text
+financial formula / model semantics
+        belong in quantitative packages
+
+study orchestration
+        belongs in application
+
+renderer-neutral labels / PlotData
+        belong in presentation
+
+file schema / serialization
+        belongs in reporting
+
+browser interaction
+        belongs in web
+
+native interaction / Qt lifecycle
+        belongs in desktop
+```
+
+Multiple clients do not justify a universal UI/workflow/report abstraction. A shared
+runtime abstraction must still be earned by repeated concrete responsibility. F5 found
+no need for a new universal interface framework.
+
+## F5 validation evidence
+
+F5 adds a canonical cross-surface regression and strengthens the Qt UI2 boundary test.
+It also adds a clean CI consumer that installs only the base package and runs all six
+public research examples from outside the repository source tree. Existing notebook,
+reporting, web and desktop jobs remain independent clean consumers of their respective
+optional dependency groups.
+
+This integration evidence checks representation and dependency consistency; it is not
+independent validation of Black-Scholes mathematics. The existing analytical,
+cross-method, convergence, sensitivity and model-validation tests remain the
+quantitative evidence.
