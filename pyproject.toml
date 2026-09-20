@@ -19,6 +19,7 @@ dev = [
     "pytest>=8.0",
     "ruff>=0.9",
     "scipy-stubs>=1.18.1.0",
+    "openpyxl>=3.1,<4",
 ]
 desktop = [
     "PySide6==6.11.2",
@@ -29,6 +30,9 @@ research = [
     "matplotlib>=3.9,<4",
     "nbclient>=0.10,<1",
     "nbformat>=5.10,<6",
+]
+reporting = [
+    "openpyxl>=3.1,<4",
 ]
 
 [tool.setuptools.packages.find]
@@ -46,7 +50,7 @@ line-length = 88
 select = ["B", "E4", "E7", "E9", "F", "I", "SIM", "UP"]
 
 [tool.pyright]
-include = ["src", "tests", "examples/research"]
+include = ["src", "tests", "examples/research", "examples/reporting"]
 exclude = ["src/qf_platform/desktop", "tests/desktop"]
 pythonVersion = "3.12"
 typeCheckingMode = "strict"
