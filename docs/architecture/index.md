@@ -12,8 +12,10 @@ Implemented pressure now includes:
 - M3 — control / dynamic replication;
 - M4 — observed-market boundary and scalar inverse problem;
 - M5 — Heston stochastic-volatility forward model with independent valuation;
-- M6 — noisy multi-parameter calibration and identifiability evidence; and
-- M7 — predeclared empirical validation / model-risk comparison.
+- M6 — noisy multi-parameter calibration and identifiability evidence;
+- M7 — predeclared empirical validation / model-risk comparison;
+- M8 — profiling-driven Python/NumPy performance engineering and the measured decision not to add C++; and
+- UI1–UI5 — frontend-neutral application/presentation seams consumed by the native Qt Workbench.
 
 ADR 0002 is the platform-wide mathematical architecture authority. ADR 0003 governs the native PySide6 + Qt Quick/QML workbench boundary.
 
@@ -414,25 +416,39 @@ production quantitative core
 
 UI4 may consume M5/M6 Heston and calibration behavior. It must not encode M7 validation calculations/conclusions inside QML. Later UI milestones may consume M7 evidence through downstream application/presentation adapters.
 
-## Python/C++ execution boundary
+## Performance and interface execution boundaries
 
-M8 is now the next quantitative pressure:
+M8 established the current acceleration decision:
 
-```text
+~~~text
 correct Python reference
         ↓
-profile M7-defined representative workloads
+profile representative workloads
         ↓
-identify measured hotspot
+identify measured hotspots
         ↓
-choose narrow numerical boundary
+optimize algorithm/data movement in Python/NumPy
         ↓
-targeted C++ implementation
+verify financial/statistical parity
         ↓
-Python/C++ parity evidence
-```
+remaining absolute cost does not justify C++
+~~~
 
-Python remains the semantic/correctness authority. Do not create backend registries or rewrite research orchestration in C++ before profiling proves a benefit.
+Python remains the semantic/correctness authority. Native acceleration may be reconsidered only after materially different workloads and new profiling evidence identify a worthwhile narrow numerical boundary.
+
+The current F-series extends **downstream consumption**, not quantitative authority:
+
+~~~text
+quantitative core / committed evidence
+              ↑
+frontend-neutral application/research semantics
+              ↑
+  Python / Jupyter / exports / Dash / Qt
+~~~
+
+F1 must first audit the existing qf_platform.application and public domain surfaces. New interface-specific adapters may be added only downstream. Notebooks, XLSX/CSV/JSON exporters, Dash callbacks, and Qt controllers must not become alternate pricing/calibration/validation implementations.
+
+Do not create a universal cross-client UI framework merely because multiple clients exist. Extract only shared frontend-neutral responsibilities that have real repeated consumers.
 
 ## Explicit traps
 
