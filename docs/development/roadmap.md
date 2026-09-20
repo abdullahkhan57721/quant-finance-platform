@@ -58,8 +58,8 @@ Within equal priority, use roadmap order, dependency-unblocking value, then lowe
 | UI5 | Validation, Model Risk & Product Hardening | MERGED | P1 | UI4, M7, M8 | — | M9 | #43 | #44 | UI5 model/architecture docs |
 | M9 | Portfolio-Quality v0.1 Release | MERGED | P3 | M8, UI5 | — | F1 | #50 | #51 | milestones/M9.md; historical release hardening |
 | F1 | Research API & Multi-Surface Interface Boundary | MERGED | P0 | M9 | — | F2, F3, F4 | #55 | #56 | milestones/F1.md |
-| F2 | Reproducible Jupyter Research Studies | REVIEW | P1 | F1 | F3, F4 | F5 | #57 | #58 | milestones/F2.md |
-| F3 | Analyst Interoperability & Structured Exports | READY | P1 | F1 | F2, F4 | F5 | create on activation | — | milestones/F3.md |
+| F2 | Reproducible Jupyter Research Studies | MERGED | P1 | F1 | F3, F4 | F5 | #57 | #58 | milestones/F2.md |
+| F3 | Analyst Interoperability & Structured Exports | REVIEW | P1 | F1 | F2, F4 | F5 | #59 | #60 | milestones/F3.md |
 | F4 | Dash/Plotly Internal Analytics Workbench | READY | P1 | F1 | F2, F3 | F5 | create on activation | — | milestones/F4.md |
 | F5 | Multi-Surface Integration & Portfolio Documentation | BLOCKED | P1 | F2, F3, F4 | — | — | create on activation | — | milestones/F5.md |
 
@@ -69,14 +69,13 @@ Issue/PR identifiers above are historical navigation where known; live GitHub st
 
 ~~~text
 P1 REVIEW
-F2 — Reproducible Jupyter Research Studies — Issue #57 / PR #58
+F3 — Analyst Interoperability & Structured Exports — Issue #59 / PR #60
 
 P1 READY
-F3 — Analyst Interoperability & Structured Exports
 F4 — Dash/Plotly Internal Analytics Workbench
 ~~~
 
-F1 is squash-merged and post-merge verified on main. F2 was selected first by the deterministic equal-priority roadmap-order rule and is now in final review/validation in PR #58. F3 and F4 are independently READY but are not activated by this work unit; any parallel execution still requires isolated branches and a live overlap check.
+F1 is squash-merged and post-merge verified on main. F2 was selected first by the deterministic equal-priority roadmap-order rule and is now in final review/validation in PR #58. F2 is squash-merged and post-merge verified. F3 is ACTIVE in its isolated work unit; F4 remains independently READY.
 
 F5 remains BLOCKED until F2, F3, and F4 are all repository-defined MERGED.
 

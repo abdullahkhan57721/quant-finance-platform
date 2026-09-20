@@ -41,8 +41,22 @@ python scripts/check_notebooks.py
 
 See [`notebooks/README.md`](notebooks/README.md) for the pricing/Greeks,
 dynamic-hedging/model-risk, and SPX/Heston-validation studies plus the evidence
-and non-claim boundaries they preserve. Qt remains a sibling client; F3 exports
-and F4 Dash are independent downstream surfaces.
+and non-claim boundaries they preserve.
+
+## Analyst exports
+
+Generate the flagship validation/model-risk evidence as XLSX, JSON, and CSV:
+
+```bash
+python -m pip install -e ".[reporting]"
+python examples/reporting/export_reference_validation.py --output reporting_output
+```
+
+The [structured export guide](docs/research/structured_exports.md) documents the
+concrete M2/M3/M4/M6/M7 adapters, sheet/table schemas, units, provenance, and
+model-risk non-claims. Exported files are downstream evidence artifacts; Python
+results remain the quantitative authority. Qt remains a sibling client and F4
+Dash remains independent.
 
 ## Run and verify v0.1
 
@@ -62,7 +76,7 @@ The committed evidence includes the [SPX Black-Scholes vs Heston held-out compar
 
 ## Status
 
-**M0–M9, UI1–UI5, and F1 are complete. F2 adds reproducible Jupyter research studies while F3/F4 remain independent READY sibling surfaces.**
+**M0–M9, UI1–UI5, F1, and F2 are complete. F3 structured exports are active; F4 remains the next independent READY sibling surface.**
 
 The implemented research arc is:
 

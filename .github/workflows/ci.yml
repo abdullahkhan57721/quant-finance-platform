@@ -50,3 +50,27 @@ jobs:
         env:
           MPLBACKEND: Agg
         run: python scripts/check_notebooks.py
+
+  reporting-exports:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install package and reporting tools
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[reporting]"
+
+      - name: Generate flagship analyst exports
+        run: |
+          python examples/reporting/export_reference_validation.py --output /tmp/qf-reporting
+          test -f /tmp/qf-reporting/bs_heston_validation.xlsx
+          test -f /tmp/qf-reporting/bs_heston_validation.json
+          test -f /tmp/qf-reporting/bs_heston_validation_csv/heldout_metrics.csv
