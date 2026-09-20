@@ -7,7 +7,7 @@ The quantitative-finance platform has completed and repository-verified:
 ~~~text
 M0, M0A, M1, M2, M3, M4, M5, M6, M7, M8, M9
 UI1, UI2, UI3, UI4, UI5
-F1, F2, F3
+F1, F2, F3, F4
 ~~~
 
 ADR 0002 remains the mathematical architecture authority. ADR 0003 remains the native PySide6 + Qt Quick/QML authority.
@@ -26,15 +26,11 @@ F5  Multi-Surface Integration & Portfolio Documentation
 
 ## Execution frontier
 
-### READY — product
+### ACTIVE — product
 
-No unclaimed READY product milestone is ahead of the active F4 work unit.
+**F5 — Multi-Surface Integration & Portfolio Documentation** is ACTIVE in Issue #63 on branch `f5-63-multi-surface-integration`.
 
-F1/F2/F3 are squash-merged and post-merge verified.
-
-### BLOCKED — product
-
-- **F5 — Multi-Surface Integration & Portfolio Documentation**, blocked on F4; F2 and F3 are already verified MERGED.
+F1/F2/F3/F4 are squash-merged and post-merge verified. F4 is verified on `main` at `076ad9ec059eee4254a3d80e154b722af56ae994`; Core, research notebooks, reporting exports, web analytics, Release Verification, and Desktop standalone packaging all passed.
 
 ### READY — auxiliary maintenance
 
@@ -42,20 +38,15 @@ F1/F2/F3 are squash-merged and post-merge verified.
 
 Issue #7 is not part of the F-series dependency chain.
 
-### ACTIVE / REVIEW
-
-**F4 — Dash/Plotly Internal Analytics Workbench** is in REVIEW in Issue #61 / PR #62 on branch `f4-61-dash-analytics`.
-
-F1/F2/F3 are verified MERGED. F4 owns only the Dash/Plotly sibling client and its minimum web-specific services, renderer, tests, documentation, and CI; quantitative authority remains in the existing application/core layers.
-
 ## Deterministic next execution
 
 A fresh agent asked to continue development should:
 
 1. verify current main and live Issues/PRs;
-2. recover F4 Issue #61 / PR #62 rather than duplicating work;
-3. inspect F4 exact-head validation and preserve the human merge gate;
-4. keep F5 BLOCKED until F4 is repository-defined MERGED.
+2. recover F5 Issue #63 / its active PR rather than duplicating work;
+3. preserve the one-authority / five-sibling-surface architecture;
+4. carry F5 through exact-head validation and the human merge gate;
+5. after verified F5 merge, perform a new repository-grounded planning pass rather than inventing F6 automatically.
 
 No copied milestone prompt is required.
 
