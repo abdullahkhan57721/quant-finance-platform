@@ -67,7 +67,7 @@ python -m pip install -e ".[web]"
 python -m qf_platform.web.main
 ```
 
-The browser workbench exposes valuation/Greeks, dynamic hedging, market/implied-volatility evidence, Heston pricing/calibration, and M7/M8 model-validation evidence through the same frontend-neutral application/presentation contracts used by Python, Jupyter, exports, and Qt. Default studies are network-free, and the web package does not import the desktop layer.
+The [browser analytics guide](docs/research/web_analytics.md) documents the workspaces, launch options, evidence boundaries, and architecture. The browser workbench exposes valuation/Greeks, dynamic hedging, market/implied-volatility evidence, Heston pricing/calibration, and M7/M8 model-validation evidence through the same frontend-neutral application/presentation contracts used by Python, Jupyter, exports, and Qt. Default studies are network-free, and the web package does not import the desktop layer.
 
 ## Run and verify v0.1
 
