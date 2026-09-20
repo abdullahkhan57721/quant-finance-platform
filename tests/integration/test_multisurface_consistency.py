@@ -23,7 +23,9 @@ def test_canonical_valuation_and_delta_are_consistent_across_surfaces() -> None:
     assert selected.result is not None
     authoritative_pv = selected.result.present_value
 
-    delta = next(run for run in analysis.sensitivities if run.sensitivity.value == "delta")
+    delta = next(
+        run for run in analysis.sensitivities if run.sensitivity.value == "delta"
+    )
     assert delta.analytic_result is not None
     authoritative_delta = delta.analytic_result.value
 
