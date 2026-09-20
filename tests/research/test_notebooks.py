@@ -79,9 +79,7 @@ def test_notebooks_use_only_public_platform_imports_and_no_network_clients() -> 
                     modules = [node.module]
                     if node.module.startswith("qf_platform"):
                         assert node.module.count(".") == 1, (name, node.module)
-                        assert all(
-                            not item.name.startswith("_") for item in node.names
-                        )
+                        assert all(not item.name.startswith("_") for item in node.names)
                 for module in modules:
                     assert not any(
                         module == root or module.startswith(root + ".")
