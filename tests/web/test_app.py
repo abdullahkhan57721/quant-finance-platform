@@ -1,5 +1,7 @@
 """Dash application construction and headless route smoke tests."""
 
+# pyright: reportAny=false, reportUnknownMemberType=false, reportUnknownVariableType=false
+
 from __future__ import annotations
 
 from collections.abc import Iterator
