@@ -34,7 +34,7 @@ F1/F2/F3 are squash-merged and post-merge verified.
 
 ### BLOCKED — product
 
-- **F5 — Multi-Surface Integration & Portfolio Documentation**, blocked on F2, F3, and F4.
+- **F5 — Multi-Surface Integration & Portfolio Documentation**, blocked on F4; F2 and F3 are already verified MERGED.
 
 ### READY — auxiliary maintenance
 
