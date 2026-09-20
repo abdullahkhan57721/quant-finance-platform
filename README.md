@@ -58,6 +58,17 @@ model-risk non-claims. Exported files are downstream evidence artifacts; Python
 results remain the quantitative authority. Qt remains a sibling client and F4
 Dash remains independent.
 
+## Browser analytics workbench
+
+Install the optional Dash/Plotly client and launch the local internal-analytics surface:
+
+```bash
+python -m pip install -e ".[web]"
+python -m qf_platform.web.main
+```
+
+The [browser analytics guide](docs/research/web_analytics.md) documents the workspaces, launch options, evidence boundaries, and architecture. The browser workbench exposes valuation/Greeks, dynamic hedging, market/implied-volatility evidence, Heston pricing/calibration, and M7/M8 model-validation evidence through the same frontend-neutral application/presentation contracts used by Python, Jupyter, exports, and Qt. Default studies are network-free, and the web package does not import the desktop layer.
+
 ## Run and verify v0.1
 
 Python 3.12+ is required. From a clean checkout:
@@ -76,7 +87,7 @@ The committed evidence includes the [SPX Black-Scholes vs Heston held-out compar
 
 ## Status
 
-**M0–M9, UI1–UI5, F1, and F2 are complete. F3 structured exports are active; F4 remains the next independent READY sibling surface.**
+**M0–M9, UI1–UI5, and F1–F3 are complete. F4 Dash/Plotly analytics is in final review.**
 
 The implemented research arc is:
 

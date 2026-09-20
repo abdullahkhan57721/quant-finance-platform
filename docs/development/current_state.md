@@ -7,7 +7,7 @@ The quantitative-finance platform has completed and repository-verified:
 ~~~text
 M0, M0A, M1, M2, M3, M4, M5, M6, M7, M8, M9
 UI1, UI2, UI3, UI4, UI5
-F1, F2
+F1, F2, F3
 ~~~
 
 ADR 0002 remains the mathematical architecture authority. ADR 0003 remains the native PySide6 + Qt Quick/QML authority.
@@ -28,13 +28,13 @@ F5  Multi-Surface Integration & Portfolio Documentation
 
 ### READY — product
 
-- **F4 — Dash/Plotly Internal Analytics Workbench**, P1.
+No unclaimed READY product milestone is ahead of the active F4 work unit.
 
-F1 is squash-merged and verified on main. F4 remains an independent READY sibling consumer of the merged F1 contracts.
+F1/F2/F3 are squash-merged and post-merge verified.
 
 ### BLOCKED — product
 
-- **F5 — Multi-Surface Integration & Portfolio Documentation**, blocked on F2, F3, and F4.
+- **F5 — Multi-Surface Integration & Portfolio Documentation**, blocked on F4; F2 and F3 are already verified MERGED.
 
 ### READY — auxiliary maintenance
 
@@ -44,18 +44,18 @@ Issue #7 is not part of the F-series dependency chain.
 
 ### ACTIVE / REVIEW
 
-**F3 — Analyst Interoperability & Structured Exports** is in REVIEW in Issue #59 / PR #60 on branch `f3-59-structured-exports`.
+**F4 — Dash/Plotly Internal Analytics Workbench** is in REVIEW in Issue #61 / PR #62 on branch `f4-61-dash-analytics`.
 
-F2 was selected from the F2/F3/F4 READY frontier by equal-priority roadmap order. It owns notebooks, research-only tooling/dependencies, notebook execution evidence, and the minimum documentation/CI required for those studies. It must not consume unmerged F3/F4 behavior or move quantitative logic into notebook cells.
+F1/F2/F3 are verified MERGED. F4 owns only the Dash/Plotly sibling client and its minimum web-specific services, renderer, tests, documentation, and CI; quantitative authority remains in the existing application/core layers.
 
 ## Deterministic next execution
 
 A fresh agent asked to continue development should:
 
 1. verify current main and live Issues/PRs;
-2. recover F3 Issue #59 and its branch/PR rather than duplicating work;
-3. inspect F3 exact-head validation and preserve the human merge gate while keeping F4 READY;
-4. keep F5 BLOCKED until F3 and F4 are also repository-defined MERGED.
+2. recover F4 Issue #61 / PR #62 rather than duplicating work;
+3. inspect F4 exact-head validation and preserve the human merge gate;
+4. keep F5 BLOCKED until F4 is repository-defined MERGED.
 
 No copied milestone prompt is required.
 
