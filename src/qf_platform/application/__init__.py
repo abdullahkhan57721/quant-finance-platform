@@ -1,4 +1,9 @@
-"""Frontend-neutral application semantics for concrete research workflows."""
+"""Public, frontend-neutral orchestration and evidence for concrete research workflows.
+
+Use domain packages for custom Problem/Method composition. Text-valued Draft
+objects are optional input adapters; typed requests and results are also public.
+See docs/research/python_api.md for supported workflows and evidence provenance.
+"""
 
 from qf_platform.application.black_scholes_study import (
     BlackScholesStudyComposition,
@@ -7,10 +12,16 @@ from qf_platform.application.black_scholes_study import (
     compose_black_scholes_study,
 )
 from qf_platform.application.m2_workbench import (
+    CRRConvergencePoint,
+    GammaBumpPoint,
+    GreekCurvePoint,
     M2WorkbenchAnalysis,
     M2WorkbenchConfig,
     M2WorkbenchDraft,
     M2WorkbenchRequest,
+    MonteCarloConvergencePoint,
+    SensitivityRun,
+    ValuationRun,
     WorkbenchValuationMethod,
     make_m2_workbench_request,
     normalize_m2_workbench_config,
@@ -75,8 +86,11 @@ from qf_platform.application.ui5_validation import (
 __all__ = [
     "BlackScholesStudyComposition",
     "BlackScholesStudyDraft",
+    "CRRConvergencePoint",
     "EmpiricalSmileEvidence",
     "EmpiricalSmilePoint",
+    "GammaBumpPoint",
+    "GreekCurvePoint",
     "HedgeFrequencyEvidence",
     "HedgeReplicateEvidence",
     "HedgeWorkbenchAnalysis",
@@ -102,12 +116,15 @@ __all__ = [
     "MarketSliceEvidence",
     "MarketWorkbenchAnalysis",
     "MarketWorkbenchConfig",
+    "MonteCarloConvergencePoint",
+    "SensitivityRun",
     "UI5PerformanceParity",
     "UI5PerformanceReference",
     "UI5PerformanceWorkload",
     "UI5ValidationAnalysis",
     "UI5ValidationRequest",
     "UI5WorkloadDefinition",
+    "ValuationRun",
     "WorkbenchValuationMethod",
     "annualized_volatility_from_variance",
     "canonical_black_scholes_draft",

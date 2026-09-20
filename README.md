@@ -16,6 +16,21 @@ The first specialization is **Equity Derivatives & Volatility Modeling**.
 | **What empirical result did it produce?** | On a pinned **January 4, 2023 SPX/SPXW** sample with a predeclared **10-train / 4-held-out** split, Heston reduced held-out price RMSE from **8.412 to 0.671** and relative MAE from **8.27% to 0.66%** versus a fairly fitted one-volatility Black-Scholes benchmark. This is a same-date cross-sectional result, not a claim of temporal forecasting skill. |
 | **What can I run / see?** | A native desktop workbench for pricing, Greeks, hedging, implied volatility, Heston calibration, validation/model risk, and measured performance evidence; plus reproducible scripts, tests, and committed evidence artifacts. |
 
+## Research from Python
+
+Use the shared quantitative/application APIs without a desktop dependency:
+
+```bash
+python -m pip install .
+python examples/research/pricing_and_greeks.py
+```
+
+The [Python research guide](docs/research/python_api.md) maps the public inputs,
+methods and evidence for pricing/Greeks, hedging, market/IV, Heston forward,
+calibration/identifiability, validation and recorded performance. Six standalone
+examples exercise those APIs. Qt remains a sibling client; F2 notebooks, F3
+exports and F4 Dash follow after F1's verified merge.
+
 ## Run and verify v0.1
 
 Python 3.12+ is required. From a clean checkout:
@@ -34,7 +49,7 @@ The committed evidence includes the [SPX Black-Scholes vs Heston held-out compar
 
 ## Status
 
-**M0–M8 and UI1–UI5 are complete. M9 defines the v0.1.0 release verification and distribution contract.**
+**M0–M9 and UI1–UI5 are complete. F1 curates the Python research surface; the F-series continues development beyond historical release hardening.**
 
 The implemented research arc is:
 

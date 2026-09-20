@@ -495,3 +495,11 @@ F1 must audit the existing application/presentation seams before extracting anyt
 The growth rule remains consumer-driven. Multiple clients do **not** by themselves justify a universal model registry, workflow graph, chart grammar, job system, report engine, persistence layer, or numerical-backend registry.
 
 Historical M9 packaging/release work remains history and does not block continued development or require a GitHub Release/tag before the F-series proceeds.
+
+## F1 research interface audit
+
+The [implemented multi-surface boundary](research_interfaces.md) records the F1
+audit, public API decision and dependency checks. The existing application and
+domain packages serve Python consumers directly; no separate research façade
+is introduced. See the [Python research guide](../research/python_api.md) for
+public workflow contracts and runnable examples.

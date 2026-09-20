@@ -27,9 +27,9 @@ F5  Multi-Surface Integration & Portfolio Documentation
 
 ### READY — product
 
-- **F1 — Research API & Multi-Surface Interface Boundary**, P0.
+None; F1 is in REVIEW in Issue #55 / PR #56.
 
-F1 should be activated through a new implementation Issue after the F-series planning/orchestration PR is merged and verified.
+The F-series planning PR #54 is merged and verified on main.
 
 ### BLOCKED — product
 
@@ -48,19 +48,25 @@ Issue #7 is not part of the F-series dependency chain.
 
 ### ACTIVE / REVIEW
 
-No product milestone is active at this planning snapshot. Live GitHub Issues/PRs override this sentence.
+F1 — Research API & Multi-Surface Interface Boundary is in REVIEW in Issue #55 / PR #56.
+
+The candidate curates existing application/domain exports, exposes missing M2
+evidence types, adds six runnable Python studies, and documents the shared
+boundary. Public-import, execution and frontend-dependency checks accompany the
+examples. No quantitative algorithm or desktop behavior changes.
+
+See the PR recovery checkpoint for exact-head validation and CI status. F1 is
+not MERGED; F2/F3/F4 remain BLOCKED until squash merge and main verification.
 
 ## Deterministic next execution
 
 A fresh agent asked to continue development should:
 
 1. verify current main and live Issues/PRs;
-2. verify the F-series planning/orchestration change is merged;
-3. select F1 as the highest-priority READY product milestone;
-4. read docs/development/milestones/F1.md;
-5. create/reuse the F1 implementation Issue;
-6. execute it through the repository-defined Issue → branch/worktree → early PR → validation → exact-head review → squash merge → verify-main flow;
-7. after F1 merges, recompute the READY frontier for F2/F3/F4.
+2. recover F1 Issue #55 / PR #56 if it is still open rather than duplicating work;
+3. inspect exact-head validation and respect the human merge gate;
+4. after F1 merges, verify main and mark F1 MERGED;
+5. then recompute the READY frontier for F2/F3/F4 with live overlap checks.
 
 No copied milestone prompt is required.
 
