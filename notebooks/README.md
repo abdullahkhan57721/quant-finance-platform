@@ -1,9 +1,8 @@
 # Flagship Jupyter research studies
 
-These three F2 notebooks are downstream research/presentation clients of the
-production quantitative library. They do not own pricing formulas, hedge
-accounting, calibration algorithms, validation metrics, or financial
-conventions.
+These notebooks are downstream research/presentation clients of the production
+quantitative library. They do not own pricing formulas, hedge accounting,
+calibration algorithms, validation metrics, or financial conventions.
 
 ## Environment
 
@@ -51,6 +50,13 @@ making broken notebooks a CI failure.
    - the predeclared M7 10-training / 4-held-out comparison;
    - explicit model-risk limitations and non-claims.
 
+4. `04_acquisition_earnout_analysis.ipynb`
+   - one small synthetic acquisition earnout case;
+   - stylized KPI-index capped payout represented as a call spread;
+   - Black-Scholes closed-form value from the existing pricing infrastructure;
+   - seeded Monte Carlo convergence evidence;
+   - volatility/hurdle sensitivity and validation checks.
+
 ## Reproducibility and evidence boundary
 
 Default execution requires no live market service or external network access.
@@ -67,6 +73,8 @@ model-generated hedging experiment != historical trading backtest
 raw observation != normalized target != inferred parameter
 calibration fit != parameter identification
 same-date cross-sectional holdout != temporal forecasting
+spreadsheet model != quantitative pricing engine
+stylized KPI earnout model != empirical KPI forecast validation
 ```
 
 For formula provenance, assumptions, and the authoritative evidence contracts,
