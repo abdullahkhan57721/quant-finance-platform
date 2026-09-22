@@ -109,7 +109,7 @@ The committed evidence includes the [SPX Black-Scholes vs Heston held-out compar
 
 ## Status
 
-**M0–M9, UI1–UI5, and F1–F4 are complete. F5 multi-surface integration is active.**
+**M0–M9, UI1–UI5, and F1–F4 are complete. F5 multi-surface integration is in review.**
 
 The implemented research arc is:
 
