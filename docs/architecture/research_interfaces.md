@@ -202,3 +202,107 @@ and application packages do not require those dependencies. Static architecture
 tests forbid the web package from importing `qf_platform.desktop`, PySide6, live
 network clients, or direct quantitative implementation packages. A clean
 headless smoke constructs the app with desktop imports actively rejected.
+
+
+## F5 integrated multi-surface contract
+
+F5 does not add another execution layer. It closes the interface track by making
+the completed clients explicit siblings over the same production/application
+semantics:
+
+```text
+                         production quantitative core
+                                  ↓
+                    immutable result / evidence contracts
+                                  ↓
+                   frontend-neutral application semantics
+                                  ↓
+             renderer-neutral presentation where useful
+                                  ↓
+        ┌──────────────┬─────────┼─────────┬──────────────┐
+        │              │         │         │              │
+     Python         Jupyter    exports    Dash          Qt/QML
+   programmatic     research   XLSX/CSV   browser       native
+                              /JSON       analytics     desktop
+```
+
+The lower arrows describe authority flowing outward to consumers; no client
+feeds formatted values back into the quantitative core.
+
+### Which interface to use
+
+| Interface | Primary purpose | Install | Run / verify |
+| --- | --- | --- | --- |
+| Python | custom programmatic research/composition | `python -m pip install .` | `python examples/research/pricing_and_greeks.py` |
+| Jupyter | reproducible investigation and narrative | `python -m pip install -e ".[research]"` | `python scripts/check_notebooks.py` |
+| XLSX/CSV/JSON | analyst handoff and auditable reporting | `python -m pip install -e ".[reporting]"` | `python examples/reporting/export_reference_validation.py --output reporting_output` |
+| Dash/Plotly | local browser analytics/model-risk review | `python -m pip install -e ".[web]"` | `python -m qf_platform.web.main` |
+| PySide6/QML | native interactive research Workbench | `python -m pip install ".[desktop]"` | `python -m qf_platform.desktop.main` |
+
+No row represents a different financial engine. Each row is a different
+interaction/presentation mode over production-owned questions and evidence.
+
+### Canonical consistency contract
+
+F5 uses the published M1/M2 benchmark as a small cross-surface invariant:
+
+```text
+S0 = K = 100
+valuation date = 2026-01-01
+expiry = 2027-01-01
+sigma = 0.20
+r = 0.05
+q = 0.00
+European call
+analytic valuation + Delta
+```
+
+The application analysis owns the authoritative floating-point present value and
+Greek result. The structured-report adapter must preserve those raw numbers
+exactly. Presentation, Dash, and Qt may use their existing explicit display
+formatting, but that formatting must be derived from the same authoritative
+values. A dedicated F5 integration regression checks application → presentation
+→ report → web equality, and the desktop gate checks the Qt controller against
+the same application result.
+
+This is a consistency check, not independent quantitative validation. The
+financial/numerical validation evidence remains in M1–M8 tests and studies.
+
+### Optional dependency and clean-install evidence
+
+The supported install boundaries are deliberately separate:
+
+```text
+base package   -> Python examples
+.[research]    -> Jupyter notebooks
+.[reporting]   -> XLSX/CSV/JSON export generation
+.[web]         -> Dash application smoke
+.[desktop]     -> native source launch
+```
+
+CI installs these consumers independently. The base-Python job installs no
+optional extra before running all public research examples. Notebook, reporting,
+and web jobs install only their named extras. Historical clean release
+verification installs `.[desktop]` without the web/research/reporting extras,
+while the dedicated Desktop workflow owns native typing, QML, standalone build,
+packaged launch, and artifact proof.
+
+This demonstrates that users do not need Qt for Python/Jupyter/Dash, do not need
+Dash for native Qt, and do not need notebook/reporting dependencies for the base
+research API.
+
+### Integration extraction result
+
+Five clients create strong evidence for a **shared quantitative/application
+authority**, but not for a universal UI framework. Their client-owned
+responsibilities still differ:
+
+```text
+notebook narrative
+!= report schema/file rendering
+!= browser callback/session state
+!= Qt object/thread lifecycle
+```
+
+F5 therefore introduces no universal workflow registry, UI schema, report
+engine, job system, persistence layer, or cross-client controller abstraction.

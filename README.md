@@ -10,11 +10,29 @@ The first specialization is **Equity Derivatives & Volatility Modeling**.
 
 | Question | Answer |
 | --- | --- |
-| **What is this?** | A Python quantitative-finance platform plus a native **PySide6 / Qt Quick** research workbench, built around reproducible model evidence rather than isolated formula demos. |
+| **What is this?** | A multi-surface quantitative-finance research and model-risk platform: the same validated Python semantics are available through Python, Jupyter, structured XLSX/CSV/JSON exports, Dash/Plotly, and a native **PySide6 / Qt Quick** Workbench. |
 | **What quantitative problems does it solve?** | European-option pricing, Greeks, dynamic delta hedging, implied-volatility inversion, Heston valuation, Heston calibration/identifiability, Black-Scholes vs Heston validation, and performance analysis. |
 | **What makes it technically interesting?** | Independent valuation methods, explicit **Problem → Method → Result/Evidence** boundaries, observation provenance, no-leakage held-out validation, calibration-conditioning diagnostics, and profiling-driven optimization instead of speculative native code. |
 | **What empirical result did it produce?** | On a pinned **January 4, 2023 SPX/SPXW** sample with a predeclared **10-train / 4-held-out** split, Heston reduced held-out price RMSE from **8.412 to 0.671** and relative MAE from **8.27% to 0.66%** versus a fairly fitted one-volatility Black-Scholes benchmark. This is a same-date cross-sectional result, not a claim of temporal forecasting skill. |
-| **What can I run / see?** | A native desktop workbench for pricing, Greeks, hedging, implied volatility, Heston calibration, validation/model risk, and measured performance evidence; plus reproducible scripts, tests, and committed evidence artifacts. |
+| **What can I run / see?** | Programmatic research scripts, three executable Jupyter studies, auditable analyst exports, a local browser analytics workbench, and a native desktop Workbench—all downstream of the same quantitative/application contracts. |
+
+## Choose an interface
+
+| Interface | Best for | Install | Run / verify |
+| --- | --- | --- | --- |
+| **Python API** | Custom programmatic research and composition | `python -m pip install .` | `python examples/research/pricing_and_greeks.py` |
+| **Jupyter** | Reproducible investigation with tables and figures | `python -m pip install -e ".[research]"` | `python scripts/check_notebooks.py` or `python -m jupyterlab notebooks` |
+| **XLSX / CSV / JSON** | Analyst handoff, audit, and downstream reporting | `python -m pip install -e ".[reporting]"` | `python examples/reporting/export_reference_validation.py --output reporting_output` |
+| **Dash / Plotly** | Local browser analytics and model-risk review | `python -m pip install -e ".[web]"` | `python -m qf_platform.web.main` |
+| **PySide6 / QML** | Native interactive research Workbench | `python -m pip install ".[desktop]"` | `python -m qf_platform.desktop.main` |
+
+The interfaces are **siblings, not separate finance engines**. Python/domain and
+application results remain authoritative; notebooks own narrative, exports own
+schemas/files, Dash owns browser interaction/rendering, and Qt owns native
+interaction/rendering.
+
+See the [multi-surface architecture](docs/architecture/research_interfaces.md)
+for the dependency contract, consistency checks, and clean-install CI evidence.
 
 ## Research from Python
 
@@ -55,8 +73,7 @@ python examples/reporting/export_reference_validation.py --output reporting_outp
 The [structured export guide](docs/research/structured_exports.md) documents the
 concrete M2/M3/M4/M6/M7 adapters, sheet/table schemas, units, provenance, and
 model-risk non-claims. Exported files are downstream evidence artifacts; Python
-results remain the quantitative authority. Qt remains a sibling client and F4
-Dash remains independent.
+results remain the quantitative authority. Dash and Qt remain sibling clients of the same frontend-neutral semantics.
 
 ## Browser analytics workbench
 
@@ -69,25 +86,30 @@ python -m qf_platform.web.main
 
 The [browser analytics guide](docs/research/web_analytics.md) documents the workspaces, launch options, evidence boundaries, and architecture. The browser workbench exposes valuation/Greeks, dynamic hedging, market/implied-volatility evidence, Heston pricing/calibration, and M7/M8 model-validation evidence through the same frontend-neutral application/presentation contracts used by Python, Jupyter, exports, and Qt. Default studies are network-free, and the web package does not import the desktop layer.
 
-## Run and verify v0.1
+## Native desktop Workbench
 
 Python 3.12+ is required. From a clean checkout:
 
 ```bash
 python -m pip install ".[desktop]"
-python scripts/v01_release_check.py
 python -m qf_platform.desktop.main
 ```
 
-The release check is deterministic and network-free. It verifies the installed `0.1.0` package metadata plus the committed M7/M8 release evidence and scientific non-claims.
+The dedicated Desktop CI also proves an offscreen source launch, standalone
+`pyside6-deploy` build, packaged launch, and artifact upload. See the
+[native Workbench architecture](docs/architecture/native_quant_workbench.md)
+for the Qt boundary and supported workflows.
 
-See the **[v0.1 Release Guide](docs/release/v0.1.md)** for clean-environment installation, the reviewer demo path, the raw-market replay boundary, the CI-verified distribution target, and explicit platform limitations. See [`CHANGELOG.md`](CHANGELOG.md) for concise release notes.
+Historical v0.1 packaging evidence remains available in the
+[v0.1 Release Guide](docs/release/v0.1.md) and [`CHANGELOG.md`](CHANGELOG.md);
+publishing or advancing a release version is not a prerequisite for continued
+platform development.
 
-The committed evidence includes the [SPX Black-Scholes vs Heston held-out comparison](docs/evidence/m7_spx_bs_vs_heston_validation_reference.json) and the [measured performance study](docs/evidence/m8_performance_reference.json). M8 improved representative heavy workloads by **4.61×–27.38×** through Python/NumPy and algorithmic changes; after profiling, a C++ kernel was deliberately **not** retained for v0.1 because the remaining absolute cost did not justify the added binding, packaging, and parity surface.
+The committed evidence includes the [SPX Black-Scholes vs Heston held-out comparison](docs/evidence/m7_spx_bs_vs_heston_validation_reference.json) and the [measured performance study](docs/evidence/m8_performance_reference.json). M8 improved representative heavy workloads by **4.61×–27.38×** through Python/NumPy and algorithmic changes; after profiling, a C++ kernel was deliberately **not** retained because the remaining absolute cost did not justify the added binding, packaging, and parity surface.
 
 ## Status
 
-**M0–M9, UI1–UI5, and F1–F3 are complete. F4 Dash/Plotly analytics is in final review.**
+**M0–M9, UI1–UI5, and F1–F4 are complete. F5 multi-surface integration is in review.**
 
 The implemented research arc is:
 
@@ -101,11 +123,17 @@ Black-Scholes theory
 → predeclared held-out model comparison
 → measured performance engineering
 → native validation/model-risk workbench
-→ v0.1 release
+→ Python / Jupyter / exports / Dash / Qt sibling interfaces
 ```
 
 ## Deep documentation
 
+- [`docs/architecture/research_interfaces.md`](docs/architecture/research_interfaces.md) — multi-surface ownership, interface matrix, consistency contract, and clean-install evidence
+- [`docs/architecture/native_quant_workbench.md`](docs/architecture/native_quant_workbench.md) — native Qt Workbench boundary
+- [`docs/research/python_api.md`](docs/research/python_api.md) — public Python research API
+- [`notebooks/README.md`](notebooks/README.md) — reproducible Jupyter studies
+- [`docs/research/structured_exports.md`](docs/research/structured_exports.md) — XLSX/CSV/JSON analyst exports
+- [`docs/research/web_analytics.md`](docs/research/web_analytics.md) — Dash/Plotly browser analytics
 - [`docs/release/v0.1.md`](docs/release/v0.1.md) — v0.1 install, verification, demo, evidence, and distribution boundary
 - [`CHANGELOG.md`](CHANGELOG.md) — v0.1 release notes
 - [`AGENTS.md`](AGENTS.md) — repository workflow and guardrails
