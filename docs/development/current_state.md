@@ -44,7 +44,7 @@ Issue #7 is not part of the F-series dependency chain.
 
 ### ACTIVE / REVIEW
 
-**F5 — Multi-Surface Integration & Portfolio Documentation** is ACTIVE in Issue #63 / PR #64 on branch `f5-63-multisurface-integration`.
+**F5 — Multi-Surface Integration & Portfolio Documentation** is in REVIEW in Issue #63 / PR #64 on branch `f5-63-multisurface-integration`.
 
 F5 owns integration tests, clean surface-install evidence, reviewer-facing onboarding, and multi-surface architecture reconciliation. It must not move quantitative semantics into interface-specific code or introduce a universal UI/workflow framework.
 
@@ -54,7 +54,7 @@ A fresh agent asked to continue development should:
 
 1. verify current main and live Issues/PRs;
 2. recover F5 Issue #63 / PR #64 rather than duplicating work;
-3. complete exact-head integration validation and preserve the human merge gate;
+3. inspect F5 exact-head integration validation and preserve the human merge gate;
 4. after verified F5 merge, perform a fresh planning pass rather than inventing F6.
 
 No copied milestone prompt is required.
