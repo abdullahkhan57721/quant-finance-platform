@@ -1,0 +1,5 @@
+Metric,Value
+successful_training_starts,3
+failed_training_starts,0
+maximum_training_start_domain_scaled_spread,5.9748942522831556e-06
+maximum_train_to_full_domain_scaled_shift,0.016915015788596884

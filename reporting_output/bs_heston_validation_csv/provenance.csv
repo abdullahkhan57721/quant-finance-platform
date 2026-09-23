@@ -1,0 +1,7 @@
+Field,Value
+provider,UI5 M7 deterministic reference
+source,derived from published M4 evidence; not raw market data
+market_date,2023-01-04
+retrieved_at,2026-09-10T00:00:00+00:00
+raw_artifact_sha256,
+license_notes,derived research fixture only; raw rows are not redistributed

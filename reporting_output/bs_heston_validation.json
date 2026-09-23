@@ -1,0 +1,1672 @@
+{
+  "metadata": [
+    {
+      "description": "",
+      "key": "valuation_date",
+      "unit": "",
+      "value": "2023-01-04"
+    },
+    {
+      "description": "",
+      "key": "underlying",
+      "unit": "",
+      "value": "SPX"
+    },
+    {
+      "description": "",
+      "key": "spot",
+      "unit": "spot units",
+      "value": 3853.39
+    },
+    {
+      "description": "",
+      "key": "design",
+      "unit": "",
+      "value": "same-date cross-sectional holdout"
+    },
+    {
+      "description": "",
+      "key": "training_contracts",
+      "unit": "count",
+      "value": 10
+    },
+    {
+      "description": "",
+      "key": "heldout_contracts",
+      "unit": "count",
+      "value": 4
+    },
+    {
+      "description": "",
+      "key": "conclusion_scope",
+      "unit": "",
+      "value": "selected observations and stated conventions only; no universal model ranking"
+    },
+    {
+      "description": "",
+      "key": "performance_evidence_kind",
+      "unit": "",
+      "value": "M8 same-run baseline-versus-optimized performance reference"
+    },
+    {
+      "description": "",
+      "key": "performance_source_artifact",
+      "unit": "",
+      "value": "docs/evidence/m8_performance_reference.json"
+    },
+    {
+      "description": "",
+      "key": "performance_baseline_revision",
+      "unit": "",
+      "value": "4d80014786810389c324434d7cccab95cf647803"
+    },
+    {
+      "description": "",
+      "key": "performance_optimized_revision",
+      "unit": "",
+      "value": "15d3b6c83a16ed660f00e7a6bf085cb57b76c411"
+    },
+    {
+      "description": "",
+      "key": "performance_workflow_run_id",
+      "unit": "",
+      "value": 34640269472
+    },
+    {
+      "description": "",
+      "key": "performance_timings_are_ci_thresholds",
+      "unit": "",
+      "value": false
+    }
+  ],
+  "report_id": "bs_heston_validation",
+  "schema": "qf-platform-tabular-report-v1",
+  "tables": [
+    {
+      "columns": [
+        {
+          "description": "",
+          "key": "item",
+          "label": "Item",
+          "unit": ""
+        },
+        {
+          "description": "",
+          "key": "value",
+          "label": "Value",
+          "unit": ""
+        }
+      ],
+      "name": "summary",
+      "rows": [
+        {
+          "item": "design",
+          "value": "same-date cross-sectional 10-training / 4-held-out validation"
+        },
+        {
+          "item": "black_scholes_training_volatility",
+          "value": 0.20890697909377048
+        },
+        {
+          "item": "heston_lower_training_price_rmse",
+          "value": true
+        },
+        {
+          "item": "heston_lower_heldout_price_rmse",
+          "value": true
+        },
+        {
+          "item": "heston_lower_heldout_standardized_rmse",
+          "value": true
+        },
+        {
+          "item": "conclusion",
+          "value": "Under this predeclared same-date cross-sectional holdout, explicit rate/carry convention, price-space objective, and selected observations, Heston improves held-out price and half-spread-standardized RMSE relative to the one-volatility Black-Scholes benchmark. This does not establish temporal generalization or model validity; calibration conditioning, limited date/maturity coverage, numerical cost, and unsupported Heston hedging remain material limitations."
+        }
+      ]
+    },
+    {
+      "columns": [
+        {
+          "description": "",
+          "key": "model",
+          "label": "Model",
+          "unit": ""
+        },
+        {
+          "description": "",
+          "key": "observations",
+          "label": "Observations",
+          "unit": "count"
+        },
+        {
+          "description": "",
+          "key": "mean_residual",
+          "label": "Mean residual",
+          "unit": "price units"
+        },
+        {
+          "description": "",
+          "key": "mae",
+          "label": "Mean absolute error",
+          "unit": "price units"
+        },
+        {
+          "description": "",
+          "key": "rmse",
+          "label": "Root mean square error",
+          "unit": "price units"
+        },
+        {
+          "description": "",
+          "key": "relative_mae",
+          "label": "Relative mean absolute error",
+          "unit": "fraction"
+        },
+        {
+          "description": "",
+          "key": "std_mae",
+          "label": "Standardized mean absolute error",
+          "unit": ""
+        },
+        {
+          "description": "",
+          "key": "std_rmse",
+          "label": "Standardized root mean square error",
+          "unit": ""
+        },
+        {
+          "description": "",
+          "key": "max_abs_std_residual",
+          "label": "Maximum absolute standardized residual",
+          "unit": ""
+        }
+      ],
+      "name": "training_metrics",
+      "rows": [
+        {
+          "mae": 7.298839314019746,
+          "max_abs_std_residual": 49.44617758330992,
+          "mean_residual": 0.06037229405719522,
+          "model": "black_scholes",
+          "observations": 10,
+          "relative_mae": 0.11954333850193985,
+          "rmse": 9.503978041118085,
+          "std_mae": 15.731433489647637,
+          "std_rmse": 22.614244880905314
+        },
+        {
+          "mae": 0.30024113483002746,
+          "max_abs_std_residual": 1.5014106317800373,
+          "mean_residual": 0.005430245992657135,
+          "model": "heston",
+          "observations": 10,
+          "relative_mae": 0.0044160818180422265,
+          "rmse": 0.3761933609364337,
+          "std_mae": 0.5480036751572552,
+          "std_rmse": 0.6907421172442485
+        }
+      ]
+    },
+    {
+      "columns": [
+        {
+          "description": "",
+          "key": "model",
+          "label": "Model",
+          "unit": ""
+        },
+        {
+          "description": "",
+          "key": "observations",
+          "label": "Observations",
+          "unit": "count"
+        },
+        {
+          "description": "",
+          "key": "mean_residual",
+          "label": "Mean residual",
+          "unit": "price units"
+        },
+        {
+          "description": "",
+          "key": "mae",
+          "label": "Mean absolute error",
+          "unit": "price units"
+        },
+        {
+          "description": "",
+          "key": "rmse",
+          "label": "Root mean square error",
+          "unit": "price units"
+        },
+        {
+          "description": "",
+          "key": "relative_mae",
+          "label": "Relative mean absolute error",
+          "unit": "fraction"
+        },
+        {
+          "description": "",
+          "key": "std_mae",
+          "label": "Standardized mean absolute error",
+          "unit": ""
+        },
+        {
+          "description": "",
+          "key": "std_rmse",
+          "label": "Standardized root mean square error",
+          "unit": ""
+        },
+        {
+          "description": "",
+          "key": "max_abs_std_residual",
+          "label": "Maximum absolute standardized residual",
+          "unit": ""
+        }
+      ],
+      "name": "heldout_metrics",
+      "rows": [
+        {
+          "mae": 7.456472869611504,
+          "max_abs_std_residual": 27.205648956386053,
+          "mean_residual": 0.11023271453952255,
+          "model": "black_scholes",
+          "observations": 4,
+          "relative_mae": 0.08268950895346122,
+          "rmse": 8.411568146985482,
+          "std_mae": 19.20511017186196,
+          "std_rmse": 20.61275440657798
+        },
+        {
+          "mae": 0.5642371054313617,
+          "max_abs_std_residual": 2.4940594970013783,
+          "mean_residual": 0.23764635369339437,
+          "model": "heston",
+          "observations": 4,
+          "relative_mae": 0.006551468133304581,
+          "rmse": 0.6712381452487549,
+          "std_mae": 1.461598244918851,
+          "std_rmse": 1.6494143531887964
+        }
+      ]
+    },
+    {
+      "columns": [
+        {
+          "description": "",
+          "key": "contract_id",
+          "label": "Contract ID",
+          "unit": ""
+        },
+        {
+          "description": "",
+          "key": "expiry",
+          "label": "Expiry",
+          "unit": ""
+        },
+        {
+          "description": "",
+          "key": "strike",
+          "label": "Strike",
+          "unit": "spot units"
+        },
+        {
+          "description": "",
+          "key": "right",
+          "label": "Right",
+          "unit": ""
+        },
+        {
+          "description": "",
+          "key": "bid",
+          "label": "Bid",
+          "unit": "price units"
+        },
+        {
+          "description": "",
+          "key": "ask",
+          "label": "Ask",
+          "unit": "price units"
+        },
+        {
+          "description": "",
+          "key": "target_price",
+          "label": "Normalized midpoint target",
+          "unit": "price units"
+        },
+        {
+          "description": "",
+          "key": "spot",
+          "label": "Observed spot",
+          "unit": "spot units"
+        },
+        {
+          "description": "",
+          "key": "normalization_version",
+          "label": "Normalization version",
+          "unit": ""
+        }
+      ],
+      "name": "training_contracts",
+      "rows": [
+        {
+          "ask": 44.5,
+          "bid": 44.0,
+          "contract_id": "SPXW-2023-02-03-put-3720",
+          "expiry": "2023-02-03",
+          "normalization_version": "m4-midpoint-v1",
+          "right": "put",
+          "spot": 3853.39,
+          "strike": 3720.0,
+          "target_price": 44.25
+        },
+        {
+          "ask": 69.6,
+          "bid": 67.4,
+          "contract_id": "SPXW-2023-02-03-put-3800",
+          "expiry": "2023-02-03",
+          "normalization_version": "m4-midpoint-v1",
+          "right": "put",
+          "spot": 3853.39,
+          "strike": 3800.0,
+          "target_price": 68.5
+        },
+        {
+          "ask": 88.7,
+          "bid": 88.10000000000001,
+          "contract_id": "SPXW-2023-02-03-call-3870",
+          "expiry": "2023-02-03",
+          "normalization_version": "m4-midpoint-v1",
+          "right": "call",
+          "spot": 3853.39,
+          "strike": 3870.0,
+          "target_price": 88.4
+        },
+        {
+          "ask": 75.0,
+          "bid": 72.5,
+          "contract_id": "SPXW-2023-02-03-call-3900",
+          "expiry": "2023-02-03",
+          "normalization_version": "m4-midpoint-v1",
+          "right": "call",
+          "spot": 3853.39,
+          "strike": 3900.0,
+          "target_price": 73.75
+        },
+        {
+          "ask": 29.400000000000002,
+          "bid": 28.7,
+          "contract_id": "SPXW-2023-02-03-call-4020",
+          "expiry": "2023-02-03",
+          "normalization_version": "m4-midpoint-v1",
+          "right": "call",
+          "spot": 3853.39,
+          "strike": 4020.0,
+          "target_price": 29.05
+        },
+        {
+          "ask": 122.3273087015,
+          "bid": 121.3273087015,
+          "contract_id": "SPXW-2023-04-28-put-3720",
+          "expiry": "2023-04-28",
+          "normalization_version": "m4-midpoint-v1",
+          "right": "put",
+          "spot": 3853.39,
+          "strike": 3720.0,
+          "target_price": 121.8273087015
+        },
+        {
+          "ask": 178.13735833450002,
+          "bid": 177.0373583345,
+          "contract_id": "SPXW-2023-04-28-call-3900",
+          "expiry": "2023-04-28",
+          "normalization_version": "m4-midpoint-v1",
+          "right": "call",
+          "spot": 3853.39,
+          "strike": 3900.0,
+          "target_price": 177.5873583345
+        },
+        {
+          "ask": 151.8361240419,
+          "bid": 150.8361240419,
+          "contract_id": "SPXW-2023-04-28-call-3950",
+          "expiry": "2023-04-28",
+          "normalization_version": "m4-midpoint-v1",
+          "right": "call",
+          "spot": 3853.39,
+          "strike": 3950.0,
+          "target_price": 151.3361240419
+        },
+        {
+          "ask": 83.82944280150001,
+          "bid": 80.4294428015,
+          "contract_id": "SPXW-2023-04-28-call-4110",
+          "expiry": "2023-04-28",
+          "normalization_version": "m4-midpoint-v1",
+          "right": "call",
+          "spot": 3853.39,
+          "strike": 4110.0,
+          "target_price": 82.1294428015
+        },
+        {
+          "ask": 44.9220752756,
+          "bid": 44.2220752756,
+          "contract_id": "SPXW-2023-04-28-call-4240",
+          "expiry": "2023-04-28",
+          "normalization_version": "m4-midpoint-v1",
+          "right": "call",
+          "spot": 3853.39,
+          "strike": 4240.0,
+          "target_price": 44.5720752756
+        }
+      ]
+    },
+    {
+      "columns": [
+        {
+          "description": "",
+          "key": "contract_id",
+          "label": "Contract ID",
+          "unit": ""
+        },
+        {
+          "description": "",
+          "key": "expiry",
+          "label": "Expiry",
+          "unit": ""
+        },
+        {
+          "description": "",
+          "key": "strike",
+          "label": "Strike",
+          "unit": "spot units"
+        },
+        {
+          "description": "",
+          "key": "right",
+          "label": "Right",
+          "unit": ""
+        },
+        {
+          "description": "",
+          "key": "bid",
+          "label": "Bid",
+          "unit": "price units"
+        },
+        {
+          "description": "",
+          "key": "ask",
+          "label": "Ask",
+          "unit": "price units"
+        },
+        {
+          "description": "",
+          "key": "target_price",
+          "label": "Normalized midpoint target",
+          "unit": "price units"
+        },
+        {
+          "description": "",
+          "key": "spot",
+          "label": "Observed spot",
+          "unit": "spot units"
+        },
+        {
+          "description": "",
+          "key": "normalization_version",
+          "label": "Normalization version",
+          "unit": ""
+        }
+      ],
+      "name": "heldout_contracts",
+      "rows": [
+        {
+          "ask": 88.6,
+          "bid": 87.9,
+          "contract_id": "SPXW-2023-02-03-put-3850",
+          "expiry": "2023-02-03",
+          "normalization_version": "m4-midpoint-v1",
+          "right": "put",
+          "spot": 3853.39,
+          "strike": 3850.0,
+          "target_price": 88.25
+        },
+        {
+          "ask": 44.4,
+          "bid": 43.9,
+          "contract_id": "SPXW-2023-02-03-call-3970",
+          "expiry": "2023-02-03",
+          "normalization_version": "m4-midpoint-v1",
+          "right": "call",
+          "spot": 3853.39,
+          "strike": 3970.0,
+          "target_price": 44.15
+        },
+        {
+          "ask": 149.42707306399998,
+          "bid": 148.527073064,
+          "contract_id": "SPXW-2023-04-28-put-3800",
+          "expiry": "2023-04-28",
+          "normalization_version": "m4-midpoint-v1",
+          "right": "put",
+          "spot": 3853.39,
+          "strike": 3800.0,
+          "target_price": 148.977073064
+        },
+        {
+          "ask": 95.2311299864,
+          "bid": 94.3311299864,
+          "contract_id": "SPXW-2023-04-28-call-4075",
+          "expiry": "2023-04-28",
+          "normalization_version": "m4-midpoint-v1",
+          "right": "call",
+          "spot": 3853.39,
+          "strike": 4075.0,
+          "target_price": 94.7811299864
+        }
+      ]
+    },
+    {
+      "columns": [
+        {
+          "description": "",
+          "key": "contract_id",
+          "label": "Contract ID",
+          "unit": ""
+        },
+        {
+          "description": "",
+          "key": "model",
+          "label": "Model",
+          "unit": ""
+        },
+        {
+          "description": "",
+          "key": "partition",
+          "label": "Partition",
+          "unit": ""
+        },
+        {
+          "description": "",
+          "key": "expiry",
+          "label": "Expiry",
+          "unit": ""
+        },
+        {
+          "description": "",
+          "key": "strike",
+          "label": "Strike",
+          "unit": "spot units"
+        },
+        {
+          "description": "",
+          "key": "right",
+          "label": "Right",
+          "unit": ""
+        },
+        {
+          "description": "",
+          "key": "log_forward_moneyness",
+          "label": "Log forward moneyness",
+          "unit": ""
+        },
+        {
+          "description": "",
+          "key": "observed_price",
+          "label": "Observed price",
+          "unit": "price units"
+        },
+        {
+          "description": "",
+          "key": "model_price",
+          "label": "Model price",
+          "unit": "price units"
+        },
+        {
+          "description": "",
+          "key": "residual",
+          "label": "Model - observed",
+          "unit": "price units"
+        },
+        {
+          "description": "",
+          "key": "half_spread",
+          "label": "Bid/ask half spread",
+          "unit": "price units"
+        },
+        {
+          "description": "",
+          "key": "standardized_residual",
+          "label": "Standardized residual",
+          "unit": ""
+        },
+        {
+          "description": "",
+          "key": "relative_absolute_error",
+          "label": "Relative absolute error",
+          "unit": "fraction"
+        }
+      ],
+      "name": "residuals",
+      "rows": [
+        {
+          "contract_id": "SPXW-2023-02-03-put-3720",
+          "expiry": "2023-02-03",
+          "half_spread": 0.25,
+          "log_forward_moneyness": -0.03753098192830273,
+          "model": "black_scholes",
+          "model_price": 36.51510779168723,
+          "observed_price": 44.25,
+          "partition": "training",
+          "relative_absolute_error": 0.17479982391667281,
+          "residual": -7.734892208312772,
+          "right": "put",
+          "standardized_residual": -30.939568833251087,
+          "strike": 3720.0
+        },
+        {
+          "contract_id": "SPXW-2023-02-03-put-3720",
+          "expiry": "2023-02-03",
+          "half_spread": 0.25,
+          "log_forward_moneyness": -0.03753098192830273,
+          "model": "heston",
+          "model_price": 44.07286654425343,
+          "observed_price": 44.25,
+          "partition": "training",
+          "relative_absolute_error": 0.004003015949075044,
+          "residual": -0.1771334557465707,
+          "right": "put",
+          "standardized_residual": -0.7085338229862828,
+          "strike": 3720.0
+        },
+        {
+          "contract_id": "SPXW-2023-02-03-put-3800",
+          "expiry": "2023-02-03",
+          "half_spread": 1.0999999999999943,
+          "log_forward_moneyness": -0.01625358348101782,
+          "model": "black_scholes",
+          "model_price": 63.50423920063349,
+          "observed_price": 68.5,
+          "partition": "training",
+          "relative_absolute_error": 0.07293081458929208,
+          "residual": -4.995760799366508,
+          "right": "put",
+          "standardized_residual": -4.541600726696849,
+          "strike": 3800.0
+        },
+        {
+          "contract_id": "SPXW-2023-02-03-put-3800",
+          "expiry": "2023-02-03",
+          "half_spread": 1.0999999999999943,
+          "log_forward_moneyness": -0.01625358348101782,
+          "model": "heston",
+          "model_price": 68.0226589905676,
+          "observed_price": 68.5,
+          "partition": "training",
+          "relative_absolute_error": 0.006968481889523993,
+          "residual": -0.47734100943239355,
+          "right": "put",
+          "standardized_residual": -0.4339463722112691,
+          "strike": 3800.0
+        },
+        {
+          "contract_id": "SPXW-2023-02-03-put-3850",
+          "expiry": "2023-02-03",
+          "half_spread": 0.3499999999999943,
+          "log_forward_moneyness": -0.00318150191366506,
+          "model": "black_scholes",
+          "model_price": 85.80006172022945,
+          "observed_price": 88.25,
+          "partition": "evaluation",
+          "relative_absolute_error": 0.027761340280686112,
+          "residual": -2.4499382797705493,
+          "right": "put",
+          "standardized_residual": -6.999823656487398,
+          "strike": 3850.0
+        },
+        {
+          "contract_id": "SPXW-2023-02-03-put-3850",
+          "expiry": "2023-02-03",
+          "half_spread": 0.3499999999999943,
+          "log_forward_moneyness": -0.00318150191366506,
+          "model": "heston",
+          "model_price": 87.59681849652407,
+          "observed_price": 88.25,
+          "partition": "evaluation",
+          "relative_absolute_error": 0.0074014901243731985,
+          "residual": -0.6531815034759347,
+          "right": "put",
+          "standardized_residual": -1.8662328670741295,
+          "strike": 3850.0
+        },
+        {
+          "contract_id": "SPXW-2023-02-03-call-3870",
+          "expiry": "2023-02-03",
+          "half_spread": 0.29999999999999716,
+          "log_forward_moneyness": 0.001999856828332608,
+          "model": "black_scholes",
+          "model_price": 88.21984387711314,
+          "observed_price": 88.4,
+          "partition": "training",
+          "relative_absolute_error": 0.0020379651910279483,
+          "residual": -0.18015612288687066,
+          "right": "call",
+          "standardized_residual": -0.6005204096229079,
+          "strike": 3870.0
+        },
+        {
+          "contract_id": "SPXW-2023-02-03-call-3870",
+          "expiry": "2023-02-03",
+          "half_spread": 0.29999999999999716,
+          "log_forward_moneyness": 0.001999856828332608,
+          "model": "heston",
+          "model_price": 88.85042318953401,
+          "observed_price": 88.4,
+          "partition": "training",
+          "relative_absolute_error": 0.0050952849494797165,
+          "residual": 0.45042318953400695,
+          "right": "call",
+          "standardized_residual": 1.5014106317800373,
+          "strike": 3870.0
+        },
+        {
+          "contract_id": "SPXW-2023-02-03-call-3900",
+          "expiry": "2023-02-03",
+          "half_spread": 1.25,
+          "log_forward_moneyness": 0.00972190292224293,
+          "model": "black_scholes",
+          "model_price": 74.79495939806861,
+          "observed_price": 73.75,
+          "partition": "training",
+          "relative_absolute_error": 0.014168940990760857,
+          "residual": 1.0449593980686132,
+          "right": "call",
+          "standardized_residual": 0.8359675184548905,
+          "strike": 3900.0
+        },
+        {
+          "contract_id": "SPXW-2023-02-03-call-3900",
+          "expiry": "2023-02-03",
+          "half_spread": 1.25,
+          "log_forward_moneyness": 0.00972190292224293,
+          "model": "heston",
+          "model_price": 73.6728354816455,
+          "observed_price": 73.75,
+          "partition": "training",
+          "relative_absolute_error": 0.0010462985539592318,
+          "residual": -0.07716451835449334,
+          "right": "call",
+          "standardized_residual": -0.06173161468359467,
+          "strike": 3900.0
+        },
+        {
+          "contract_id": "SPXW-2023-02-03-call-3970",
+          "expiry": "2023-02-03",
+          "half_spread": 0.25,
+          "log_forward_moneyness": 0.0275114444857412,
+          "model": "black_scholes",
+          "model_price": 49.2041555815706,
+          "observed_price": 44.15,
+          "partition": "evaluation",
+          "relative_absolute_error": 0.11447691011484949,
+          "residual": 5.054155581570605,
+          "right": "call",
+          "standardized_residual": 20.21662232628242,
+          "strike": 3970.0
+        },
+        {
+          "contract_id": "SPXW-2023-02-03-call-3970",
+          "expiry": "2023-02-03",
+          "half_spread": 0.25,
+          "log_forward_moneyness": 0.0275114444857412,
+          "model": "heston",
+          "model_price": 44.384131415526326,
+          "observed_price": 44.15,
+          "partition": "evaluation",
+          "relative_absolute_error": 0.00530308981939587,
+          "residual": 0.23413141552632766,
+          "right": "call",
+          "standardized_residual": 0.9365256621053106,
+          "strike": 3970.0
+        },
+        {
+          "contract_id": "SPXW-2023-02-03-call-4020",
+          "expiry": "2023-02-03",
+          "half_spread": 0.3500000000000014,
+          "log_forward_moneyness": 0.04002725241757173,
+          "model": "black_scholes",
+          "model_price": 35.424425219174736,
+          "observed_price": 29.05,
+          "partition": "training",
+          "relative_absolute_error": 0.21942943955851069,
+          "residual": 6.374425219174736,
+          "right": "call",
+          "standardized_residual": 18.212643483356313,
+          "strike": 4020.0
+        },
+        {
+          "contract_id": "SPXW-2023-02-03-call-4020",
+          "expiry": "2023-02-03",
+          "half_spread": 0.3500000000000014,
+          "log_forward_moneyness": 0.04002725241757173,
+          "model": "heston",
+          "model_price": 28.700236771823256,
+          "observed_price": 29.05,
+          "partition": "training",
+          "relative_absolute_error": 0.012040042278029068,
+          "residual": -0.34976322817674443,
+          "right": "call",
+          "standardized_residual": -0.9993235090764087,
+          "strike": 4020.0
+        },
+        {
+          "contract_id": "SPXW-2023-04-28-put-3720",
+          "expiry": "2023-04-28",
+          "half_spread": 0.5,
+          "log_forward_moneyness": -0.043974817544741106,
+          "model": "black_scholes",
+          "model_price": 104.36089152929162,
+          "observed_price": 121.8273087015,
+          "partition": "training",
+          "relative_absolute_error": 0.14337029487374142,
+          "residual": -17.46641717220838,
+          "right": "put",
+          "standardized_residual": -34.93283434441676,
+          "strike": 3720.0
+        },
+        {
+          "contract_id": "SPXW-2023-04-28-put-3720",
+          "expiry": "2023-04-28",
+          "half_spread": 0.5,
+          "log_forward_moneyness": -0.043974817544741106,
+          "model": "heston",
+          "model_price": 122.04642963328365,
+          "observed_price": 121.8273087015,
+          "partition": "training",
+          "relative_absolute_error": 0.0017986191611647382,
+          "residual": 0.21912093178364955,
+          "right": "put",
+          "standardized_residual": 0.4382418635672991,
+          "strike": 3720.0
+        },
+        {
+          "contract_id": "SPXW-2023-04-28-put-3800",
+          "expiry": "2023-04-28",
+          "half_spread": 0.44999999999998863,
+          "log_forward_moneyness": -0.02269741909745616,
+          "model": "black_scholes",
+          "model_price": 136.73453103362658,
+          "observed_price": 148.977073064,
+          "partition": "evaluation",
+          "relative_absolute_error": 0.0821773564118424,
+          "residual": -12.242542030373414,
+          "right": "put",
+          "standardized_residual": -27.205648956386053,
+          "strike": 3800.0
+        },
+        {
+          "contract_id": "SPXW-2023-04-28-put-3800",
+          "expiry": "2023-04-28",
+          "half_spread": 0.44999999999998863,
+          "log_forward_moneyness": -0.02269741909745616,
+          "model": "heston",
+          "model_price": 149.22438179307255,
+          "observed_price": 148.977073064,
+          "partition": "evaluation",
+          "relative_absolute_error": 0.0016600455626236822,
+          "residual": 0.2473087290725573,
+          "right": "put",
+          "standardized_residual": 0.5495749534945856,
+          "strike": 3800.0
+        },
+        {
+          "contract_id": "SPXW-2023-04-28-call-3900",
+          "expiry": "2023-04-28",
+          "half_spread": 0.5500000000000114,
+          "log_forward_moneyness": 0.003278067305804444,
+          "model": "black_scholes",
+          "model_price": 172.49712844707005,
+          "observed_price": 177.5873583345,
+          "partition": "training",
+          "relative_absolute_error": 0.028663244586600023,
+          "residual": -5.090229887429956,
+          "right": "call",
+          "standardized_residual": -9.254963431690637,
+          "strike": 3900.0
+        },
+        {
+          "contract_id": "SPXW-2023-04-28-call-3900",
+          "expiry": "2023-04-28",
+          "half_spread": 0.5500000000000114,
+          "log_forward_moneyness": 0.003278067305804444,
+          "model": "heston",
+          "model_price": 177.25137385223024,
+          "observed_price": 177.5873583345,
+          "partition": "training",
+          "relative_absolute_error": 0.0018919391865546624,
+          "residual": -0.3359844822697653,
+          "right": "call",
+          "standardized_residual": -0.6108808768541061,
+          "strike": 3900.0
+        },
+        {
+          "contract_id": "SPXW-2023-04-28-call-3950",
+          "expiry": "2023-04-28",
+          "half_spread": 0.5,
+          "log_forward_moneyness": 0.016017093083234176,
+          "model": "black_scholes",
+          "model_price": 150.61124513229174,
+          "observed_price": 151.3361240419,
+          "partition": "training",
+          "relative_absolute_error": 0.004789860413020552,
+          "residual": -0.7248789096082646,
+          "right": "call",
+          "standardized_residual": -1.4497578192165292,
+          "strike": 3950.0
+        },
+        {
+          "contract_id": "SPXW-2023-04-28-call-3950",
+          "expiry": "2023-04-28",
+          "half_spread": 0.5,
+          "log_forward_moneyness": 0.016017093083234176,
+          "model": "heston",
+          "model_price": 151.27945629169312,
+          "observed_price": 151.3361240419,
+          "partition": "training",
+          "relative_absolute_error": 0.00037444959401229774,
+          "residual": -0.05666775020688419,
+          "right": "call",
+          "standardized_residual": -0.11333550041376839,
+          "strike": 3950.0
+        },
+        {
+          "contract_id": "SPXW-2023-04-28-call-4075",
+          "expiry": "2023-04-28",
+          "half_spread": 0.45000000000000284,
+          "log_forward_moneyness": 0.04717226086302965,
+          "model": "black_scholes",
+          "model_price": 104.86038557313145,
+          "observed_price": 94.7811299864,
+          "partition": "evaluation",
+          "relative_absolute_error": 0.10634242900646686,
+          "residual": 10.079255586731449,
+          "right": "call",
+          "standardized_residual": 22.398345748291966,
+          "strike": 4075.0
+        },
+        {
+          "contract_id": "SPXW-2023-04-28-call-4075",
+          "expiry": "2023-04-28",
+          "half_spread": 0.45000000000000284,
+          "log_forward_moneyness": 0.04717226086302965,
+          "model": "heston",
+          "model_price": 95.90345676005063,
+          "observed_price": 94.7811299864,
+          "partition": "evaluation",
+          "relative_absolute_error": 0.011841247026825574,
+          "residual": 1.1223267736506273,
+          "right": "call",
+          "standardized_residual": 2.4940594970013783,
+          "strike": 4075.0
+        },
+        {
+          "contract_id": "SPXW-2023-04-28-call-4110",
+          "expiry": "2023-04-28",
+          "half_spread": 1.7000000000000028,
+          "log_forward_moneyness": 0.055724542678347005,
+          "model": "black_scholes",
+          "model_price": 94.19995407048282,
+          "observed_price": 82.1294428015,
+          "partition": "training",
+          "relative_absolute_error": 0.14696935541321313,
+          "residual": 12.070511268982813,
+          "right": "call",
+          "standardized_residual": 7.100300746460467,
+          "strike": 4110.0
+        },
+        {
+          "contract_id": "SPXW-2023-04-28-call-4110",
+          "expiry": "2023-04-28",
+          "half_spread": 1.7000000000000028,
+          "log_forward_moneyness": 0.055724542678347005,
+          "model": "heston",
+          "model_price": 82.94089862190958,
+          "observed_price": 82.1294428015,
+          "partition": "training",
+          "relative_absolute_error": 0.00988020608359414,
+          "residual": 0.8114558204095772,
+          "right": "call",
+          "standardized_residual": 0.47732695318210344,
+          "strike": 4110.0
+        },
+        {
+          "contract_id": "SPXW-2023-04-28-call-4240",
+          "expiry": "2023-04-28",
+          "half_spread": 0.3500000000000014,
+          "log_forward_moneyness": 0.08686478341407018,
+          "model": "black_scholes",
+          "model_price": 61.87823742975854,
+          "observed_price": 44.5720752756,
+          "partition": "training",
+          "relative_absolute_error": 0.3882736454865591,
+          "residual": 17.306162154158542,
+          "right": "call",
+          "standardized_residual": 49.44617758330992,
+          "strike": 4240.0
+        },
+        {
+          "contract_id": "SPXW-2023-04-28-call-4240",
+          "expiry": "2023-04-28",
+          "half_spread": 0.3500000000000014,
+          "log_forward_moneyness": 0.08686478341407018,
+          "model": "heston",
+          "model_price": 44.61943223798619,
+          "observed_price": 44.5720752756,
+          "partition": "training",
+          "relative_absolute_error": 0.0010624805350293767,
+          "residual": 0.04735696238618914,
+          "right": "call",
+          "standardized_residual": 0.1353056068176827,
+          "strike": 4240.0
+        }
+      ]
+    },
+    {
+      "columns": [
+        {
+          "description": "",
+          "key": "parameter",
+          "label": "Parameter",
+          "unit": ""
+        },
+        {
+          "description": "",
+          "key": "training_estimate",
+          "label": "Training estimate",
+          "unit": ""
+        },
+        {
+          "description": "",
+          "key": "full_sample_estimate",
+          "label": "Full-sample stability estimate",
+          "unit": ""
+        },
+        {
+          "description": "",
+          "key": "domain_scaled_shift",
+          "label": "Train-to-full domain-scaled shift",
+          "unit": ""
+        }
+      ],
+      "name": "calibrated_parameters",
+      "rows": [
+        {
+          "domain_scaled_shift": 0.00021670778383589898,
+          "full_sample_estimate": 0.044466828957392145,
+          "parameter": "v0",
+          "training_estimate": 0.04425014284433463
+        },
+        {
+          "domain_scaled_shift": 0.016005065337714747,
+          "full_sample_estimate": 3.257511944177447,
+          "parameter": "kappa",
+          "training_estimate": 3.4967876709762824
+        },
+        {
+          "domain_scaled_shift": 0.0018596653530528427,
+          "full_sample_estimate": 0.0662240735924802,
+          "parameter": "theta",
+          "training_estimate": 0.06436459420596266
+        },
+        {
+          "domain_scaled_shift": 0.006316803757320766,
+          "full_sample_estimate": 0.6271476355116502,
+          "parameter": "xi",
+          "training_estimate": 0.5955642484054221
+        },
+        {
+          "domain_scaled_shift": 0.016915015788596884,
+          "full_sample_estimate": -0.779374642076613,
+          "parameter": "rho",
+          "training_estimate": -0.8131708436222296
+        }
+      ]
+    },
+    {
+      "columns": [
+        {
+          "description": "",
+          "key": "phase",
+          "label": "Calibration phase",
+          "unit": ""
+        },
+        {
+          "description": "",
+          "key": "start_index",
+          "label": "Start index",
+          "unit": "count"
+        },
+        {
+          "description": "",
+          "key": "start_v0",
+          "label": "Initial v0",
+          "unit": ""
+        },
+        {
+          "description": "",
+          "key": "start_kappa",
+          "label": "Initial kappa",
+          "unit": ""
+        },
+        {
+          "description": "",
+          "key": "start_theta",
+          "label": "Initial theta",
+          "unit": ""
+        },
+        {
+          "description": "",
+          "key": "start_xi",
+          "label": "Initial xi",
+          "unit": ""
+        },
+        {
+          "description": "",
+          "key": "start_rho",
+          "label": "Initial rho",
+          "unit": ""
+        },
+        {
+          "description": "",
+          "key": "converged",
+          "label": "Converged",
+          "unit": ""
+        },
+        {
+          "description": "",
+          "key": "objective",
+          "label": "Objective value",
+          "unit": ""
+        },
+        {
+          "description": "",
+          "key": "estimate_v0",
+          "label": "Estimate v0",
+          "unit": ""
+        },
+        {
+          "description": "",
+          "key": "estimate_kappa",
+          "label": "Estimate kappa",
+          "unit": ""
+        },
+        {
+          "description": "",
+          "key": "estimate_theta",
+          "label": "Estimate theta",
+          "unit": ""
+        },
+        {
+          "description": "",
+          "key": "estimate_xi",
+          "label": "Estimate xi",
+          "unit": ""
+        },
+        {
+          "description": "",
+          "key": "estimate_rho",
+          "label": "Estimate rho",
+          "unit": ""
+        },
+        {
+          "description": "",
+          "key": "function_evaluations",
+          "label": "Function evaluations",
+          "unit": "count"
+        },
+        {
+          "description": "",
+          "key": "jacobian_evaluations",
+          "label": "Jacobian evaluations",
+          "unit": "count"
+        },
+        {
+          "description": "",
+          "key": "failure",
+          "label": "Failure message",
+          "unit": ""
+        }
+      ],
+      "name": "calibration_starts",
+      "rows": [
+        {
+          "converged": true,
+          "estimate_kappa": 3.496835493484008,
+          "estimate_rho": -0.8131727966570906,
+          "estimate_theta": 0.06436433238262992,
+          "estimate_v0": 0.04425014242994579,
+          "estimate_xi": 0.5955643382315812,
+          "failure": null,
+          "function_evaluations": 18,
+          "jacobian_evaluations": 15,
+          "objective": 4.771246730466729,
+          "phase": "training",
+          "start_index": 1,
+          "start_kappa": 2.0,
+          "start_rho": -0.7,
+          "start_theta": 0.04,
+          "start_v0": 0.04,
+          "start_xi": 0.5
+        },
+        {
+          "converged": true,
+          "estimate_kappa": 3.496746168814936,
+          "estimate_rho": -0.8131671035954932,
+          "estimate_theta": 0.06436487345636255,
+          "estimate_v0": 0.044250147486131715,
+          "estimate_xi": 0.5955662931737232,
+          "failure": null,
+          "function_evaluations": 22,
+          "jacobian_evaluations": 16,
+          "objective": 4.771246725745624,
+          "phase": "training",
+          "start_index": 2,
+          "start_kappa": 1.0,
+          "start_rho": -0.4,
+          "start_theta": 0.06,
+          "start_v0": 0.06,
+          "start_xi": 0.8
+        },
+        {
+          "converged": true,
+          "estimate_kappa": 3.4967876709762824,
+          "estimate_rho": -0.8131708436222296,
+          "estimate_theta": 0.06436459420596266,
+          "estimate_v0": 0.04425014284433463,
+          "estimate_xi": 0.5955642484054221,
+          "failure": null,
+          "function_evaluations": 17,
+          "jacobian_evaluations": 13,
+          "objective": 4.771246725350672,
+          "phase": "training",
+          "start_index": 3,
+          "start_kappa": 5.0,
+          "start_rho": -0.85,
+          "start_theta": 0.02,
+          "start_v0": 0.02,
+          "start_xi": 0.3
+        },
+        {
+          "converged": true,
+          "estimate_kappa": 3.25754255852459,
+          "estimate_rho": -0.7793761148572838,
+          "estimate_theta": 0.06622386093295123,
+          "estimate_v0": 0.04446683005042118,
+          "estimate_xi": 0.6271473784312587,
+          "failure": null,
+          "function_evaluations": 18,
+          "jacobian_evaluations": 12,
+          "objective": 12.557496290000216,
+          "phase": "full_sample_stability",
+          "start_index": 1,
+          "start_kappa": 2.0,
+          "start_rho": -0.7,
+          "start_theta": 0.04,
+          "start_v0": 0.04,
+          "start_xi": 0.5
+        },
+        {
+          "converged": true,
+          "estimate_kappa": 3.2574904414047485,
+          "estimate_rho": -0.7793736761717402,
+          "estimate_theta": 0.06622422064167238,
+          "estimate_v0": 0.044466827942660825,
+          "estimate_xi": 0.6271477340636893,
+          "failure": null,
+          "function_evaluations": 24,
+          "jacobian_evaluations": 18,
+          "objective": 12.55749628743053,
+          "phase": "full_sample_stability",
+          "start_index": 2,
+          "start_kappa": 1.0,
+          "start_rho": -0.4,
+          "start_theta": 0.06,
+          "start_v0": 0.06,
+          "start_xi": 0.8
+        },
+        {
+          "converged": true,
+          "estimate_kappa": 3.257511944177447,
+          "estimate_rho": -0.779374642076613,
+          "estimate_theta": 0.0662240735924802,
+          "estimate_v0": 0.044466828957392145,
+          "estimate_xi": 0.6271476355116502,
+          "failure": null,
+          "function_evaluations": 19,
+          "jacobian_evaluations": 15,
+          "objective": 12.557496286669505,
+          "phase": "full_sample_stability",
+          "start_index": 3,
+          "start_kappa": 5.0,
+          "start_rho": -0.85,
+          "start_theta": 0.02,
+          "start_v0": 0.02,
+          "start_xi": 0.3
+        }
+      ]
+    },
+    {
+      "columns": [
+        {
+          "description": "",
+          "key": "metric",
+          "label": "Metric",
+          "unit": ""
+        },
+        {
+          "description": "",
+          "key": "value",
+          "label": "Value",
+          "unit": ""
+        }
+      ],
+      "name": "stability",
+      "rows": [
+        {
+          "metric": "successful_training_starts",
+          "value": 3
+        },
+        {
+          "metric": "failed_training_starts",
+          "value": 0
+        },
+        {
+          "metric": "maximum_training_start_domain_scaled_spread",
+          "value": 5.9748942522831556e-06
+        },
+        {
+          "metric": "maximum_train_to_full_domain_scaled_shift",
+          "value": 0.016915015788596884
+        }
+      ]
+    },
+    {
+      "columns": [
+        {
+          "description": "",
+          "key": "phase",
+          "label": "Calibration phase",
+          "unit": ""
+        },
+        {
+          "description": "",
+          "key": "jacobian_rank",
+          "label": "Jacobian rank",
+          "unit": "count"
+        },
+        {
+          "description": "",
+          "key": "parameter_count",
+          "label": "Parameter count",
+          "unit": "count"
+        },
+        {
+          "description": "",
+          "key": "target_count",
+          "label": "Target count",
+          "unit": "count"
+        },
+        {
+          "description": "",
+          "key": "rank_deficient",
+          "label": "Rank deficient",
+          "unit": ""
+        },
+        {
+          "description": "",
+          "key": "condition_number",
+          "label": "Condition number",
+          "unit": ""
+        },
+        {
+          "description": "",
+          "key": "singular_values",
+          "label": "Singular values",
+          "unit": ""
+        }
+      ],
+      "name": "conditioning",
+      "rows": [
+        {
+          "condition_number": 424.92501840372165,
+          "jacobian_rank": 5,
+          "parameter_count": 5,
+          "phase": "training",
+          "rank_deficient": false,
+          "singular_values": "7173.301716549138, 1763.352626498761, 494.46239777397, 58.190809802390376, 16.881335308277325",
+          "target_count": 10
+        },
+        {
+          "condition_number": 403.9195466313549,
+          "jacobian_rank": 5,
+          "parameter_count": 5,
+          "phase": "full_sample_stability",
+          "rank_deficient": false,
+          "singular_values": "9338.216617503516, 2133.8150103425605, 563.255644078226, 74.5632979019606, 23.119001532318077",
+          "target_count": 14
+        }
+      ]
+    },
+    {
+      "columns": [
+        {
+          "description": "",
+          "key": "item",
+          "label": "Assumption / non-claim",
+          "unit": ""
+        },
+        {
+          "description": "",
+          "key": "value",
+          "label": "Value",
+          "unit": ""
+        }
+      ],
+      "name": "assumptions",
+      "rows": [
+        {
+          "item": "valuation_date",
+          "value": "2023-01-04"
+        },
+        {
+          "item": "pricing_measure",
+          "value": "Q^N"
+        },
+        {
+          "item": "day_count",
+          "value": "ACT/365F"
+        },
+        {
+          "item": "rate",
+          "value": 0.045
+        },
+        {
+          "item": "continuous_dividend_yield",
+          "value": 0.017
+        },
+        {
+          "item": "training_contract_count",
+          "value": 10
+        },
+        {
+          "item": "heldout_contract_count",
+          "value": 4
+        },
+        {
+          "item": "temporal_out_of_sample_tested",
+          "value": false
+        },
+        {
+          "item": "heston_hedge_comparison_supported",
+          "value": false
+        },
+        {
+          "item": "historical_trading_profit_result",
+          "value": false
+        },
+        {
+          "item": "global_heston_identification_proven",
+          "value": false
+        }
+      ]
+    },
+    {
+      "columns": [
+        {
+          "description": "",
+          "key": "field",
+          "label": "Field",
+          "unit": ""
+        },
+        {
+          "description": "",
+          "key": "value",
+          "label": "Value",
+          "unit": ""
+        }
+      ],
+      "name": "provenance",
+      "rows": [
+        {
+          "field": "provider",
+          "value": "UI5 M7 deterministic reference"
+        },
+        {
+          "field": "source",
+          "value": "derived from published M4 evidence; not raw market data"
+        },
+        {
+          "field": "market_date",
+          "value": "2023-01-04"
+        },
+        {
+          "field": "retrieved_at",
+          "value": "2026-09-10T00:00:00+00:00"
+        },
+        {
+          "field": "raw_artifact_sha256",
+          "value": null
+        },
+        {
+          "field": "license_notes",
+          "value": "derived research fixture only; raw rows are not redistributed"
+        }
+      ]
+    },
+    {
+      "columns": [
+        {
+          "description": "",
+          "key": "workload_id",
+          "label": "Workload ID",
+          "unit": ""
+        },
+        {
+          "description": "",
+          "key": "label",
+          "label": "Label",
+          "unit": ""
+        },
+        {
+          "description": "",
+          "key": "baseline_seconds",
+          "label": "Baseline median",
+          "unit": "seconds"
+        },
+        {
+          "description": "",
+          "key": "optimized_seconds",
+          "label": "Optimized median",
+          "unit": "seconds"
+        },
+        {
+          "description": "",
+          "key": "speedup_x",
+          "label": "Speedup",
+          "unit": "x"
+        },
+        {
+          "description": "",
+          "key": "heavy_workload",
+          "label": "Heavy workload",
+          "unit": ""
+        },
+        {
+          "description": "",
+          "key": "detail",
+          "label": "Detail",
+          "unit": ""
+        }
+      ],
+      "name": "performance",
+      "rows": [
+        {
+          "baseline_seconds": 2.083384e-06,
+          "detail": "Readable scalar reference; microbenchmark difference is runner/process noise, not a performance claim.",
+          "heavy_workload": false,
+          "label": "Black-Scholes scalar",
+          "optimized_seconds": 2.271688e-06,
+          "speedup_x": 0.917108,
+          "workload_id": "bs_closed_form_single"
+        },
+        {
+          "baseline_seconds": 0.0007491704,
+          "detail": "Readable scalar Fourier reference intentionally retained rather than optimized.",
+          "heavy_workload": false,
+          "label": "Heston Fourier scalar",
+          "optimized_seconds": 0.00081811415,
+          "speedup_x": 0.915733,
+          "workload_id": "heston_fourier_single"
+        },
+        {
+          "baseline_seconds": 3.367340221,
+          "detail": "20,000 paths, 252 timesteps, 5,040,000 path-step transitions and 10,080,000 Gaussian draws.",
+          "heavy_workload": true,
+          "label": "Heston MC \u00b7 20k \u00d7 252",
+          "optimized_seconds": 0.122979639,
+          "speedup_x": 27.381282,
+          "workload_id": "heston_mc_reference"
+        },
+        {
+          "baseline_seconds": 2.291878464,
+          "detail": "10 training targets and 3 predeclared optimizer starts.",
+          "heavy_workload": true,
+          "label": "Heston calibration \u00b7 10 targets",
+          "optimized_seconds": 0.497131053,
+          "speedup_x": 4.61021,
+          "workload_id": "heston_training_calibration"
+        },
+        {
+          "baseline_seconds": 3.275180944,
+          "detail": "14 full-sample targets and 3 predeclared optimizer starts.",
+          "heavy_workload": true,
+          "label": "Heston stability \u00b7 14 targets",
+          "optimized_seconds": 0.545351821,
+          "speedup_x": 6.005629,
+          "workload_id": "heston_full_sample_stability_calibration"
+        },
+        {
+          "baseline_seconds": 5.413630502,
+          "detail": "10 training / 4 held-out M7 cross-sectional validation study.",
+          "heavy_workload": true,
+          "label": "Complete M7 validation",
+          "optimized_seconds": 1.081868411,
+          "speedup_x": 5.003964,
+          "workload_id": "m7_end_to_end_cross_sectional_validation"
+        }
+      ]
+    }
+  ],
+  "title": "Black-Scholes versus Heston model-validation evidence"
+}

@@ -1,0 +1,12 @@
+Assumption / non-claim,Value
+valuation_date,2023-01-04
+pricing_measure,Q^N
+day_count,ACT/365F
+rate,0.045
+continuous_dividend_yield,0.017
+training_contract_count,10
+heldout_contract_count,4
+temporal_out_of_sample_tested,False
+heston_hedge_comparison_supported,False
+historical_trading_profit_result,False
+global_heston_identification_proven,False

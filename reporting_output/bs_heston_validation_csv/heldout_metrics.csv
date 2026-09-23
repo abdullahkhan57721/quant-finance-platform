@@ -1,0 +1,3 @@
+Model,Observations [count],Mean residual [price units],Mean absolute error [price units],Root mean square error [price units],Relative mean absolute error [fraction],Standardized mean absolute error,Standardized root mean square error,Maximum absolute standardized residual
+black_scholes,4,0.11023271453952255,7.456472869611504,8.411568146985482,0.08268950895346122,19.20511017186196,20.61275440657798,27.205648956386053
+heston,4,0.23764635369339437,0.5642371054313617,0.6712381452487549,0.006551468133304581,1.461598244918851,1.6494143531887964,2.4940594970013783
