@@ -1,0 +1,5 @@
+Contract ID,Expiry,Strike [spot units],Right,Bid [price units],Ask [price units],Normalized midpoint target [price units],Observed spot [spot units],Normalization version
+SPXW-2023-02-03-put-3850,2023-02-03,3850.0,put,87.9,88.6,88.25,3853.39,m4-midpoint-v1
+SPXW-2023-02-03-call-3970,2023-02-03,3970.0,call,43.9,44.4,44.15,3853.39,m4-midpoint-v1
+SPXW-2023-04-28-put-3800,2023-04-28,3800.0,put,148.527073064,149.42707306399998,148.977073064,3853.39,m4-midpoint-v1
+SPXW-2023-04-28-call-4075,2023-04-28,4075.0,call,94.3311299864,95.2311299864,94.7811299864,3853.39,m4-midpoint-v1

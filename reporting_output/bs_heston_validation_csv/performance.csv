@@ -1,0 +1,7 @@
+Workload ID,Label,Baseline median [seconds],Optimized median [seconds],Speedup [x],Heavy workload,Detail
+bs_closed_form_single,Black-Scholes scalar,2.083384e-06,2.271688e-06,0.917108,False,"Readable scalar reference; microbenchmark difference is runner/process noise, not a performance claim."
+heston_fourier_single,Heston Fourier scalar,0.0007491704,0.00081811415,0.915733,False,Readable scalar Fourier reference intentionally retained rather than optimized.
+heston_mc_reference,Heston MC · 20k × 252,3.367340221,0.122979639,27.381282,True,"20,000 paths, 252 timesteps, 5,040,000 path-step transitions and 10,080,000 Gaussian draws."
+heston_training_calibration,Heston calibration · 10 targets,2.291878464,0.497131053,4.61021,True,10 training targets and 3 predeclared optimizer starts.
+heston_full_sample_stability_calibration,Heston stability · 14 targets,3.275180944,0.545351821,6.005629,True,14 full-sample targets and 3 predeclared optimizer starts.
+m7_end_to_end_cross_sectional_validation,Complete M7 validation,5.413630502,1.081868411,5.003964,True,10 training / 4 held-out M7 cross-sectional validation study.

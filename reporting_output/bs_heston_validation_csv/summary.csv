@@ -1,0 +1,7 @@
+Item,Value
+design,same-date cross-sectional 10-training / 4-held-out validation
+black_scholes_training_volatility,0.20890697909377048
+heston_lower_training_price_rmse,True
+heston_lower_heldout_price_rmse,True
+heston_lower_heldout_standardized_rmse,True
+conclusion,"Under this predeclared same-date cross-sectional holdout, explicit rate/carry convention, price-space objective, and selected observations, Heston improves held-out price and half-spread-standardized RMSE relative to the one-volatility Black-Scholes benchmark. This does not establish temporal generalization or model validity; calibration conditioning, limited date/maturity coverage, numerical cost, and unsupported Heston hedging remain material limitations."
