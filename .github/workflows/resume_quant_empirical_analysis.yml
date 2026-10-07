@@ -1,0 +1,37 @@
+name: Resume Quant Empirical Analysis
+
+on:
+  push:
+    branches:
+      - analysis/resume-quant-results-20261007
+    paths:
+      - scripts/resume_quant_empirical_analysis.py
+      - .github/workflows/resume_quant_empirical_analysis.yml
+  workflow_dispatch:
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+      - name: Install analysis dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install numpy pandas scipy scikit-learn yfinance arch
+      - name: Run empirical analysis
+        run: python scripts/resume_quant_empirical_analysis.py --output resume_quant_results.json
+      - name: Upload result evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: resume-quant-results
+          path: |
+            resume_quant_results.json
+            resume_quant_results.sqlite
+          if-no-files-found: warn
+          retention-days: 30
